@@ -9,19 +9,16 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import org.slf4j.*;
 
-// The value here should match an entry in the META-INF/mods.toml file
-@Mod(Capitol.MODID)
+@Mod(Capitol.MOD_ID)
 public class Capitol {
 
-    // Define mod id in a common place for everything to reference
-    public static final String MODID = "capitol";
-    // Directly reference a slf4j logger
-    private static final Logger LOGGER = LoggerFactory.getLogger(MODID);
+    public static final String MOD_ID = "capitol";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public Capitol() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
         // Register ourselves for server and other game events we are interested in
