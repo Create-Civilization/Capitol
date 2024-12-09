@@ -1,5 +1,7 @@
 package com.createcivilization.capitol;
 
+import net.minecraft.server.MinecraftServer;
+
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.*;
@@ -9,6 +11,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import org.slf4j.*;
 
+import wiiu.mavity.util.ObjectHolder;
+
 // git push origin main
 @Mod(Capitol.MOD_ID)
 public class Capitol {
@@ -16,6 +20,8 @@ public class Capitol {
     public static final String MOD_ID = "capitol";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+    public static ObjectHolder<MinecraftServer> server = new ObjectHolder<>();
 
     public Capitol() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -30,5 +36,7 @@ public class Capitol {
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {}
+    public void onServerStarting(ServerStartingEvent event) {
+        server.set(event.getServer()); // Cache server
+    }
 }
