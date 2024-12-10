@@ -1,70 +1,36 @@
 package com.createcivilization.capitol.mixin;
 
-import com.createcivilization.capitol.util.*;
+import com.createcivilization.capitol.util.TeamUtils;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.*;
 
 import java.io.*;
-import java.util.StringJoiner;
 
 @SuppressWarnings("all")
 @Mixin(MinecraftServer.class)
-public abstract class DataSaverImpl implements IDataSaver {
-
-    private CompoundTag data;
-
-    @Override
-    public CompoundTag getData() {
-        if (data == null) data = new CompoundTag();
-        return data;
-    }
+public abstract class DataSaverImpl {
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;saveAll()V", shift = At.Shift.BEFORE), method = "saveEverything")
-    private void saveData(boolean p_195515_, boolean p_195516_, boolean p_195517_, CallbackInfoReturnable<Boolean> cir) {
-        System.out.println("Lmao no");
-        System.exit(0);
+    private void autoSaveTeams(boolean p_195515_, boolean p_195516_, boolean p_195517_, CallbackInfoReturnable<Boolean> cir) throws IOException {
+        TeamUtils.saveTeams();
+    }
+
+    @Inject(at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;)V", shift = At.Shift.BEFORE, ordinal = 1), method = "stopServer")
+    private void saveTeams(CallbackInfo ci) throws IOException {
+        TeamUtils.saveTeams();
     }
 
     @Mixin(DedicatedServer.class)
     public abstract static class DataSaverImplButWeSaveTheData {
 
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
-        public void initServer(CallbackInfoReturnable<Boolean> cir) throws IOException {
-            System.out.println("War crimes");
-            var file = TeamUtils.getTeamDataFile();
-            var reader = new BufferedReader(new FileReader(file));
-            StringJoiner sj = new StringJoiner("\n");
-            reader.lines().forEach(sj::add);
-            reader.close();
-            String json = sj.toString();
-            if (json.isBlank() || json.isEmpty()) {
-                try {
-                    var f = new FileWriter(file);
-                    f.write(
-                            "[" +
-                            "\n" +
-                            "]"
-                    );
-                    f.close();
-                    reader = new BufferedReader(new FileReader(file));
-                    sj = new StringJoiner("\n");
-                    reader.lines().forEach(sj::add);
-                    reader.close();
-                    json = sj.toString();
-                } finally {
-                    System.out.println("Printing empty!");
-                    System.out.println(TeamUtils.parseTeams(json).toString());
-                }
-            } else {
-                System.out.println("Printing non-empty!");
-                System.out.println(TeamUtils.parseTeams(json).toString());
-            }
+        public void loadTeams(CallbackInfoReturnable<Boolean> cir) throws IOException {
+            TeamUtils.loadTeams();
         }
     }
 }

@@ -69,6 +69,27 @@ public class Team {
         }
     }
 
+    public static enum TeamPermssion {
+        OWNER(true, true, true, true, true),
+        MODERATOR(true, true, true, false, true),
+        MEMBER(true, true, true, false, false);
+
+        private final boolean
+                canBreakBlocks,
+                canUseBlocks,
+                canUseItems,
+                canManageTeam,
+                canManageMembers;
+
+        private TeamPermssion(boolean canBreakBlocks, boolean canUseBlocks, boolean canUseItems, boolean canManageTeam, boolean canManageMembers) {
+            this.canBreakBlocks = canBreakBlocks;
+            this.canUseBlocks = canUseBlocks;
+            this.canUseItems = canUseItems;
+            this.canManageTeam = canManageTeam;
+            this.canManageMembers = canManageMembers;
+        }
+    }
+
     public static class TeamBuilder {
 
         private String name, teamId;

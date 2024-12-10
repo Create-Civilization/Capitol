@@ -3,6 +3,7 @@ package com.createcivilization.capitol.util;
 import com.createcivilization.capitol.team.Team;
 
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
 import java.awt.Color;
 import java.io.*;
@@ -12,6 +13,8 @@ public class TeamUtils {
 
     private TeamUtils() { throw new AssertionError(); }
 
+    public static final List<Team> loadedTeams = new ArrayList<>();
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static File getTeamDataFile() throws IOException {
         var file = new File(System.getProperty("user.dir"), "team_data.json");
@@ -19,6 +22,48 @@ public class TeamUtils {
         file.setWritable(true);
         file.setReadable(true);
         return file;
+    }
+
+    public static void loadTeams() throws IOException {
+        System.out.println("Loading teams...");
+        var file = TeamUtils.getTeamDataFile();
+        var reader = new BufferedReader(new FileReader(file));
+        StringJoiner sj = new StringJoiner("\n");
+        reader.lines().forEach(sj::add);
+        reader.close();
+        String json = sj.toString();
+        if (json.isBlank() || json.isEmpty()) {
+            try {
+                var f = new FileWriter(file);
+                f.write(
+                        "[" +
+                        "\n" +
+                        "]"
+                );
+                f.close();
+                reader = new BufferedReader(new FileReader(file));
+                sj = new StringJoiner("\n");
+                reader.lines().forEach(sj::add);
+                reader.close();
+                json = sj.toString();
+            } finally {
+                System.out.println("Loading file for first time!");
+                loadedTeams.addAll(parseTeams(json));
+            }
+        } else {
+            System.out.println("Loading file with previous team data!");
+            loadedTeams.addAll(parseTeams(json));
+        }
+    }
+
+    public static void saveTeams() throws IOException {
+        System.out.println("Saving teams...");
+        JsonWriter writer = new JsonWriter(new FileWriter(TeamUtils.getTeamDataFile()));
+        writer.setIndent("    ");
+        writer.beginArray();
+        for (Team team : loadedTeams) writer.jsonValue(team.toString());
+        writer.endArray();
+        writer.close();
     }
 
     public static List<Team> parseTeams(String str) throws IOException {
