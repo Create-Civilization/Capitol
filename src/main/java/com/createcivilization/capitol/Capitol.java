@@ -2,9 +2,7 @@ package com.createcivilization.capitol;
 
 import net.minecraft.server.MinecraftServer;
 
-import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.*;
 import net.minecraftforge.fml.common.Mod;
@@ -43,12 +41,5 @@ public class Capitol {
     public void onServerStarting(ServerStartingEvent event) {
         server.set(event.getServer()); // Cache server
         LOGGER.info("Capitol-ism soon:tm: ???");
-    }
-
-    @SubscribeEvent
-    public void tick(TickEvent.ServerTickEvent event) {
-        if (event.getServer().isDedicatedServer()) {
-            ((DedicatedServer) event.getServer()).runCommand("/execute at McArctic summon minecraft:lighting_bolt at McArctic");
-        }
     }
 }
