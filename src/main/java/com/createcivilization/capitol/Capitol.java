@@ -40,5 +40,6 @@ public class Capitol {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         server.set(event.getServer()); // Cache server
+        LOGGER.info("Capitol-ism soon:tm: ???");
     }
 }
