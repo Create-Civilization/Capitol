@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.io.*;
 import java.util.*;
 
+@SuppressWarnings("all")
 public class Team {
 
     private final String name, teamId;

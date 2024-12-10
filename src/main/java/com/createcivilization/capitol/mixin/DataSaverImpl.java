@@ -45,15 +45,24 @@ public abstract class DataSaverImpl implements IDataSaver {
             String json = sj.toString();
             if (json.isBlank() || json.isEmpty()) {
                 try {
-                    new FileWriter(file).append(
+                    var f = new FileWriter(file);
+                    f.write(
                             "[" +
                             "\n" +
                             "]"
                     );
+                    f.close();
+                    reader = new BufferedReader(new FileReader(file));
+                    sj = new StringJoiner("\n");
+                    reader.lines().forEach(sj::add);
+                    reader.close();
+                    json = sj.toString();
                 } finally {
+                    System.out.println("Printing empty!");
                     System.out.println(TeamUtils.parseTeam(json).toString());
                 }
             } else {
+                System.out.println("Printing non-empty!");
                 System.out.println(TeamUtils.parseTeam(json).toString());
             }
         }

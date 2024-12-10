@@ -2,6 +2,8 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.team.Team;
 
+import com.google.gson.stream.JsonReader;
+
 import java.awt.Color;
 import java.io.*;
 import java.util.*;
@@ -19,13 +21,51 @@ public class TeamUtils {
         return file;
     }
 
-    public static Team parseTeam(String str) {
-        System.out.println(str);
+    public static List<Team> parseTeams(String str) throws IOException {
+        JsonReader reader = new JsonReader(new StringReader(str));
+        List<Team> teams = new ArrayList<>();
+        reader.beginArray();
+        while (reader.hasNext()) {
+            teams.add(parseTeam(reader));
+        }
+        reader.endArray();
+        return teams;
+    }
+
+    public static Team parseTeam(JsonReader reader) throws IOException {
+        String name = null, teamId = null;
+        Map<String, List<UUID>> players = new HashMap<>();
+        Color color = null;
+        reader.beginObject();
+        switch (reader.nextName()) {
+            case "name": name = reader.nextString();
+            case "teamId": teamId = reader.nextString();
+            case "color": color = new Color(reader.nextInt());
+            case "players": {
+                reader.beginObject();
+                while (reader.hasNext()) {
+                    players.put(reader.nextName(), getListOfUUIDs(reader));
+                }
+                reader.endObject();
+            }
+        }
         return Team.TeamBuilder.create()
-                .setName("test")
-                .setTeamId("alsoATest")
-                .addPlayer("owner", new ArrayList<>(List.of(UUID.randomUUID())))
-                .setColor(Color.RED)
+                .setName(name)
+                .setTeamId(teamId)
+                .setPlayers(players)
+                .setColor(color)
                 .build();
+    }
+
+    private static List<UUID> getListOfUUIDs(JsonReader reader) throws IOException {
+        List<UUID> UUIDs = new ArrayList<>();
+        while (reader.hasNext()) {
+            UUIDs.add(UUID.fromString(reader.nextString()));
+        }
+        return UUIDs;
+    }
+
+    public static Team parseTeam(String str) throws IOException {
+        return parseTeam(new JsonReader(new StringReader(str)));
     }
 }
