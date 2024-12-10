@@ -37,16 +37,16 @@ public class TeamUtils {
         reader.beginObject();
         while (reader.hasNext()) {
             switch (reader.nextName()) {
-                case "name": name = reader.nextString();
-                case "teamId": teamId = reader.nextString();
-                case "color": color = new Color(reader.nextInt());
-                case "players": {
+                case "name" -> name = reader.nextString();
+                case "teamId" -> teamId = reader.nextString();
+                case "color" -> color = new Color(reader.nextInt());
+                case "players" -> {
                     reader.beginObject();
                     while (reader.hasNext()) {
                         switch (reader.nextName()) {
-                            case "owner": players.put("owner", getListOfUUIDs(reader));
-                            case "mod": players.put("mod", getListOfUUIDs(reader));
-                            case "member": players.put("member", getListOfUUIDs(reader));
+                            case "owner" -> players.put("owner", getListOfUUIDs(reader));
+                            case "mod" -> players.put("mod", getListOfUUIDs(reader));
+                            case "member" -> players.put("member", getListOfUUIDs(reader));
                         }
                     }
                     reader.endObject();
@@ -65,7 +65,7 @@ public class TeamUtils {
     private static List<UUID> getListOfUUIDs(JsonReader reader) throws IOException {
         List<UUID> UUIDs = new ArrayList<>();
         reader.beginArray();
-        while (reader.hasNext()) UUIDs.add(UUID.fromString(reader.nextName()));
+        while (reader.hasNext()) UUIDs.add(UUID.fromString(reader.nextString()));
         reader.endArray();
         return UUIDs;
     }
