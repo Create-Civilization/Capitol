@@ -2,19 +2,23 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.team.Team;
 
-import java.awt.Color;
-import java.io.File;
-import java.util.HashMap;
+import java.io.*;
 
 public class TeamUtils {
 
     private TeamUtils() { throw new AssertionError(); }
 
-    public static File getTeamDataFile() {
-        return new File(System.getProperty("user.dir"), "team_data.json");
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static File getTeamDataFile() throws IOException {
+        var file = new File(System.getProperty("user.dir"), "team_data.json");
+        if (!file.exists()) file.createNewFile();
+        file.setWritable(true);
+        file.setReadable(true);
+        return file;
     }
 
     public static Team parseTeam(String str) {
-        return new Team("", "", new HashMap<>(), Color.WHITE);
+
+        return Team.TeamBuilder.create().build();
     }
 }

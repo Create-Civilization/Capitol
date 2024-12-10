@@ -10,22 +10,22 @@ public class Team {
 
     private final String name, teamId;
 
-    private final Map<String, UUID> players;
+    private final Map<String, List<UUID>> players;
 
-    private final Color colour;
+    private final Color color;
 
-    public Team(String name, String teamId, Map<String, UUID> players, Color colour) {
+    private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
         this.name = name;
         this.teamId = teamId;
         this.players = players;
-        this.colour = colour;
+        this.color = colour;
     }
 
-    public Color getColour() {
-        return colour;
+    public Color getColor() {
+        return color;
     }
 
-    public Map<String, UUID> getPlayers() {
+    public Map<String, List<UUID>> getPlayers() {
         return players;
     }
 
@@ -45,10 +45,13 @@ public class Team {
             writer.beginObject();
             writer.name("name").value(name);
             writer.name("teamId").value(teamId);
-            writer.name("colour").value(colour.getRGB());
+            writer.name("color").value(color.getRGB());
             writer.name("players").beginObject();
-            for (Map.Entry<String, UUID> entry : players.entrySet()) {
-                writer.name(entry.getKey()).value(entry.getValue().toString());
+            for (Map.Entry<String, List<UUID>> entry : players.entrySet()) {
+                writer.name(entry.getKey()).beginArray();
+                for (UUID uuid : entry.getValue()) writer.name(uuid.toString());
+                writer.endArray();
+                writer.endObject();
             }
             writer.endObject();
             writer.endObject();
@@ -58,12 +61,61 @@ public class Team {
 
         try {
             return writer.getClass().getField("out").get(writer).toString();
-        } catch (IllegalAccessException | NoSuchFieldException e) {
+        } catch (Throwable e) {
             throw new RuntimeException("That's not even possible, bruh how'd you do that", e);
         }
     }
 
     public static class TeamBuilder {
 
+        private String name, teamId;
+
+        private Map<String, List<UUID>> players = new HashMap<>();
+
+        private Color color;
+
+        private TeamBuilder() {}
+
+        public static TeamBuilder create() {
+            return new TeamBuilder();
+        }
+
+        public TeamBuilder setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public TeamBuilder setTeamId(String teamId) {
+            this.teamId = teamId;
+            return this;
+        }
+
+        public TeamBuilder setColor(Color color) {
+            this.color = color;
+            return this;
+        }
+
+        public TeamBuilder addPlayer(String permissionLevel, List<UUID> players) {
+            this.players.put(permissionLevel, players);
+            return this;
+        }
+
+        public TeamBuilder setPlayers(Map<String, List<UUID>> players) {
+            this.players = players;
+            return this;
+        }
+
+        public TeamBuilder addPlayers(Map<String, List<UUID>> players) {
+            this.players.putAll(players);
+            return this;
+        }
+
+        public Team build() {
+            Objects.requireNonNull(name);
+            Objects.requireNonNull(teamId);
+            Objects.requireNonNull(players);
+            Objects.requireNonNull(color);
+            return new Team(name, teamId, players, color);
+        }
     }
 }

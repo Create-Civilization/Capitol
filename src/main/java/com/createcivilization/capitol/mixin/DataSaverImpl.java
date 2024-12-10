@@ -2,8 +2,6 @@ package com.createcivilization.capitol.mixin;
 
 import com.createcivilization.capitol.util.*;
 
-import com.google.gson.stream.JsonReader;
-
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
@@ -13,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.*;
+import java.util.StringJoiner;
 
 @SuppressWarnings("all")
 @Mixin(MinecraftServer.class)
@@ -36,11 +35,21 @@ public abstract class DataSaverImpl implements IDataSaver {
     public abstract static class DataSaverImplButWeSaveTheData {
 
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
-        public void initServer(CallbackInfoReturnable<Boolean> cir) {
-            try {
-                JsonReader reader = new JsonReader(new FileReader(TeamUtils.getTeamDataFile()));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        public void initServer(CallbackInfoReturnable<Boolean> cir) throws IOException {
+            System.out.println("War crimes");
+            var file = TeamUtils.getTeamDataFile();
+            var reader = new BufferedReader(new FileReader(file));
+            StringJoiner sj = new StringJoiner("\n");
+            reader.lines().forEach(sj::add);
+            reader.close();
+            String json = sj.toString();
+            if (json.isBlank() || json.isEmpty()) {
+                new FileWriter(file).write(
+                        "{" +
+                        "\n" +
+                        "}");
+            } else {
+                TeamUtils.parseTeam(json).toString();
             }
         }
     }
