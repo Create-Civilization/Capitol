@@ -44,12 +44,17 @@ public abstract class DataSaverImpl implements IDataSaver {
             reader.close();
             String json = sj.toString();
             if (json.isBlank() || json.isEmpty()) {
-                new FileWriter(file).write(
-                        "{" +
-                        "\n" +
-                        "}");
+                try {
+                    new FileWriter(file).append(
+                            "[" +
+                            "\n" +
+                            "]"
+                    );
+                } finally {
+                    System.out.println(TeamUtils.parseTeam(json).toString());
+                }
             } else {
-                TeamUtils.parseTeam(json).toString();
+                System.out.println(TeamUtils.parseTeam(json).toString());
             }
         }
     }

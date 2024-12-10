@@ -2,7 +2,9 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.team.Team;
 
+import java.awt.Color;
 import java.io.*;
+import java.util.*;
 
 public class TeamUtils {
 
@@ -18,7 +20,12 @@ public class TeamUtils {
     }
 
     public static Team parseTeam(String str) {
-
-        return Team.TeamBuilder.create().build();
+        System.out.println(str);
+        return Team.TeamBuilder.create()
+                .setName("test")
+                .setTeamId("alsoATest")
+                .addPlayer("owner", new ArrayList<>(List.of(UUID.randomUUID())))
+                .setColor(Color.RED)
+                .build();
     }
 }

@@ -40,6 +40,7 @@ public class Team {
     @Override
     public String toString() {
         JsonWriter writer = new JsonWriter(new StringWriter());
+        writer.setIndent("    ");
 
         try {
             writer.beginObject();
@@ -49,9 +50,8 @@ public class Team {
             writer.name("players").beginObject();
             for (Map.Entry<String, List<UUID>> entry : players.entrySet()) {
                 writer.name(entry.getKey()).beginArray();
-                for (UUID uuid : entry.getValue()) writer.name(uuid.toString());
+                for (UUID uuid : entry.getValue()) writer.value(uuid.toString());
                 writer.endArray();
-                writer.endObject();
             }
             writer.endObject();
             writer.endObject();
@@ -60,7 +60,9 @@ public class Team {
         }
 
         try {
-            return writer.getClass().getField("out").get(writer).toString();
+            var field = writer.getClass().getDeclaredField("out");
+            field.trySetAccessible();
+            return field.get(writer).toString();
         } catch (Throwable e) {
             throw new RuntimeException("That's not even possible, bruh how'd you do that", e);
         }
@@ -96,7 +98,9 @@ public class Team {
         }
 
         public TeamBuilder addPlayer(String permissionLevel, List<UUID> players) {
-            this.players.put(permissionLevel, players);
+            var alreadyAdded = this.players.get(permissionLevel);
+            if (alreadyAdded != null) alreadyAdded.addAll(players);
+            else this.players.put(permissionLevel, players);
             return this;
         }
 
@@ -106,7 +110,7 @@ public class Team {
         }
 
         public TeamBuilder addPlayers(Map<String, List<UUID>> players) {
-            this.players.putAll(players);
+            for (Map.Entry<String, List<UUID>> entry : players.entrySet()) addPlayer(entry.getKey(), entry.getValue());
             return this;
         }
 
