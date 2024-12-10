@@ -25,9 +25,7 @@ public class TeamUtils {
         JsonReader reader = new JsonReader(new StringReader(str));
         List<Team> teams = new ArrayList<>();
         reader.beginArray();
-        while (reader.hasNext()) {
-            teams.add(parseTeam(reader));
-        }
+        while (reader.hasNext()) teams.add(parseTeam(reader));
         reader.endArray();
         return teams;
     }
@@ -49,6 +47,7 @@ public class TeamUtils {
                 reader.endObject();
             }
         }
+        reader.endObject();
         return Team.TeamBuilder.create()
                 .setName(name)
                 .setTeamId(teamId)

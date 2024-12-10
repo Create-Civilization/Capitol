@@ -59,11 +59,11 @@ public abstract class DataSaverImpl implements IDataSaver {
                     json = sj.toString();
                 } finally {
                     System.out.println("Printing empty!");
-                    System.out.println(TeamUtils.parseTeam(json).toString());
+                    System.out.println(TeamUtils.parseTeams(json).toString());
                 }
             } else {
                 System.out.println("Printing non-empty!");
-                System.out.println(TeamUtils.parseTeam(json).toString());
+                System.out.println(TeamUtils.parseTeams(json).toString());
             }
         }
     }
