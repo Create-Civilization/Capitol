@@ -14,6 +14,7 @@ import org.slf4j.*;
 import wiiu.mavity.util.ObjectHolder;
 
 // git push origin main
+// git pull
 @Mod(Capitol.MOD_ID)
 public class Capitol {
 
@@ -23,6 +24,7 @@ public class Capitol {
 
     public static ObjectHolder<MinecraftServer> server = new ObjectHolder<>();
 
+    @SuppressWarnings("removal") // Forge docs are gaslighting when it says to place FMLJavaModLoadingContext in the constructor
     public Capitol() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 

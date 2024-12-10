@@ -5,11 +5,11 @@ import com.mojang.brigadier.context.CommandContext;
 
 import net.minecraft.commands.*;
 
-public class AbstractCommand {
+public abstract class AbstractCommand {
 
     private final String commandName;
 
-    public AbstractCommand(String commandName) {
+    protected AbstractCommand(String commandName) {
         this.commandName = commandName;
     }
 
@@ -23,7 +23,5 @@ public class AbstractCommand {
         );
     }
 
-    public int execute(CommandContext<CommandSourceStack> command) {
-        return 1;
-    }
+    public abstract int execute(CommandContext<CommandSourceStack> command);
 }
