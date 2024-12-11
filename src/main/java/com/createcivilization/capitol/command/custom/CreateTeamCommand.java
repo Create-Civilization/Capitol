@@ -20,11 +20,12 @@ public class CreateTeamCommand extends AbstractTeamCommand {
         super("createTeam");
         ObjectHolder<String> name = new ObjectHolder<>();
         command = Commands.literal(commandName).requires(this::canExecuteAllParams)
-                .then(argument("name", StringArgumentType.greedyString())
+                .then(argument("name", StringArgumentType.string())
                         .executes((command) -> {
                             name.set(StringArgumentType.getString(command, "name"));
-                            return -1;
-                        })).then(argument("color", StringArgumentType.word()))
+                            return 1;
+                        })
+                .then(argument("color", StringArgumentType.string()))
                 .executes((command) -> {
                     String color = StringArgumentType.getString(command, "color");
                     return new ObjectHolder<Player>().ifPresentOrElse(player -> {
@@ -34,6 +35,8 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                             command.getSource().sendSuccess(() -> Component.literal("Created team '" + localName + "' with color '" + color + "'."), true);
                             return 1;
                         } catch (Throwable e) {
+                            e.printStackTrace(System.out);
+                            e.printStackTrace(System.err);
                             command.getSource().sendFailure(Component.literal("Invalid color: '" + color + "'!"));
                             return -1;
                         }
@@ -41,7 +44,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                         command.getSource().sendFailure(Component.literal("You must " + this.mustWhat + " to use this command."));
                         return -1;
                     });
-                });
+                }));
     }
 
     @Override

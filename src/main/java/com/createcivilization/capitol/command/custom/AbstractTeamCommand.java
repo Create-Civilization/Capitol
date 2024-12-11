@@ -30,8 +30,8 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
             if (!command.isPlayer()) {
                 command.sendFailure(Component.literal("You must be a player to execute this command!"));
                 return false;
-            } else return true;
-        }).then(this.command).requires(this::canExecuteAllParams).executes(this::executeAllParams));
+            } else return !command.getLevel().isClientSide();
+        }).then(this.command));
     }
 
     @Override
