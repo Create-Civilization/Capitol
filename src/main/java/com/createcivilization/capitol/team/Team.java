@@ -41,7 +41,6 @@ public class Team {
     @Override
     public String toString() {
         JsonWriter writer = new JsonWriter(new StringWriter());
-        writer.setIndent("    ");
 
         try {
             writer.beginObject();

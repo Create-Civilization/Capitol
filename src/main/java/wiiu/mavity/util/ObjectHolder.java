@@ -1,6 +1,6 @@
 package wiiu.mavity.util;
 
-import java.util.function.Consumer;
+import java.util.function.*;
 
 public class ObjectHolder<V> {
 
@@ -40,6 +40,12 @@ public class ObjectHolder<V> {
         var value = this.get();
         if (value != null) consumer.accept(value);
         else emptyConsumer.function();
+    }
+
+    public <R> R ifPresentOrElse(Function<V, R> consumer, AdaptiveEmptyFunctionalInterface<R> emptyConsumer) {
+        var value = this.get();
+        if (value != null) return consumer.apply(value);
+        else return emptyConsumer.function();
     }
 
     public String toString() {

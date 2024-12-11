@@ -1,8 +1,12 @@
 package com.createcivilization.capitol.command.custom;
 
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
@@ -10,25 +14,45 @@ import wiiu.mavity.util.ObjectHolder;
 
 public abstract class AbstractTeamCommand extends AbstractCommand {
 
-    protected AbstractTeamCommand(String commandName) {
+    protected ArgumentBuilder<CommandSourceStack, ?> command;
+
+    protected AbstractTeamCommand(String commandName, ArgumentBuilder<CommandSourceStack, ?> command) {
         super(commandName);
+        this.command = command;
+    }
+
+    protected String mustWhat = "be a player";
+
+    public void setMustWhat(String mustWhat) {
+        this.mustWhat = mustWhat;
     }
 
     @Override
-    public boolean canExecute(CommandSourceStack s) {
-        ObjectHolder<Player> playerObject = new ObjectHolder<>(s.getPlayer());
-        playerObject.ifPresentOrElse(this::canExecute, () -> s.sendFailure(Component.literal("You must be a player to use this command.")));
-        return super.canExecute(s);
+    public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("capitolTeams").requires((command) -> {
+            if (!command.isPlayer()) {
+                command.sendFailure(Component.literal("You must be a player to execute this command!"));
+                return false;
+            } else return true;
+        }).then(this.command).requires(this::canExecuteAllParams).executes(this::execute)
+        );
+    }
+
+    @Override
+    public boolean canExecuteAllParams(CommandSourceStack s) {
+        return new ObjectHolder<>(s.getPlayer()).ifPresentOrElse(this::canExecute, () -> false);
     }
 
     @Override
     public int execute(CommandContext<CommandSourceStack> command) {
         ObjectHolder<Player> playerObject = new ObjectHolder<>(command.getSource().getPlayer());
-        playerObject.ifPresentOrElse(this::canExecute, () -> command.getSource().sendFailure(Component.literal("You must be a player to use this command.")));
-        return 0;
+        return playerObject.ifPresentOrElse(this::execute, () -> {
+            command.getSource().sendFailure(Component.literal("You must " + this.mustWhat + " to use this command."));
+            return -1;
+        });
     }
 
     public abstract int execute(Player player);
 
-    public abstract void canExecute(Player player);
+    public abstract boolean canExecute(Player player);
 }

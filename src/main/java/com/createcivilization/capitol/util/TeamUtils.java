@@ -2,8 +2,9 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.team.Team;
 
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+import com.google.gson.stream.*;
+
+import net.minecraft.world.entity.player.Player;
 
 import java.awt.Color;
 import java.io.*;
@@ -22,6 +23,20 @@ public class TeamUtils {
         file.setWritable(true);
         file.setReadable(true);
         return file;
+    }
+
+    public static boolean hasTeam(Player player) {
+        boolean hasTeam = false;
+        for (Team team : loadedTeams) {
+            for (Map.Entry<String, List<UUID>> entry : team.getPlayers().entrySet()) {
+                if (entry.getValue().contains(player.getUUID())) {
+                    hasTeam = true;
+                    break;
+                }
+            }
+            if (hasTeam) break;
+        }
+        return hasTeam;
     }
 
     public static void loadTeams() throws IOException {
@@ -47,11 +62,11 @@ public class TeamUtils {
                 reader.close();
                 json = sj.toString();
             } finally {
-                System.out.println("Loading file for first time!");
+                System.out.println("Loading teams file for first time!");
                 loadedTeams.addAll(parseTeams(json));
             }
         } else {
-            System.out.println("Loading file with previous team data!");
+            System.out.println("Loading teams file with previous team data!");
             loadedTeams.addAll(parseTeams(json));
         }
     }
@@ -59,7 +74,6 @@ public class TeamUtils {
     public static void saveTeams() throws IOException {
         System.out.println("Saving teams...");
         JsonWriter writer = new JsonWriter(new FileWriter(TeamUtils.getTeamDataFile()));
-        writer.setIndent("    ");
         writer.beginArray();
         for (Team team : loadedTeams) writer.jsonValue(team.toString());
         writer.endArray();
@@ -117,5 +131,29 @@ public class TeamUtils {
 
     public static Team parseTeam(String str) throws IOException {
         return parseTeam(new JsonReader(new StringReader(str)));
+    }
+
+    public static boolean teamExists(String teamName) {
+        boolean exists = false;
+        for (Team team : loadedTeams) {
+            if (team.getName().equalsIgnoreCase(teamName)) {
+                exists = true;
+                break;
+            }
+        }
+        return exists;
+    }
+
+    public static String createRandomTeamId() {
+
+    }
+
+    public static Team createTeam(String name, Player player, Color color) {
+        return Team.TeamBuilder.create()
+                .setName(name)
+                .setTeamId("")
+                .addPlayer("owner", new ArrayList<>(List.of(player.getUUID())))
+                .setColor(color)
+                .build();
     }
 }
