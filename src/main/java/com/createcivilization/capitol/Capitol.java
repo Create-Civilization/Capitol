@@ -3,6 +3,7 @@ package com.createcivilization.capitol;
 import com.createcivilization.capitol.block.CapitolBlocks;
 import com.createcivilization.capitol.block.entity.CapitolBlockEntities;
 import com.createcivilization.capitol.item.CapitolItems;
+
 import net.minecraft.server.MinecraftServer;
 
 import net.minecraftforge.common.MinecraftForge;
@@ -29,16 +30,13 @@ public class Capitol {
 
     @SuppressWarnings("removal") // Forge docs are gaslighting when it says to place FMLJavaModLoadingContext in the constructor
     public Capitol() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric = FMLJavaModLoadingContext.get().getModEventBus();
 
-        modEventBus.addListener(this::commonSetup);
+        dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric.addListener(this::commonSetup);
 
-        //Register Items
-        CapitolItems.register(modEventBus);
-        //Register Blocks
-        CapitolBlocks.register(modEventBus);
-        //Register Block Entities
-        CapitolBlockEntities.register(modEventBus);
+        CapitolItems.register(dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric);
+        CapitolBlocks.register(dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric);
+        CapitolBlockEntities.register(dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -46,10 +44,9 @@ public class Capitol {
 
     private void commonSetup(final FMLCommonSetupEvent event) {}
 
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        server.set(event.getServer()); // Cache server
+        server.set(event.getServer());
         LOGGER.info("Capitol-ism soon:tm: ???");
     }
 }

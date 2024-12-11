@@ -6,6 +6,8 @@ import com.google.gson.stream.*;
 
 import net.minecraft.world.entity.player.Player;
 
+import wiiu.mavity.util.ObjectHolder;
+
 import java.awt.Color;
 import java.io.*;
 import java.time.*;
@@ -29,15 +31,15 @@ public class TeamUtils {
     public static boolean hasTeam(Player player) {
         boolean hasTeam = false;
         for (Team team : loadedTeams) {
-            for (Map.Entry<String, List<UUID>> entry : team.getPlayers().entrySet()) {
-                if (entry.getValue().contains(player.getUUID())) {
-                    hasTeam = true;
-                    break;
-                }
-            }
+            for (List<UUID> UUIDs : team.getPlayers().values()) if (UUIDs.contains(player.getUUID())) hasTeam = true;
             if (hasTeam) break;
         }
         return hasTeam;
+    }
+
+    public static ObjectHolder<Player> getTeam(Player player) {
+        for (Team team : loadedTeams) for (List<UUID> UUIDs : team.getPlayers().values()) if (UUIDs.contains(player.getUUID())) return new ObjectHolder<>(player);
+        return new ObjectHolder<>();
     }
 
     public static void loadTeams() throws IOException {

@@ -39,7 +39,8 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                                         command.getSource().sendFailure(Component.literal("You must " + this.mustWhat + " to use this command."));
                                         return -1;
                                     });
-                                }))
+                                })
+                        )
                 );
     }
 

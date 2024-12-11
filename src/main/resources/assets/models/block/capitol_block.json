@@ -1,19 +1,19 @@
 {
 	"credit": "Made by ItsRuby05 with Blockbench",
 	"textures": {
-		"0": "Minecraft:block/oak_log",
-		"1": "Minecraft:block/oak_log_top",
-		"2": "Minecraft:block/oak_planks",
-		"3": "Minecraft:block/stripped_oak_log",
-		"5": "Minecraft:block/red_wool",
-		"6": "Minecraft:block/white_wool",
-		"7": "Minecraft:block/brown_concrete_powder",
-		"8": "Minecraft:block/brown_terracotta",
-		"9": "Minecraft:block/anvil",
-		"10": "Minecraft:block/light_blue_wool",
-		"11": "Minecraft:block/magenta_wool",
-		"12": "Minecraft:block/yellow_wool",
-		"particle": "Minecraft:block/oak_log"
+		"0": "minecraft:block/oak_log",
+		"1": "minecraft:block/oak_log_top",
+		"2": "minecraft:block/oak_planks",
+		"3": "minecraft:block/stripped_oak_log",
+		"5": "minecraft:block/red_wool",
+		"6": "minecraft:block/white_wool",
+		"7": "minecraft:block/brown_concrete_powder",
+		"8": "minecraft:block/brown_terracotta",
+		"9": "minecraft:block/anvil",
+		"10": "minecraft:block/light_blue_wool",
+		"11": "minecraft:block/magenta_wool",
+		"12": "minecraft:block/yellow_wool",
+		"particle": "minecraft:block/oak_log"
 	},
 	"elements": [
 		{
