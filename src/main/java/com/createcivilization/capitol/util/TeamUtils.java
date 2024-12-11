@@ -146,7 +146,13 @@ public class TeamUtils {
     }
 
     public static String createRandomTeamId() {
-        return "team_" + UUID.randomUUID().toString().substring(4) + new Random().nextBoolean() + LocalDateTime.now().getHour() / 13 + LocalDateTime.now().getNano() + Month.values()[new Random().nextInt(0, Month.values().length - 1)].toString();
+        return "team_"
+                + UUID.randomUUID().toString().substring(4)
+                + new Random().nextBoolean()
+                + LocalDateTime.now().getHour() / 13
+                + LocalDateTime.now().getNano()
+                + Month.values()[new Random().nextInt(0, Month.values().length - 1)].toString().substring(0, 2)
+                + new Random().nextInt(1000, 9999);
     }
 
     public static Team createTeam(String name, Player player, Color color) {

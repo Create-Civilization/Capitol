@@ -9,11 +9,11 @@ import java.util.*;
 @SuppressWarnings("all")
 public class Team {
 
-    private final String name, teamId;
+    private String name, teamId;
 
-    private final Map<String, List<UUID>> players;
+    private Map<String, List<UUID>> players;
 
-    private final Color color;
+    private Color color;
 
     private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
         this.name = name;
