@@ -1,14 +1,14 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "com.createcivilization.capitol.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "refmap": "capitol.refmap.json",
-  "mixins": [
-    "DataSaverImpl",
-    "DataSaverImpl$DataSaverImplButWeSaveTheData"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.createcivilization.capitol.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"refmap": "capitol.refmap.json",
+	"mixins": [
+		"DataHandler$DataLoaderImpl",
+		"DataHandler$DataSaverImpl"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
 }
