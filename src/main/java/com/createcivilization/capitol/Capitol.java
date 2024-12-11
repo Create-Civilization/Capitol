@@ -1,5 +1,7 @@
 package com.createcivilization.capitol;
 
+import com.createcivilization.capitol.block.CapitolBlocks;
+import com.createcivilization.capitol.block.entity.CapitolBlockEntities;
 import com.createcivilization.capitol.item.CapitolItems;
 import net.minecraft.server.MinecraftServer;
 
@@ -33,6 +35,10 @@ public class Capitol {
 
         //Register Items
         CapitolItems.register(modEventBus);
+        //Register Blocks
+        CapitolBlocks.register(modEventBus);
+        //Register Block Entities
+        CapitolBlockEntities.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

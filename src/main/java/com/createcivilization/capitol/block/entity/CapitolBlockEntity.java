@@ -13,14 +13,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class CapitolBlockEntity extends BlockEntity implements MenuProvider {
 
-
-    public CapitolBlockEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState) {
-        super(pType, pPos, pBlockState);
+    public CapitolBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(CapitolBlockEntities.CAPITOL_BE.get(), pPos, pBlockState);
     }
 
     @Override
     public Component getDisplayName() {
-        return null;
+        return Component.literal("Capitol");
     }
 
     @Nullable

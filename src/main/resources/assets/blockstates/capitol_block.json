@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "capitol:models/block/capitol_block"
+    }
+  }
+}
