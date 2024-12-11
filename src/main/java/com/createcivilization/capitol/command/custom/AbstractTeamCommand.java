@@ -2,11 +2,9 @@ package com.createcivilization.capitol.command.custom;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
@@ -16,9 +14,8 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
 
     protected ArgumentBuilder<CommandSourceStack, ?> command;
 
-    protected AbstractTeamCommand(String commandName, ArgumentBuilder<CommandSourceStack, ?> command) {
+    protected AbstractTeamCommand(String commandName) {
         super(commandName);
-        this.command = command;
     }
 
     protected String mustWhat = "be a player";
@@ -34,8 +31,7 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
                 command.sendFailure(Component.literal("You must be a player to execute this command!"));
                 return false;
             } else return true;
-        }).then(this.command).requires(this::canExecuteAllParams).executes(this::execute)
-        );
+        }).then(this.command).requires(this::canExecuteAllParams).executes(this::executeAllParams));
     }
 
     @Override
@@ -44,7 +40,7 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
     }
 
     @Override
-    public int execute(CommandContext<CommandSourceStack> command) {
+    public int executeAllParams(CommandContext<CommandSourceStack> command) {
         ObjectHolder<Player> playerObject = new ObjectHolder<>(command.getSource().getPlayer());
         return playerObject.ifPresentOrElse(this::execute, () -> {
             command.getSource().sendFailure(Component.literal("You must " + this.mustWhat + " to use this command."));

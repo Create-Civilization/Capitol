@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.awt.Color;
 import java.io.*;
+import java.time.*;
 import java.util.*;
 
 public class TeamUtils {
@@ -145,13 +146,13 @@ public class TeamUtils {
     }
 
     public static String createRandomTeamId() {
-
+        return "team_" + UUID.randomUUID().toString().substring(4) + new Random().nextBoolean() + LocalDateTime.now().getHour() / 13 + LocalDateTime.now().getNano() + Month.values()[new Random().nextInt(0, Month.values().length - 1)].toString();
     }
 
     public static Team createTeam(String name, Player player, Color color) {
         return Team.TeamBuilder.create()
                 .setName(name)
-                .setTeamId("")
+                .setTeamId(createRandomTeamId())
                 .addPlayer("owner", new ArrayList<>(List.of(player.getUUID())))
                 .setColor(color)
                 .build();

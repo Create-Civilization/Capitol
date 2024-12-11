@@ -19,9 +19,9 @@ public abstract class AbstractCommand {
 
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal(commandName).requires(this::canExecuteAllParams)
-                .executes(this::execute)
+                .executes(this::executeAllParams)
         );
     }
 
-    public abstract int execute(CommandContext<CommandSourceStack> command);
+    public abstract int executeAllParams(CommandContext<CommandSourceStack> command);
 }
