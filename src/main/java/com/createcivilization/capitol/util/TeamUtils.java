@@ -31,14 +31,14 @@ public class TeamUtils {
     public static boolean hasTeam(Player player) {
         boolean hasTeam = false;
         for (Team team : loadedTeams) {
-            for (List<UUID> UUIDs : team.getPlayers().values()) if (UUIDs.contains(player.getUUID())) hasTeam = true;
+            for (var UUIDs : team.getAllPlayers()) if (UUIDs.contains(player.getUUID())) hasTeam = true;
             if (hasTeam) break;
         }
         return hasTeam;
     }
 
-    public static ObjectHolder<Player> getTeam(Player player) {
-        for (Team team : loadedTeams) for (List<UUID> UUIDs : team.getPlayers().values()) if (UUIDs.contains(player.getUUID())) return new ObjectHolder<>(player);
+    public static ObjectHolder<Team> getTeam(Player player) {
+        for (Team team : loadedTeams) for (var UUIDs : team.getAllPlayers()) if (UUIDs.contains(player.getUUID())) return new ObjectHolder<>(team);
         return new ObjectHolder<>();
     }
 
@@ -150,15 +150,18 @@ public class TeamUtils {
     public static String createRandomTeamId() {
 		LocalDateTime time = LocalDateTime.now();
 		Random random = new Random();
-        return "team_"
-                + UUID.randomUUID().toString().substring(4)
-                + String.valueOf(random.nextBoolean()).substring(1, 4)
-                + time.getHour() / 13
-                + time.getNano()
-                + Month.values()[random.nextInt(0, Month.values().length - 1)].toString().substring(0, 2)
-                + random.nextInt(1000, 9999)
-				+ UUID.randomUUID().toString().substring(7)
-				+ time.getDayOfYear();
+		StringBuilder sb = new StringBuilder();
+		sb.append("team_");
+		sb.append(UUID.randomUUID().toString().substring(4));
+		sb.append(String.valueOf(random.nextBoolean()), 1, 4);
+		sb.append(time.getHour() / 13 + time.getNano());
+		sb.append(Month.values()[random.nextInt(0, Month.values().length - 1)].toString(), 0, 2);
+		sb.append(random.nextInt(1000, 9999));
+		sb.append(UUID.randomUUID().toString().substring(7));
+		sb.append(time.getDayOfYear());
+		if (random.nextBoolean()) sb.append(UUID.randomUUID().toString(), 3, 5);
+		else sb.append(time.getDayOfMonth());
+		return sb.toString();
     }
 
     public static Team createTeam(String name, Player player, Color color) {
@@ -171,8 +174,8 @@ public class TeamUtils {
     }
 
 	public static int reloadTeamsFromFile() {
-		loadedTeams.clear();
 		try {
+			loadedTeams.clear();
 			loadTeams();
 			return 1;
 		} catch (IOException e) {

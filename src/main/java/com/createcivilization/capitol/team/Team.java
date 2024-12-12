@@ -38,6 +38,10 @@ public class Team {
         return name;
     }
 
+	public Collection<List<UUID>> getAllPlayers() {
+		return players.values();
+	}
+
     @Override
     public String toString() {
         JsonWriter writer = new JsonWriter(new StringWriter());
@@ -48,7 +52,7 @@ public class Team {
             writer.name("teamId").value(teamId);
             writer.name("color").value(color.getRGB());
             writer.name("players").beginObject();
-            for (Map.Entry<String, List<UUID>> entry : players.entrySet()) {
+            for (var entry : players.entrySet()) {
                 writer.name(entry.getKey()).beginArray();
                 for (UUID uuid : entry.getValue()) writer.value(uuid.toString());
                 writer.endArray();

@@ -13,19 +13,19 @@ public class CapitolBlock extends BaseEntityBlock {
 
     public static final VoxelShape SHAPE = Block.box(0,0,0, 16,16,16);
 
-    public CapitolBlock(Properties pProperties) {
-        super(pProperties);
+    public CapitolBlock(Properties properties) {
+        super(properties);
     }
 
     @Override
 	@SuppressWarnings("all")
-    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
 	@SuppressWarnings("all")
-    public RenderShape getRenderShape(BlockState pState) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
