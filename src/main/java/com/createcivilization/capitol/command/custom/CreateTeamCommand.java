@@ -24,6 +24,10 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                                     String
                                             color = StringArgumentType.getString(command, "color").toLowerCase(),
                                             name = StringArgumentType.getString(command, "name");
+									if (TeamUtils.teamExists(name)) {
+										command.getSource().sendFailure(Component.literal("A team with the name '" + name + "' already exists!"));
+										return -1;
+									}
                                     return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
                                         try {
                                             TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, (Color) Color.class.getDeclaredField(color).get(null)));

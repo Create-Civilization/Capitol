@@ -48,7 +48,11 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
         });
     }
 
-    public abstract int execute(Player player);
+    public int execute(Player player) {
+		return 1;
+	}
 
-    public abstract boolean canExecute(Player player);
+    public boolean canExecute(Player player) {
+		return true;
+	}
 }
