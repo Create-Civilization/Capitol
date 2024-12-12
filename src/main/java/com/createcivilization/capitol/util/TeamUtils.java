@@ -169,4 +169,29 @@ public class TeamUtils {
                 .setColor(color)
                 .build();
     }
+
+	public static int reloadTeamsFromFile() {
+		loadedTeams.clear();
+		try {
+			loadTeams();
+			return 1;
+		} catch (IOException e) {
+			e.printStackTrace(System.out);
+			e.printStackTrace(System.err);
+			return -1;
+		}
+	}
+
+	public static int reloadTeams() {
+		try {
+			saveTeams();
+			loadedTeams.clear();
+			loadTeams();
+			return 1;
+		} catch (IOException e) {
+			e.printStackTrace(System.out);
+			e.printStackTrace(System.err);
+			return -1;
+		}
+	}
 }
