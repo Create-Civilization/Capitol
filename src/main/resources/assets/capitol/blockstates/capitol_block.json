@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "capitol:models/block/capitol_block"
+      "model": "capitol:block/capitol_block"
     }
   }
 }
