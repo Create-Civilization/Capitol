@@ -1,7 +1,19 @@
 {
-  "variants": {
-    "": {
-      "model": "capitol:block/capitol_block"
-    }
-  }
+	"variants": {
+		"facing=north": {
+			"model": "capitol:block/capitol_block"
+		},
+		"facing=south": {
+			"model": "capitol:block/capitol_block",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "capitol:block/capitol_block",
+			"y": 270
+		},
+		"facing=east": {
+			"model": "capitol:block/capitol_block",
+			"y": 90
+		}
+	}
 }
