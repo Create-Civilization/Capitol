@@ -13,8 +13,8 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("all")
 public class CapitolBlockEntity extends BlockEntity implements MenuProvider {
 
-    public CapitolBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(CapitolBlockEntities.CAPITOL_BE.get(), pPos, pBlockState);
+    public CapitolBlockEntity(BlockPos pos, BlockState state) {
+        super(CapitolBlockEntities.CAPITOL_BE.get(), pos, state);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class CapitolBlockEntity extends BlockEntity implements MenuProvider {
 
     @Nullable
     @Override
-    public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         return null;
     }
 }
