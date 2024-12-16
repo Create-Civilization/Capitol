@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.mixin;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.util.TeamUtils;
 
 import net.minecraft.server.MinecraftServer;
@@ -19,6 +20,7 @@ public final class DataHandler {
 
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) throws IOException {
+			Capitol.server.set((MinecraftServer) (Object) this);
             TeamUtils.loadTeams();
         }
     }

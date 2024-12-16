@@ -193,6 +193,7 @@ public class TeamUtils {
 	}
 
 	public static void loadChunk(JsonReader reader) throws IOException {
+		System.out.println("Loading chunk...");
 		reader.beginObject();
 		String teamId = null;
 		String[] coords;
@@ -200,14 +201,17 @@ public class TeamUtils {
 			switch (reader.nextName()) {
 				case "teamId" -> teamId = reader.nextString();
 				case "claimedChunks" -> {
+					System.out.println("Loading chunk... *" + teamId);
 					reader.beginArray();
 					while (reader.hasNext()) {
 						coords = reader.nextString().split(Pattern.quote(","));
+						System.out.println("Loading chunk... **" + Arrays.toString(coords));
 						final String finalTeamId = teamId;
 						final String[] finalCoords = coords;
 						final int x = Integer.parseInt(finalCoords[0]);
 						final int z = Integer.parseInt(finalCoords[1]);
-						Capitol.server.ifPresent((server) -> TeamUtils.getTeam(finalTeamId).ifPresent((team) -> claimChunk(team, Objects.requireNonNull(server.getLevel(Level.OVERWORLD)).getChunk(x, z).getPos())));
+						System.out.println(Capitol.server.getAsString());
+						Capitol.server.ifPresent((server) -> TeamUtils.getTeam(finalTeamId).ifPresent((team) -> claimChunk(team, Objects.requireNonNull(server.getLevel(Level.OVERWORLD), "Overworld must not be null!").getChunk(x, z).getPos())));
 					}
 					reader.endArray();
 				}
