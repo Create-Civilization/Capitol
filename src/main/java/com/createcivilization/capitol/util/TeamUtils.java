@@ -41,6 +41,20 @@ public class TeamUtils {
         return hasTeam;
     }
 
+	@SuppressWarnings("resource")
+	public static ResourceLocation getPlayerDimension(Player player) {
+		return player.level().dimension().location();
+	}
+
+	public static boolean isInClaimedChunk(Player player) {
+		for (Team team : loadedTeams) {
+			for (var claimedChunks : team.getClaimedChunks().values()) {
+				if (claimedChunks.contains(player.chunkPosition())) return true;
+			}
+		}
+		return false;
+	}
+
     public static ObjectHolder<Team> getTeam(Player player) {
         for (Team team : loadedTeams) for (var UUIDs : team.getAllPlayers()) if (UUIDs.contains(player.getUUID())) return new ObjectHolder<>(team);
         return new ObjectHolder<>();
@@ -256,13 +270,12 @@ public class TeamUtils {
 		writer.close();
 	}
 
-	@SuppressWarnings("resource")
 	public static int claimCurrentChunk(Player player) {
-		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, player.level().dimension().location(), player.chunkPosition()), () -> -1);
+		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
 	}
 
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
-		System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team " + team.getName());
+		System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
 		var claimedChunks = team.getClaimedChunks().get(dimension);
 		if (claimedChunks == null) {
 			List<ChunkPos> list = new ArrayList<>();
