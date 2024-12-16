@@ -10,9 +10,9 @@ public interface IfPresentConsumer<T> {
 	}
 
 	default void acceptOrElse(@Nullable T t, @Nullable EmptyFunctionalInterface emptyConsumer) {
-		if (t != null) accept();
+		if (t != null) accept(t);
 		else if (emptyConsumer != null) emptyConsumer.function();
 	}
 
-	void accept();
+	void accept(T t);
 }

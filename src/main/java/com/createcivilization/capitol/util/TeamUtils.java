@@ -1,18 +1,20 @@
 package com.createcivilization.capitol.util;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
 
 import com.google.gson.stream.*;
 
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.*;
 
-import net.minecraft.world.level.ChunkPos;
 import wiiu.mavity.util.ObjectHolder;
 
 import java.awt.Color;
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class TeamUtils {
 
@@ -50,33 +52,12 @@ public class TeamUtils {
     public static void loadTeams() throws IOException {
         System.out.println("Loading teams...");
         var file = TeamUtils.getTeamDataFile();
-        var reader = new BufferedReader(new FileReader(file));
-        StringJoiner sj = new StringJoiner("\n");
-        reader.lines().forEach(sj::add);
-        reader.close();
-        String json = sj.toString();
-        if (json.isBlank() || json.isEmpty()) {
-            try {
-                var f = new FileWriter(file);
-                f.write(
-                        "[" +
-                        "\n" +
-                        "]"
-                );
-                f.close();
-                reader = new BufferedReader(new FileReader(file));
-                sj = new StringJoiner("\n");
-                reader.lines().forEach(sj::add);
-                reader.close();
-                json = sj.toString();
-            } finally {
-                System.out.println("Loading teams file for first time!");
-                loadedTeams.addAll(parseTeams(json));
-            }
-        } else {
-            System.out.println("Loading teams file with previous team data!");
-            loadedTeams.addAll(parseTeams(json));
-        }
+		try {
+			FileUtils.setContentsIfEmpty(file, "[\n]");
+		} finally {
+			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
+			TeamUtils.loadChunks();
+		}
     }
 
     public static void saveTeams() throws IOException {
@@ -203,7 +184,36 @@ public class TeamUtils {
 		}
 	}
 
-	public static void loadChunks() {
+	public static void loadChunks() throws IOException {
+		var file = TeamUtils.getChunkDataFile();
+		JsonReader reader = new JsonReader(new FileReader(file));
+		reader.beginArray();
+		while (reader.hasNext()) loadChunk(reader);
+		reader.endArray();
+	}
+
+	public static void loadChunk(JsonReader reader) throws IOException {
+		reader.beginObject();
+		String teamId = null;
+		String[] coords;
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "teamId" -> teamId = reader.nextString();
+				case "claimedChunks" -> {
+					reader.beginArray();
+					while (reader.hasNext()) {
+						coords = reader.nextString().split(Pattern.quote(","));
+						final String finalTeamId = teamId;
+						final String[] finalCoords = coords;
+						final int x = Integer.parseInt(finalCoords[0]);
+						final int z = Integer.parseInt(finalCoords[1]);
+						Capitol.server.ifPresent((server) -> TeamUtils.getTeam(finalTeamId).ifPresent((team) -> claimChunk(team, Objects.requireNonNull(server.getLevel(Level.OVERWORLD)).getChunk(x, z).getPos())));
+					}
+					reader.endArray();
+				}
+			}
+		}
+		reader.endObject();
 	}
 
 	public static int claimCurrentChunk(Player player) {
@@ -211,6 +221,7 @@ public class TeamUtils {
 	}
 
 	public static int claimChunk(Team team, ChunkPos pos) {
+		System.out.println("Claiming chunk " + pos + " for team " + team.getName());
 		team.getClaimedChunks().add(pos);
 		return 1;
 	}
