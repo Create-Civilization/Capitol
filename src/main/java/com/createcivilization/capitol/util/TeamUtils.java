@@ -5,6 +5,8 @@ import com.createcivilization.capitol.team.Team;
 
 import com.google.gson.stream.*;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 
@@ -195,6 +197,7 @@ public class TeamUtils {
 		reader.close();
 	}
 
+	@SuppressWarnings("deprecation")
 	public static void loadChunk(JsonReader reader) throws IOException {
 		System.out.println("Loading chunk...");
 		reader.beginObject();
@@ -205,18 +208,30 @@ public class TeamUtils {
 				case "teamId" -> teamId = reader.nextString();
 				case "claimedChunks" -> {
 					System.out.println("Loading chunk... *" + teamId);
-					reader.beginArray();
+					reader.beginObject();
 					while (reader.hasNext()) {
-						coords = reader.nextString().split(Pattern.quote(","));
-						System.out.println("Loading chunk... **" + Arrays.toString(coords));
-						final String finalTeamId = teamId;
-						final String[] finalCoords = coords;
-						final int x = Integer.parseInt(finalCoords[0]);
-						final int z = Integer.parseInt(finalCoords[1]);
-						System.out.println(Capitol.server.getAsString());
-						Capitol.server.ifPresent((server) -> TeamUtils.getTeam(finalTeamId).ifPresent((team) -> claimChunk(team, Objects.requireNonNull(server.getLevel(Level.OVERWORLD), "Overworld must not be null!").getChunk(x, z).getPos())));
+						String dimension = reader.nextName();
+						reader.beginArray();
+						while (reader.hasNext()) {
+							coords = reader.nextString().split(Pattern.quote(","));
+							System.out.println("Loading chunk... **" + Arrays.toString(coords));
+							final String finalTeamId = teamId;
+							final String[] finalCoords = coords;
+							final int x = Integer.parseInt(finalCoords[0]);
+							final int z = Integer.parseInt(finalCoords[1]);
+							System.out.println(Capitol.server.getAsString());
+							Capitol.server.ifPresent((server) -> TeamUtils.getTeam(finalTeamId).ifPresent((team) -> {
+								for (var entrySet : server.forgeGetWorldMap().entrySet()) {
+									var resourceLoc = new ResourceLocation(dimension);
+									if (entrySet.getKey().equals(ResourceKey.create(Registries.DIMENSION, resourceLoc))) {
+										claimChunk(team, resourceLoc, entrySet.getValue().getChunk(x, z).getPos());
+									}
+								}
+							}));
+						}
+						reader.endArray();
 					}
-					reader.endArray();
+					reader.endObject();
 				}
 			}
 		}
@@ -230,22 +245,32 @@ public class TeamUtils {
 		for (Team team : loadedTeams) {
 			writer.beginObject();
 			writer.name("teamId").value(team.getTeamId());
-			writer.name("claimedChunks").beginArray();
-			for (ChunkPos pos : team.getClaimedChunks()) writer.value(pos.x + "," + pos.z);
-			writer.endArray();
+			writer.name("claimedChunks").beginObject();
+			for (var entrySet : team.getClaimedChunks().entrySet()) {
+				writer.name(entrySet.getKey().toString()).beginArray();
+				for (var chunks : entrySet.getValue()) writer.value(chunks.x + "," + chunks.z);
+				writer.endArray();
+			}
+			writer.endObject();
 			writer.endObject();
 		}
 		writer.endArray();
 		writer.close();
 	}
 
+	@SuppressWarnings("resource")
 	public static int claimCurrentChunk(Player player) {
-		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, player.chunkPosition()), () -> -1);
+		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, player.level().dimension().location(), player.chunkPosition()), () -> -1);
 	}
 
-	public static int claimChunk(Team team, ChunkPos pos) {
-		System.out.println("Claiming chunk " + pos + " for team " + team.getName());
-		team.getClaimedChunks().add(pos);
+	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
+		System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team " + team.getName());
+		var claimedChunks = team.getClaimedChunks().get(dimension);
+		if (claimedChunks == null) {
+			List<ChunkPos> list = new ArrayList<>();
+			list.add(pos);
+			team.getClaimedChunks().put(dimension, list);
+		}
 		return 1;
 	}
 }
