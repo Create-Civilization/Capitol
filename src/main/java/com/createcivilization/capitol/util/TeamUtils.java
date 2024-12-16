@@ -6,6 +6,7 @@ import com.google.gson.stream.*;
 
 import net.minecraft.world.entity.player.Player;
 
+import net.minecraft.world.level.ChunkPos;
 import wiiu.mavity.util.ObjectHolder;
 
 import java.awt.Color;
@@ -19,14 +20,13 @@ public class TeamUtils {
 
     public static final List<Team> loadedTeams = new ArrayList<>();
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static File getTeamDataFile() throws IOException {
-        var file = new File(System.getProperty("user.dir"), "team_data.json");
-        if (!file.exists()) file.createNewFile();
-        file.setWritable(true);
-        file.setReadable(true);
-        return file;
+		return FileUtils.forceFileExistence(FileUtils.getLocalFile("team_data.json"));
     }
+
+	public static File getChunkDataFile() throws IOException {
+		return FileUtils.forceFileExistence(FileUtils.getLocalFile("claimed_chunks.json"));
+	}
 
     public static boolean hasTeam(Player player) {
         boolean hasTeam = false;
@@ -41,6 +41,11 @@ public class TeamUtils {
         for (Team team : loadedTeams) for (var UUIDs : team.getAllPlayers()) if (UUIDs.contains(player.getUUID())) return new ObjectHolder<>(team);
         return new ObjectHolder<>();
     }
+
+	public static ObjectHolder<Team> getTeam(String teamId) {
+		for (Team team : loadedTeams) if (team.getTeamId().equals(teamId)) return new ObjectHolder<>(team);
+		return new ObjectHolder<>();
+	}
 
     public static void loadTeams() throws IOException {
         System.out.println("Loading teams...");
@@ -196,5 +201,17 @@ public class TeamUtils {
 			e.printStackTrace(System.err);
 			return -1;
 		}
+	}
+
+	public static void loadChunks() {
+	}
+
+	public static int claimCurrentChunk(Player player) {
+		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, player.chunkPosition()), () -> -1);
+	}
+
+	public static int claimChunk(Team team, ChunkPos pos) {
+		team.getClaimedChunks().add(pos);
+		return 1;
 	}
 }

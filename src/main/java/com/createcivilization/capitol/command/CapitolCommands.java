@@ -12,8 +12,10 @@ public class CapitolCommands {
 
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
-        new CreateTeamCommand().register(event.getDispatcher());
-		new ReloadTeamsFromFileCommand().register(event.getDispatcher());
-		new ReloadTeamsCommand().register(event.getDispatcher());
+		var dispatcher = event.getDispatcher();
+        new CreateTeamCommand().register(dispatcher);
+		new ReloadTeamsFromFileCommand().register(dispatcher);
+		new ReloadTeamsCommand().register(dispatcher);
+		new ClaimCurrentChunkCommand().register(dispatcher);
     }
 }

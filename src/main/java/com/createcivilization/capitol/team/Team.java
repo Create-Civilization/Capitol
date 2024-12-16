@@ -2,6 +2,8 @@ package com.createcivilization.capitol.team;
 
 import com.google.gson.stream.JsonWriter;
 
+import net.minecraft.world.level.ChunkPos;
+
 import java.awt.Color;
 import java.io.*;
 import java.util.*;
@@ -14,6 +16,8 @@ public class Team {
     private Map<String, List<UUID>> players;
 
     private Color color;
+
+	private List<ChunkPos> claimedChunks = new ArrayList<>();
 
     private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
         this.name = name;
@@ -40,6 +44,10 @@ public class Team {
 
 	public Collection<List<UUID>> getAllPlayers() {
 		return players.values();
+	}
+
+	public List<ChunkPos> getClaimedChunks() {
+		return claimedChunks;
 	}
 
     @Override
