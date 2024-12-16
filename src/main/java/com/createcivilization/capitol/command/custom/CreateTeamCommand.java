@@ -18,7 +18,6 @@ public class CreateTeamCommand extends AbstractTeamCommand {
         super("createTeam");
         command = Commands.literal(commandName).requires(this::canExecuteAllParams).executes((c) -> 1)
                 .then(Commands.argument("name", StringArgumentType.string())
-                        .executes((command) -> 1)
                         .then(Commands.argument("color", StringArgumentType.word())
                                 .executes((command) -> {
                                     String
@@ -32,6 +31,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                                         try {
                                             TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, (Color) Color.class.getDeclaredField(color).get(null)));
                                             command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + color + "'."), true);
+											command.getSource().sendSystemMessage(Component.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
                                             return 1;
                                         } catch (Throwable e) {
                                             e.printStackTrace(System.out);
@@ -48,12 +48,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                 );
     }
 
-    @Override
-    public int execute(Player player) {
-        return 1;
-    }
-
-    @Override
+	@Override
     public boolean canExecute(Player player) {
         setMustWhat("be a player and not be in a team");
         return !TeamUtils.hasTeam(player);

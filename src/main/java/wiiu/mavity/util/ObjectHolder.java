@@ -2,8 +2,6 @@ package wiiu.mavity.util;
 
 import org.jetbrains.annotations.*;
 
-import java.util.function.*;
-
 public class ObjectHolder<V> {
 
     private @Nullable V value;
@@ -34,21 +32,23 @@ public class ObjectHolder<V> {
     }
 
     public boolean isPresent() {
-        return this.get() != null;
+        return !this.isEmpty();
     }
 
-    public void ifPresent(@NotNull Consumer<V> consumer) {
-        if (this.isPresent()) consumer.accept(this.get());
+	public boolean isEmpty() {
+		return this.get() == null;
+	}
+
+    public void ifPresent(@NotNull IfPresentConsumer<V> consumer) {
+        consumer.acceptOrDoNothing(this.get());
     }
 
-    public void ifPresentOrElse(@NotNull Consumer<V> consumer, @NotNull EmptyFunctionalInterface emptyConsumer) {
-        if (this.isPresent()) consumer.accept(this.get());
-        else emptyConsumer.function();
+    public void ifPresentOrElse(@NotNull IfPresentConsumer<V> consumer, @NotNull EmptyFunctionalInterface emptyConsumer) {
+        consumer.acceptOrElse(this.get(), emptyConsumer);
     }
 
-    public <R> R ifPresentOrElse(@NotNull Function<V, R> consumer, @NotNull AdaptiveEmptyFunctionalInterface<R> emptyConsumer) {
-        if (this.isPresent()) return consumer.apply(this.get());
-        else return emptyConsumer.function();
+    public <R> R ifPresentOrElse(@NotNull IfPresentFunction<V, R> function, @NotNull AdaptiveEmptyFunctionalInterface<R> emptyConsumer) {
+		return function.applyOrElse(this.get(), emptyConsumer);
     }
 
     public String toString() {
