@@ -55,6 +55,15 @@ public class TeamUtils {
 		return false;
 	}
 
+	public static boolean canInteractInChunk(Player player) {
+		for (Team team : loadedTeams) {
+			for (var claimedChunks : team.getClaimedChunks().values()) {
+				if (claimedChunks.contains(player.chunkPosition())) return team.getPlayers().get("owner").contains(player.getUUID()) || team.getPlayers().get("mod").contains(player.getUUID()) || team.getPlayers().get("member").contains(player.getUUID());
+			}
+		}
+		return true;
+	}
+
     public static ObjectHolder<Team> getTeam(Player player) {
         for (Team team : loadedTeams) for (var UUIDs : team.getAllPlayers()) if (UUIDs.contains(player.getUUID())) return new ObjectHolder<>(team);
         return new ObjectHolder<>();
