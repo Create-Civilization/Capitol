@@ -67,6 +67,7 @@ public class TeamUtils {
         for (Team team : loadedTeams) writer.jsonValue(team.toString());
         writer.endArray();
         writer.close();
+		TeamUtils.saveChunks();
     }
 
     public static List<Team> parseTeams(String str) throws IOException {
@@ -75,6 +76,7 @@ public class TeamUtils {
         reader.beginArray();
         while (reader.hasNext()) teams.add(parseTeam(reader));
         reader.endArray();
+		reader.close();
         return teams;
     }
 
@@ -190,6 +192,7 @@ public class TeamUtils {
 		reader.beginArray();
 		while (reader.hasNext()) loadChunk(reader);
 		reader.endArray();
+		reader.close();
 	}
 
 	public static void loadChunk(JsonReader reader) throws IOException {
@@ -218,6 +221,22 @@ public class TeamUtils {
 			}
 		}
 		reader.endObject();
+	}
+
+	public static void saveChunks() throws IOException {
+		var file = TeamUtils.getChunkDataFile();
+		JsonWriter writer = new JsonWriter(new FileWriter(file));
+		writer.beginArray();
+		for (Team team : loadedTeams) {
+			writer.beginObject();
+			writer.name("teamId").value(team.getTeamId());
+			writer.name("claimedChunks").beginArray();
+			for (ChunkPos pos : team.getClaimedChunks()) writer.value(pos.x + "," + pos.z);
+			writer.endArray();
+			writer.endObject();
+		}
+		writer.endArray();
+		writer.close();
 	}
 
 	public static int claimCurrentChunk(Player player) {

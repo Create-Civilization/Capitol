@@ -7,8 +7,7 @@ import com.createcivilization.capitol.item.CapitolItems;
 import net.minecraft.server.MinecraftServer;
 
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.*;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -43,10 +42,4 @@ public class Capitol {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {}
-
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        server.set(event.getServer());
-        LOGGER.info("Capitol-ism soon:tm: ???");
-    }
 }
