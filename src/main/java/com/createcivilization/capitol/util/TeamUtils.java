@@ -223,9 +223,7 @@ public class TeamUtils {
 							Capitol.server.ifPresent((server) -> TeamUtils.getTeam(finalTeamId).ifPresent((team) -> {
 								for (var entrySet : server.forgeGetWorldMap().entrySet()) {
 									var resourceLoc = new ResourceLocation(dimension);
-									if (entrySet.getKey().equals(ResourceKey.create(Registries.DIMENSION, resourceLoc))) {
-										claimChunk(team, resourceLoc, entrySet.getValue().getChunk(x, z).getPos());
-									}
+									if (entrySet.getKey().equals(ResourceKey.create(Registries.DIMENSION, resourceLoc))) claimChunk(team, resourceLoc, entrySet.getValue().getChunk(x, z).getPos());
 								}
 							}));
 						}
@@ -270,7 +268,7 @@ public class TeamUtils {
 			List<ChunkPos> list = new ArrayList<>();
 			list.add(pos);
 			team.getClaimedChunks().put(dimension, list);
-		}
+		} else claimedChunks.add(pos);
 		return 1;
 	}
 }
