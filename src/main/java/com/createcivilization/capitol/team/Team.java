@@ -82,23 +82,50 @@ public class Team {
     }
 
     public static enum TeamPermssion {
-        OWNER(true, true, true, true, true),
-        MODERATOR(true, true, true, false, true),
-        MEMBER(true, true, true, false, false);
+        OWNER(true, true, true, true, true, true),
+        MODERATOR(true, true, true, false, true, true),
+        MEMBER(true, true, true, false, false, true),
+		NOT_IN_TEAM(false, false, false, false, false, false);
 
-        private final boolean
-                canBreakBlocks,
-                canUseBlocks,
-                canUseItems,
-                canManageTeam,
-                canManageMembers;
+		private final boolean
+			canBreakBlocks,
+			canUseBlocks,
+			canUseItems,
+			canManageTeam,
+			canManageMembers,
+			canInteract;
 
-        private TeamPermssion(boolean canBreakBlocks, boolean canUseBlocks, boolean canUseItems, boolean canManageTeam, boolean canManageMembers) {
+		public boolean canBreakBlocks() {
+			return canBreakBlocks;
+		}
+
+		public boolean canUseBlocks() {
+			return canUseBlocks;
+		}
+
+		public boolean canUseItems() {
+			return canUseItems;
+		}
+
+		public boolean canManageTeam() {
+			return canManageTeam;
+		}
+
+		public boolean canManageMembers() {
+			return canManageMembers;
+		}
+
+		public boolean canInteract() {
+			return canInteract;
+		}
+
+        private TeamPermssion(boolean canBreakBlocks, boolean canUseBlocks, boolean canUseItems, boolean canManageTeam, boolean canManageMembers, boolean canInteract) {
             this.canBreakBlocks = canBreakBlocks;
             this.canUseBlocks = canUseBlocks;
             this.canUseItems = canUseItems;
             this.canManageTeam = canManageTeam;
             this.canManageMembers = canManageMembers;
+			this.canInteract = canInteract;
         }
     }
 

@@ -55,13 +55,21 @@ public class TeamUtils {
 		return false;
 	}
 
-	public static boolean canInteractInChunk(Player player) {
+	public static Team.TeamPermssion getPermissionInCurrentChunk(Player player) {
+		return getPermissionInChunk(player.chunkPosition(), player);
+	}
+
+	public static Team.TeamPermssion getPermissionInChunk(ChunkPos pos, Player player) {
 		for (Team team : loadedTeams) {
 			for (var claimedChunks : team.getClaimedChunks().values()) {
-				if (claimedChunks.contains(player.chunkPosition())) return team.getPlayers().get("owner").contains(player.getUUID()) || team.getPlayers().get("mod").contains(player.getUUID()) || team.getPlayers().get("member").contains(player.getUUID());
+				if (claimedChunks.contains(pos)) {
+					if (team.getPlayers().get("owner").contains(player.getUUID())) return Team.TeamPermssion.OWNER;
+					if (team.getPlayers().get("moderator").contains(player.getUUID())) return Team.TeamPermssion.MODERATOR;
+					if (team.getPlayers().get("member").contains(player.getUUID())) return Team.TeamPermssion.MEMBER;
+				}
 			}
 		}
-		return true;
+		return Team.TeamPermssion.NOT_IN_TEAM;
 	}
 
     public static ObjectHolder<Team> getTeam(Player player) {
@@ -120,7 +128,7 @@ public class TeamUtils {
                     while (reader.hasNext()) {
                         switch (reader.nextName()) {
                             case "owner" -> players.put("owner", getListOfUUIDs(reader));
-                            case "mod" -> players.put("mod", getListOfUUIDs(reader));
+                            case "moderator" -> players.put("moderator", getListOfUUIDs(reader));
                             case "member" -> players.put("member", getListOfUUIDs(reader));
                         }
                     }
