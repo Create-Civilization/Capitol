@@ -43,8 +43,10 @@ public class Team {
         return name;
     }
 
-	public Collection<List<UUID>> getAllPlayers() {
-		return players.values();
+	public List<UUID> getAllPlayers() {
+		List<UUID> allPlayers = new ArrayList<>();
+		for (List<UUID> uuids : players.values()) allPlayers.addAll(uuids);
+		return allPlayers;
 	}
 
 	public Map<ResourceLocation, List<ChunkPos>> getClaimedChunks() {

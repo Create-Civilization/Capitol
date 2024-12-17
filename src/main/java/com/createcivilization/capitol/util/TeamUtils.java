@@ -5,6 +5,7 @@ import com.createcivilization.capitol.team.Team;
 
 import com.google.gson.stream.*;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.*;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +36,7 @@ public class TeamUtils {
     public static boolean hasTeam(Player player) {
         boolean hasTeam = false;
         for (Team team : loadedTeams) {
-            for (var UUIDs : team.getAllPlayers()) if (UUIDs.contains(player.getUUID())) hasTeam = true;
+            for (var uuid : team.getAllPlayers()) if (uuid.equals(player.getUUID())) hasTeam = true;
             if (hasTeam) break;
         }
         return hasTeam;
@@ -56,11 +57,20 @@ public class TeamUtils {
 	}
 
 	public static Permission getPermissionInCurrentChunk(Player player) {
+		return getPermissionInChunk(player.chunkPosition(), player);
+	}
+
+	@SuppressWarnings("resource")
+	public static Permission getPermissionInChunk(BlockPos pos, Player player) {
+		return getPermissionInChunk(player.level().getChunkAt(pos).getPos(), player);
+	}
+
+	public static Permission getPermissionInChunk(ChunkPos pos, Player player) {
 		boolean isInClaimedChunk = false;
 		Team teamWhoClaimedChunk = null;
 		for (Team team : loadedTeams) {
 			for (var claimedChunks : team.getClaimedChunks().values()) {
-				if (claimedChunks.contains(player.chunkPosition())) {
+				if (claimedChunks.contains(pos)) {
 					isInClaimedChunk = true;
 					teamWhoClaimedChunk = team;
 					break;
@@ -68,12 +78,12 @@ public class TeamUtils {
 			}
 		}
 
-		if (isInClaimedChunk) return teamWhoClaimedChunk.getAllPlayers().stream().anyMatch(UUIDs -> UUIDs.contains(player.getUUID())) ? Permission.ALL : Permission.NONE;
+		if (isInClaimedChunk) return teamWhoClaimedChunk.getAllPlayers().stream().anyMatch(player.getUUID()::equals) ? Permission.ALL : Permission.NONE;
 		else return Permission.ALL;
 	}
 
     public static ObjectHolder<Team> getTeam(Player player) {
-        for (Team team : loadedTeams) for (var UUIDs : team.getAllPlayers()) if (UUIDs.contains(player.getUUID())) return new ObjectHolder<>(team);
+        for (Team team : loadedTeams) if (team.getAllPlayers().stream().anyMatch(player.getUUID()::equals)) return new ObjectHolder<>(team);
         return new ObjectHolder<>();
     }
 
