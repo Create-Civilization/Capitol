@@ -78,8 +78,10 @@ public class TeamUtils {
 			}
 		}
 
-		if (isInClaimedChunk) return teamWhoClaimedChunk.getAllPlayers().stream().anyMatch(player.getUUID()::equals) ? Permission.ALL : Permission.NONE;
-		else return Permission.ALL;
+		if (isInClaimedChunk) {
+			if (teamWhoClaimedChunk.getName().equals("Server")) return Permission.NON_TEAM_MEMBER_ON_SERVER_CLAIM;
+			else return teamWhoClaimedChunk.getAllPlayers().stream().anyMatch(player.getUUID()::equals) ? Permission.TEAM_MEMBER_ON_TEAM_CLAIM : Permission.NON_TEAM_MEMBER_ON_TEAM_CLAIM;
+		} else return Permission.TEAM_MEMBER_ON_TEAM_CLAIM;
 	}
 
     public static ObjectHolder<Team> getTeam(Player player) {

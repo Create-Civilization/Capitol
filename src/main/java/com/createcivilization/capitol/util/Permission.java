@@ -1,14 +1,16 @@
 package com.createcivilization.capitol.util;
 
 public enum Permission {
-	ALL(true, true, true, true, true),
-	NONE(false, false, false, false, true);
+	TEAM_MEMBER_ON_TEAM_CLAIM(true, true, true, true, true),
+	NON_TEAM_MEMBER_ON_TEAM_CLAIM(false, false, false, false, true),
+	NON_TEAM_MEMBER_ON_SERVER_CLAIM(false, false, false, false, false);
 
-	private final boolean breakBlocks;
-	private final boolean placeBlocks;
-	private final boolean useItems;
-	private final boolean interactEntities;
-	private final boolean canInteractBlocks;
+	private final boolean
+		breakBlocks,
+		placeBlocks,
+		useItems,
+		interactEntities,
+		canInteractBlocks;
 
 	Permission(boolean breakBlocks, boolean placeBlocks, boolean useItems, boolean interactEntities, boolean canInteractBlocks) {
 		this.breakBlocks = breakBlocks;

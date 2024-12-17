@@ -21,32 +21,33 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteractSpecific event) {
 		var player = event.getEntity();
-		player.sendSystemMessage(Component.literal("WiiU!"));
+		player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canInteractWithEntities(), "interact with entities");
 	}
 
 	@SubscribeEvent
 	public static void onPlayerBreakBlock(PlayerInteractEvent.LeftClickBlock event) {
 		var player = event.getEntity();
-		player.sendSystemMessage(Component.literal("WiiU!"));
+		player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canBreakBlocks(), "break blocks");
 	}
 
 	@SubscribeEvent
 	public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
 		var player = event.getEntity();
+		player.sendSystemMessage(Component.literal("onPlayerRightClickBlock firing!"));
 		Permission permission = TeamUtils.getPermissionInChunk(event.getPos(), player);
 		if (player.getMainHandItem().getItem() instanceof BlockItem || player.getOffhandItem().getItem() instanceof BlockItem) onPlayerPlaceBlock(event, player, permission);
 		else onPlayerInteractBlock(event, player, permission);
 	}
 
 	public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
-		player.sendSystemMessage(Component.literal("WiiU!"));
+		player.sendSystemMessage(Component.literal("onPlayerPlaceBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !permission.canPlaceBlocks(), "place blocks");
 	}
 
 	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
-		player.sendSystemMessage(Component.literal("WiiU!"));
+		player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !permission.canInteractBlocks(), "interact with blocks");
 	}
 
