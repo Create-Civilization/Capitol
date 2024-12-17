@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Items;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -49,6 +50,16 @@ public class PlayerInteractionEvents {
 	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
 		player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !permission.canInteractBlocks(), "interact with blocks");
+	}
+
+	@SubscribeEvent
+	@SuppressWarnings("resource")
+	public static void onPlayerUseItem(PlayerInteractEvent.RightClickItem event) {
+		var player = event.getEntity();
+		player.sendSystemMessage(Component.literal("onPlayerUseItem firing!"));
+		var stack = event.getItemStack();
+		if (TeamUtils.isClaimedChunk(player.level().getChunk(event.getPos()).getPos()) && (stack.is(Items.ENDER_PEARL) || stack.getItem().getDescriptionId().replace("item.", "").replace(".", "").contains("boat"))) cancelIfHasInsufficientPermission(event, true, "use boats or enderpearls");
+		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canUseItems(), "use items");
 	}
 
 	public static void cancelIfHasInsufficientPermission(PlayerInteractEvent event, boolean cancelIfTrue, String details) {

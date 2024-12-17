@@ -2,13 +2,13 @@ package com.createcivilization.capitol.util;
 
 public enum Permission {
 	TEAM_MEMBER_ON_TEAM_CLAIM(true, true, true, true, true),
-	NON_TEAM_MEMBER_ON_TEAM_CLAIM(false, false, false, false, true),
+	NON_TEAM_MEMBER_ON_TEAM_CLAIM(false, false, true, false, true),
 	NON_TEAM_MEMBER_ON_SERVER_CLAIM(false, false, false, false, false);
 
 	private final boolean
 		breakBlocks,
 		placeBlocks,
-		useItems,
+		useItems, // Except for ender pearls and boats
 		interactEntities,
 		canInteractBlocks;
 

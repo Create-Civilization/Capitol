@@ -48,11 +48,11 @@ public class TeamUtils {
 	}
 
 	public static boolean isInClaimedChunk(Player player) {
-		for (Team team : loadedTeams) {
-			for (var claimedChunks : team.getClaimedChunks().values()) {
-				if (claimedChunks.contains(player.chunkPosition())) return true;
-			}
-		}
+		return isClaimedChunk(player.chunkPosition());
+	}
+
+	public static boolean isClaimedChunk(ChunkPos pos) {
+		for (Team team : loadedTeams) for (var claimedChunks : team.getClaimedChunks().values()) if (claimedChunks.contains(pos)) return true;
 		return false;
 	}
 
