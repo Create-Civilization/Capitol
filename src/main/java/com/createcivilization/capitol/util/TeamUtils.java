@@ -55,21 +55,21 @@ public class TeamUtils {
 		return false;
 	}
 
-	public static Team.TeamPermssion getPermissionInCurrentChunk(Player player) {
-		return getPermissionInChunk(player.chunkPosition(), player);
-	}
-
-	public static Team.TeamPermssion getPermissionInChunk(ChunkPos pos, Player player) {
+	public static Permission getPermissionInCurrentChunk(Player player) {
+		boolean isInClaimedChunk = false;
+		Team teamWhoClaimedChunk = null;
 		for (Team team : loadedTeams) {
 			for (var claimedChunks : team.getClaimedChunks().values()) {
-				if (claimedChunks.contains(pos)) {
-					if (team.getPlayers().get("owner").contains(player.getUUID())) return Team.TeamPermssion.OWNER;
-					if (team.getPlayers().get("moderator").contains(player.getUUID())) return Team.TeamPermssion.MODERATOR;
-					if (team.getPlayers().get("member").contains(player.getUUID())) return Team.TeamPermssion.MEMBER;
+				if (claimedChunks.contains(player.chunkPosition())) {
+					isInClaimedChunk = true;
+					teamWhoClaimedChunk = team;
+					break;
 				}
 			}
 		}
-		return Team.TeamPermssion.NOT_IN_TEAM;
+
+		if (isInClaimedChunk) return teamWhoClaimedChunk.getAllPlayers().stream().anyMatch(UUIDs -> UUIDs.contains(player.getUUID())) ? Permission.ALL : Permission.NONE;
+		else return Permission.ALL;
 	}
 
     public static ObjectHolder<Team> getTeam(Player player) {
