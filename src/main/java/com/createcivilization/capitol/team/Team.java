@@ -53,6 +53,9 @@ public class Team {
 		return claimedChunks;
 	}
 
+	/**
+	 * @return This {@link Team} object, serialized to json.
+	 */
     @Override
     public String toString() {
         JsonWriter writer = new JsonWriter(new StringWriter());

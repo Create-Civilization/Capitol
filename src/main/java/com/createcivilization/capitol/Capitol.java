@@ -12,8 +12,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-import org.slf4j.*;
-
 import wiiu.mavity.util.ObjectHolder;
 
 // git push origin main
@@ -23,21 +21,18 @@ public class Capitol {
 
     public static final String MOD_ID = "capitol";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
     public static ObjectHolder<MinecraftServer> server = new ObjectHolder<>();
 
     @SuppressWarnings("removal") // Forge docs are gaslighting when it says to place FMLJavaModLoadingContext in the constructor
     public Capitol() {
-        IEventBus dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus ew = FMLJavaModLoadingContext.get().getModEventBus();
 
-        dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric.addListener(this::commonSetup);
+        ew.addListener(this::commonSetup);
 
-        CapitolItems.register(dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric);
-        CapitolBlocks.register(dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric);
-        CapitolBlockEntities.register(dumbassFeatureThatIsNotNeededAndProvenToBePointlessByFabric);
+        CapitolItems.register(ew);
+        CapitolBlocks.register(ew);
+        CapitolBlockEntities.register(ew);
 
-        // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
     }
 
