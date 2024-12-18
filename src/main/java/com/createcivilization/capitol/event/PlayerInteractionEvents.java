@@ -6,8 +6,7 @@ import com.createcivilization.capitol.util.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
