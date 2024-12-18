@@ -19,20 +19,38 @@ import java.time.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * Utilities related to teams.
+ */
 public class TeamUtils {
 
+	/**
+	 * Not to be instanced.
+	 */
     private TeamUtils() { throw new AssertionError(); }
 
+	/**
+	 * A list of the currently loaded teams.
+	 */
     public static final List<Team> loadedTeams = new ArrayList<>();
 
+	/**
+	 * @return The {@link File} which stores team data, automatically created if it doesn't exist.
+	 */
     public static File getTeamDataFile() throws IOException {
 		return FileUtils.forceFileExistence(FileUtils.getLocalFile("team_data.json"));
     }
 
+	/**
+	 * @return The {@link File} which stores claimed chunk data, automatically created if it doesn't exist.
+	 */
 	public static File getChunkDataFile() throws IOException {
 		return FileUtils.forceFileExistence(FileUtils.getLocalFile("claimed_chunks.json"));
 	}
 
+	/**
+	 * @return If the {@link Player} is in a team or not.
+	 */
     public static boolean hasTeam(Player player) {
         boolean hasTeam = false;
         for (Team team : loadedTeams) {
@@ -42,29 +60,47 @@ public class TeamUtils {
         return hasTeam;
     }
 
+	/**
+	 * @return A {@link ResourceLocation} object of the dimension the player is in.
+	 */
 	@SuppressWarnings("resource")
 	public static ResourceLocation getPlayerDimension(Player player) {
 		return player.level().dimension().location();
 	}
 
+	/**
+	 * @return If the {@link Player}'s current position is in a claimed chunk.
+	 */
 	public static boolean isInClaimedChunk(Player player) {
 		return isClaimedChunk(player.chunkPosition());
 	}
 
+	/**
+	 * @return If the given {@link ChunkPos} is representative of the location of a claimed chunk.
+	 */
 	public static boolean isClaimedChunk(ChunkPos pos) {
 		for (Team team : loadedTeams) for (var claimedChunks : team.getClaimedChunks().values()) if (claimedChunks.contains(pos)) return true;
 		return false;
 	}
 
+	/**
+	 * @return The {@link Permission} the {@link Player} has in the chunk they are currently in.
+	 */
 	public static Permission getPermissionInCurrentChunk(Player player) {
 		return getPermissionInChunk(player.chunkPosition(), player);
 	}
 
+	/**
+	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link BlockPos} specified in the parameters.
+	 */
 	@SuppressWarnings("resource")
 	public static Permission getPermissionInChunk(BlockPos pos, Player player) {
 		return getPermissionInChunk(player.level().getChunkAt(pos).getPos(), player);
 	}
 
+	/**
+	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link ChunkPos} specified in the parameters.
+	 */
 	public static Permission getPermissionInChunk(ChunkPos pos, Player player) {
 		boolean isInClaimedChunk = false;
 		Team teamWhoClaimedChunk = null;
@@ -84,16 +120,25 @@ public class TeamUtils {
 		} else return Permission.TEAM_MEMBER_ON_TEAM_CLAIM;
 	}
 
+	/**
+	 * @return An {@link ObjectHolder} with a value of either the {@link Team} the given {@link Player} is in, or a value of {@code null} if the {@link Player} is not in a team.
+	 */
     public static ObjectHolder<Team> getTeam(Player player) {
         for (Team team : loadedTeams) if (team.getAllPlayers().stream().anyMatch(player.getUUID()::equals)) return new ObjectHolder<>(team);
         return new ObjectHolder<>();
     }
 
+	/**
+	 * @return An {@link ObjectHolder} with a value of either the {@link Team} the given {@link String} represents, or a value of {@code null} if no {@link Team} can be found with that id.
+	 */
 	public static ObjectHolder<Team> getTeam(String teamId) {
 		for (Team team : loadedTeams) if (team.getTeamId().equals(teamId)) return new ObjectHolder<>(team);
 		return new ObjectHolder<>();
 	}
 
+	/**
+	 * Loads all the {@link Team}s from the team data file.
+	 */
     public static void loadTeams() throws IOException {
         System.out.println("Loading teams...");
         var file = TeamUtils.getTeamDataFile();
@@ -105,6 +150,9 @@ public class TeamUtils {
 		}
     }
 
+	/**
+	 * Saves all the {@link Team}s to the team data file.
+	 */
     public static void saveTeams() throws IOException {
         System.out.println("Saving teams...");
         JsonWriter writer = new JsonWriter(new FileWriter(TeamUtils.getTeamDataFile()));
@@ -115,6 +163,9 @@ public class TeamUtils {
 		TeamUtils.saveChunks();
     }
 
+	/**
+	 * @return A list of {@link Team}s parsed from the given {@link String}.
+	 */
     public static List<Team> parseTeams(String str) throws IOException {
         JsonReader reader = new JsonReader(new StringReader(str));
         List<Team> teams = new ArrayList<>();
@@ -125,6 +176,9 @@ public class TeamUtils {
         return teams;
     }
 
+	/**
+	 * @return An individual {@link Team} object parsed from json.
+	 */
     public static Team parseTeam(JsonReader reader) throws IOException {
         String name = null, teamId = null;
         Map<String, List<UUID>> players = new HashMap<>();
@@ -180,6 +234,9 @@ public class TeamUtils {
         return exists;
     }
 
+	/**
+	 * @return A random id for an {@link Team} to use.
+	 */
     public static String createRandomTeamId() {
 		LocalDateTime time = LocalDateTime.now();
 		Random random = new Random();
@@ -197,6 +254,9 @@ public class TeamUtils {
 		return sb.toString();
     }
 
+	/**
+	 * @return A new {@link Team} with the given parameters.
+	 */
     public static Team createTeam(String name, Player player, Color color) {
         return Team.TeamBuilder.create()
                 .setName(name)
@@ -206,6 +266,10 @@ public class TeamUtils {
                 .build();
     }
 
+	/**
+	 * Dumps the currently loaded teams, and then loads the teams in the team data file.
+	 * @return 1 if successful, -1 if not (for /command usage)
+	 */
 	public static int reloadTeamsFromFile() {
 		try {
 			loadedTeams.clear();
@@ -218,6 +282,10 @@ public class TeamUtils {
 		}
 	}
 
+	/**
+	 * Saves the teams to the team data file, dumps the team list, then reloads the teams.
+	 * @return 1 if successful, -1 if not (for /command usage)
+	 */
 	public static int reloadTeams() {
 		try {
 			saveTeams();
@@ -231,6 +299,9 @@ public class TeamUtils {
 		}
 	}
 
+	/**
+	 * Loads the claimed chunks from the chunk data file and applies them to the relevant teams.
+	 */
 	public static void loadChunks() throws IOException {
 		var file = TeamUtils.getChunkDataFile();
 		JsonReader reader = new JsonReader(new FileReader(file));
@@ -240,6 +311,9 @@ public class TeamUtils {
 		reader.close();
 	}
 
+	/**
+	 * See {@link #loadChunks()}
+	 */
 	@SuppressWarnings("deprecation")
 	public static void loadChunk(JsonReader reader) throws IOException {
 		System.out.println("Loading chunk...");
@@ -279,6 +353,9 @@ public class TeamUtils {
 		reader.endObject();
 	}
 
+	/**
+	 * Saves the claimed chunks to the chunk data file.
+	 */
 	public static void saveChunks() throws IOException {
 		var file = TeamUtils.getChunkDataFile();
 		JsonWriter writer = new JsonWriter(new FileWriter(file));
@@ -299,10 +376,18 @@ public class TeamUtils {
 		writer.close();
 	}
 
+	/**
+	 * Claims the current chunk for the given player's team.
+	 * @return 1 if successful, -1 if failed (for /command usage)
+	 */
 	public static int claimCurrentChunk(Player player) {
 		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
 	}
 
+	/**
+	 * Claims the given chunk for the given team.
+	 * @return 1 if successful, -1 if failed (for /command usage)
+	 */
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
 		System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
 		var claimedChunks = team.getClaimedChunks().get(dimension);
