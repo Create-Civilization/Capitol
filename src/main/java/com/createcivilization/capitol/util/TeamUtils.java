@@ -267,6 +267,20 @@ public class TeamUtils {
     }
 
 	/**
+	 * @param teamId The team to delete
+	 * @return boolean (Success)
+	 */
+	public static boolean removeTeam(String teamId)
+	{
+		if(loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId)))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Dumps the currently loaded teams, and then loads the teams in the team data file.
 	 * @return 1 if successful, -1 if not (for /command usage)
 	 */

@@ -20,6 +20,7 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
 
     protected String mustWhat = "be a player";
 
+	//What the user must have to do the command, "be a player", "be a player and an operator", "be a player and in a team"
     public void setMustWhat(String mustWhat) {
         this.mustWhat = mustWhat;
     }
@@ -34,11 +35,13 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
         }).then(this.command));
     }
 
+	// See AbstractCommand
     @Override
     public boolean canExecuteAllParams(CommandSourceStack s) {
         return new ObjectHolder<>(s.getPlayer()).ifPresentOrElse(this::canExecute, () -> false);
     }
 
+	// Executes all Parameters passing CommandSourceStack
     @Override
     public int executeAllParams(CommandContext<CommandSourceStack> command) {
         ObjectHolder<Player> playerObject = new ObjectHolder<>(command.getSource().getPlayer());
@@ -48,6 +51,7 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
         });
     }
 
+	// Executes command passing player
     public int execute(Player player) {
 		return 1;
 	}

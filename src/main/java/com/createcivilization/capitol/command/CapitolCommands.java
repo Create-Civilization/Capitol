@@ -3,6 +3,7 @@ package com.createcivilization.capitol.command;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.command.custom.*;
 
+import com.createcivilization.capitol.command.custom.GetTeamsDebugCommand;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -18,5 +19,7 @@ public class CapitolCommands {
 		new ReloadTeamsCommand().register(dispatcher);
 		new ClaimCurrentChunkCommand().register(dispatcher);
 		new SmiteCommand().register(dispatcher);
+		new GetTeamsDebugCommand().register(dispatcher);
+		new RemoveTeamDebugCommand().register(dispatcher);
     }
 }
