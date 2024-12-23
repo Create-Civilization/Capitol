@@ -72,7 +72,7 @@ public final class DataHandler {
 					for (ServerLevel level : getAllLevels()) {
 						if (level.dimension().location().equals(recLoc)) {
 							for (var chunkPos : team.getClaimedChunks().get(recLoc)) {
-								((IChunkData) level.getChunk(chunkPos.x, chunkPos.z)).updateTakeOverProgress();
+								((IChunkData) level.getChunk(chunkPos.getWorldPosition())).updateTakeOverProgress();
 							}
 						}
 					}
