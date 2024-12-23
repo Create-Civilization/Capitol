@@ -15,7 +15,7 @@ import java.io.*;
 /**
  * Class for saving and loading Team data and claimed Chunks.<br>
  * The data is loaded before {@link net.minecraftforge.event.server.ServerStartingEvent}, and the teams are stored in {@link TeamUtils#loadedTeams}.<br>
- * The data is saved regularly on the autosave even (/save-all), and saved and cleared when the server stops, right before the player list is saved and cleared.
+ * The data is saved regularly on the autosave (/save-all), and saved and cleared when the server stops, right before the player list is saved and cleared.
  */
 @SuppressWarnings("all")
 public final class DataHandler {
@@ -25,7 +25,7 @@ public final class DataHandler {
 
 		/**
 		 * Loads the teams when the server starts.<br>
-		 * This mixin also applies sets {@link Capitol#server} to be the server instance.
+		 * This mixin also sets {@link Capitol#server} to be the server instance.
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) throws IOException {
@@ -41,7 +41,7 @@ public final class DataHandler {
 		 * Saves the teams every time /save-all or the autosave feature runs.
 		 */
 		@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;saveAll()V", shift = At.Shift.BEFORE), method = "saveEverything")
-		private void autoSaveTeams(boolean p_195515_, boolean p_195516_, boolean p_195517_, CallbackInfoReturnable<Boolean> cir) throws IOException {
+		private void autoSaveTeams(boolean suppressLog, boolean flush, boolean forced, CallbackInfoReturnable<Boolean> cir) throws IOException {
 			TeamUtils.saveTeams();
 		}
 
