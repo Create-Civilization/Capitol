@@ -1,7 +1,7 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.team.*;
 
 import com.google.gson.stream.*;
 
@@ -33,6 +33,8 @@ public class TeamUtils {
 	 * A list of the currently loaded teams.
 	 */
     public static final List<Team> loadedTeams = new ArrayList<>();
+
+	public static final List<War> wars = new ArrayList<>();
 
 	/**
 	 * @return The {@link File} which stores team data, automatically created if it doesn't exist.
@@ -183,6 +185,7 @@ public class TeamUtils {
         String name = null, teamId = null;
         Map<String, List<UUID>> players = new HashMap<>();
         Color color = null;
+		List<String> allies = new ArrayList<>();
         reader.beginObject();
         while (reader.hasNext()) {
             switch (reader.nextName()) {
@@ -200,6 +203,11 @@ public class TeamUtils {
                     }
                     reader.endObject();
                 }
+				case "allies" -> {
+					reader.beginArray();
+					while (reader.hasNext()) allies.add(reader.nextString());
+					reader.endArray();
+				}
             }
         }
         reader.endObject();
@@ -208,6 +216,7 @@ public class TeamUtils {
                 .setTeamId(teamId)
                 .setPlayers(players)
                 .setColor(color)
+				.setAllies(allies)
                 .build();
     }
 
@@ -270,14 +279,8 @@ public class TeamUtils {
 	 * @param teamId The team to delete
 	 * @return boolean (Success)
 	 */
-	public static boolean removeTeam(String teamId)
-	{
-		if(loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId)))
-		{
-			return true;
-		}
-
-		return false;
+	public static boolean removeTeam(String teamId) {
+		return loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
 	}
 
 	/**
@@ -411,5 +414,12 @@ public class TeamUtils {
 			team.getClaimedChunks().put(dimension, list);
 		} else claimedChunks.add(pos);
 		return 1;
+	}
+
+	public static List<Team> getTeamAndAllies(Team team) {
+		List<Team> teams = new ArrayList<>();
+		teams.add(team);
+		team.getAllies().forEach(str -> getTeam(str).ifPresent(teams::add));
+		return teams;
 	}
 }

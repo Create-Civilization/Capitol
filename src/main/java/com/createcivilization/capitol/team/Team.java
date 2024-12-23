@@ -20,6 +20,8 @@ public class Team {
 
 	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
 
+	private List<String> allies = new ArrayList<>(); // List of ally teamIds
+
     private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
         this.name = name;
         this.teamId = teamId;
@@ -53,6 +55,14 @@ public class Team {
 		return claimedChunks;
 	}
 
+	public List<String> getAllies() {
+		return allies;
+	}
+
+	public void addAllies(Collection<String> allies) {
+		this.allies.addAll(allies);
+	}
+
 	/**
 	 * @return This {@link Team} object, serialized to json.
 	 */
@@ -72,6 +82,9 @@ public class Team {
                 writer.endArray();
             }
             writer.endObject();
+			writer.name("allies").beginArray();
+			for (String ally : allies) writer.value(ally);
+			writer.endArray();
             writer.endObject();
         } catch (IOException e) {
             throw new RuntimeException("Failed to write team data!", e);
@@ -93,6 +106,8 @@ public class Team {
         private Map<String, List<UUID>> players = new HashMap<>();
 
         private Color color;
+
+		private List<String> allies = new ArrayList<>();
 
         private TeamBuilder() {}
 
@@ -132,12 +147,24 @@ public class Team {
             return this;
         }
 
+		public TeamBuilder addAllies(List<String> allies) {
+			this.allies.addAll(allies);
+			return this;
+		}
+
+		public TeamBuilder setAllies(List<String> allies) {
+			this.allies = allies;
+			return this;
+		}
+
         public Team build() {
             Objects.requireNonNull(name);
             Objects.requireNonNull(teamId);
             Objects.requireNonNull(players);
             Objects.requireNonNull(color);
-            return new Team(name, teamId, players, color);
+			Team team = new Team(name, teamId, players, color);
+			team.addAllies(allies);
+			return team;
         }
     }
 }

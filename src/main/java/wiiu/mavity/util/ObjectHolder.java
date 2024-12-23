@@ -23,9 +23,13 @@ public class ObjectHolder<V> {
     }
 
     public V getOrDefault(@NotNull V defaultValue) {
-        var value = this.get();
-        return value != null ? value : defaultValue;
+        return this.isPresent() ? this.get() : defaultValue;
     }
+
+	public V getOrThrow() {
+		if (this.isEmpty()) throw new NullPointerException("Value was null!");
+		return this.get();
+	}
 
     public String getAsString() {
         return String.valueOf(this.get());

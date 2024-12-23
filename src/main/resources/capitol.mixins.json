@@ -5,8 +5,10 @@
 	"compatibilityLevel": "JAVA_17",
 	"refmap": "capitol.refmap.json",
 	"mixins": [
+		"ChunkDataImpl",
 		"DataHandler$DataLoaderImpl",
-		"DataHandler$DataSaverImpl"
+		"DataHandler$DataSaverImpl",
+		"DataHandler$ChunkDataImplImpl"
 	],
 	"injectors": {
 		"defaultRequire": 1

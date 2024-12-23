@@ -21,5 +21,6 @@ public class CapitolCommands {
 		new SmiteCommand().register(dispatcher);
 		new GetTeamsDebugCommand().register(dispatcher);
 		new RemoveTeamDebugCommand().register(dispatcher);
+		new ActivateWarTeamsDebugCommand().register(dispatcher);
     }
 }

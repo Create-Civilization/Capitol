@@ -1,16 +1,20 @@
 package com.createcivilization.capitol.mixin;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.IChunkData;
 import com.createcivilization.capitol.util.TeamUtils;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.level.ServerLevel;
 
-import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 
 import java.io.*;
+import java.util.function.BooleanSupplier;
 
 /**
  * Class for saving and loading Team data and claimed Chunks.<br>
@@ -51,6 +55,29 @@ public final class DataHandler {
 		@Inject(at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;)V", shift = At.Shift.BEFORE, ordinal = 1), method = "stopServer")
 		private void saveTeams(CallbackInfo ci) throws IOException {
 			TeamUtils.saveTeams();
+		}
+	}
+
+	@Mixin(MinecraftServer.class)
+	public abstract static class ChunkDataImplImpl {
+
+		@Shadow
+		public abstract Iterable<ServerLevel> getAllLevels();
+
+		// Before any tick do:
+		@Inject(at = @At(value = "HEAD"), method = "tickServer")
+		private void updateTakeOverProgress(BooleanSupplier pHasTimeLeft, CallbackInfo ci) throws ClassNotFoundException {
+			for (Team team : TeamUtils.loadedTeams) {
+				for (var recLoc : team.getClaimedChunks().keySet()) {
+					for (ServerLevel level : getAllLevels()) {
+						if (level.dimension().location().equals(recLoc)) {
+							for (var chunkPos : team.getClaimedChunks().get(recLoc)) {
+								((IChunkData) level.getChunk(chunkPos.x, chunkPos.z)).updateTakeOverProgress();
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
