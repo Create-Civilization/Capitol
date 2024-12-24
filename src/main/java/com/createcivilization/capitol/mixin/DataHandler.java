@@ -66,7 +66,7 @@ public final class DataHandler {
 
 		// Before any tick do:
 		@Inject(at = @At(value = "HEAD"), method = "tickServer")
-		private void updateTakeOverProgress(BooleanSupplier pHasTimeLeft, CallbackInfo ci) throws ClassNotFoundException {
+		private void updateTakeOverProgress(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
 			for (Team team : TeamUtils.loadedTeams) {
 				for (var recLoc : team.getClaimedChunks().keySet()) {
 					for (ServerLevel level : getAllLevels()) {
