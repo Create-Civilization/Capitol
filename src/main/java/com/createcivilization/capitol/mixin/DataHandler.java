@@ -2,8 +2,7 @@ package com.createcivilization.capitol.mixin;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.IChunkData;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.*;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
@@ -33,6 +32,7 @@ public final class DataHandler {
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) throws IOException {
+			Config.loadConfig();
 			Capitol.server.set((MinecraftServer) (Object) this);
             TeamUtils.loadTeams();
         }
@@ -46,6 +46,7 @@ public final class DataHandler {
 		 */
 		@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;saveAll()V", shift = At.Shift.BEFORE), method = "saveEverything")
 		private void autoSaveTeams(boolean suppressLog, boolean flush, boolean forced, CallbackInfoReturnable<Boolean> cir) throws IOException {
+			Config.saveConfig();
 			TeamUtils.saveTeams();
 		}
 
@@ -54,6 +55,7 @@ public final class DataHandler {
 		 */
 		@Inject(at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;)V", shift = At.Shift.BEFORE, ordinal = 1), method = "stopServer")
 		private void saveTeams(CallbackInfo ci) throws IOException {
+			Config.saveConfig();
 			TeamUtils.saveTeams();
 		}
 	}

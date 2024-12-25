@@ -32,6 +32,10 @@ public class FileUtils {
 		return new File(System.getProperty("user.dir"), fileName);
 	}
 
+	public static File getLocalFile(String parent, String fileName) {
+		return new File(getLocalFile(parent), fileName);
+	}
+
 	/**
 	 * @return The contents of the {@link File} object, separated by newlines.
 	 */

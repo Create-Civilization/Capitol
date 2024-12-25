@@ -436,13 +436,9 @@ public class TeamUtils {
 	 * @param chunkPos The center of the radius to claim the chunks in
 	 * @param radius The radius itself
 	 */
+	// Suck my one-liners
 	public static void claimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
-		for (int x = -1; x < radius + 1; x++) {
-			for (int z = -1; z < radius + 1; z++) {
-				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
-				TeamUtils.claimChunkIfNotClaimed(team, dimension, currentChunkPos);// Don't try claiming claimed chunks, removing unnecessary overlapping when the object already exists in storage.
-			}
-		}
+		for (int x = -1; x < radius + 1; x++) for (int z = -1; z < radius + 1; z++) TeamUtils.claimChunkIfNotClaimed(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));// Don't try claiming claimed chunks, removing unnecessary overlapping when the object already exists in storage.
 	}
 
 	/**

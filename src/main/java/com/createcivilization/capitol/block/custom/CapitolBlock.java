@@ -4,8 +4,8 @@ import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import net.minecraft.core.*;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.shapes.*;
+
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("all")
@@ -63,6 +64,7 @@ public class CapitolBlock extends BaseEntityBlock {
 	public BlockState mirror(BlockState state, Mirror mirror) {
 		return state.rotate(mirror.getRotation(state.getValue(FACING)));
 	}
+
 	// onDestroyedByPlayer --> forge
 	@Override
 	public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {

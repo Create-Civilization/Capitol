@@ -55,6 +55,10 @@ public class ObjectHolder<V> {
 		return function.applyOrElse(this.get(), emptyConsumer);
     }
 
+	public Class<?> getType() {
+		return this.ifPresentOrElse(V::getClass, () -> Void.class);
+	}
+
     public String toString() {
         return this.getClass().getSimpleName() + "{value=" + this.getAsString() + "}";
     }
