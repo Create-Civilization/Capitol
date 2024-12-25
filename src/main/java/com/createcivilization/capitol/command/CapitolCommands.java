@@ -22,5 +22,6 @@ public class CapitolCommands {
 		new GetTeamsDebugCommand().register(dispatcher);
 		new RemoveTeamDebugCommand().register(dispatcher);
 		new ActivateWarTeamsDebugCommand().register(dispatcher);
+		new DisbandTeamCommand().register(dispatcher);
     }
 }

@@ -64,6 +64,18 @@ public class TeamUtils {
     }
 
 	/**
+	 * Checks if player owns the team that they're in
+	 * @param player The player to check for ownership
+	 * @return If the player is the owner of his team
+	 */
+	public static boolean isTeamOwner(Player player) {
+		Team team = TeamUtils.getTeam(player).get();
+
+		assert team != null;
+		return team.getPlayers().get("owner").stream().anyMatch(player.getUUID()::equals);
+	}
+
+	/**
 	 * @return A {@link ResourceLocation} object of the dimension the player is in.
 	 */
 	@SuppressWarnings("resource")
