@@ -3,6 +3,7 @@ package com.createcivilization.capitol.block.custom;
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.Config;
 import com.createcivilization.capitol.util.TeamUtils;
 
 import net.minecraft.core.*;
@@ -93,7 +94,7 @@ public class CapitolBlock extends BaseEntityBlock {
 			ResourceLocation dimension = world.dimension().location();
 			ChunkPos chunkPos = new ChunkPos(pos);
 			// 1 is radius, set to a config var later!
-			TeamUtils.claimChunkRadius(team, dimension, chunkPos, 1);
+			TeamUtils.claimChunkRadius(team, dimension, chunkPos, Config.claimRadius.get());
 		}else{
 			// Conditions not met, destroy
 			world.destroyBlock(pos, true);
