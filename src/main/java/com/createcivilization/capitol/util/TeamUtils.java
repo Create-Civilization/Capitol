@@ -69,9 +69,7 @@ public class TeamUtils {
 	 * @return If the player is the owner of his team
 	 */
 	public static boolean isTeamOwner(Player player) {
-		Team team = TeamUtils.getTeam(player).get();
-
-		assert team != null;
+		Team team = TeamUtils.getTeam(player).getOrThrow();
 		return team.getPlayers().get("owner").stream().anyMatch(player.getUUID()::equals);
 	}
 
@@ -106,6 +104,7 @@ public class TeamUtils {
 	}
 
 	/**
+	 * TODO: Completely redo the Permission system and replace it with a c2s synced config per team (done in the capitol block?)
 	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link BlockPos} specified in the parameters.
 	 */
 	@SuppressWarnings("resource")
@@ -419,23 +418,12 @@ public class TeamUtils {
 	 * @param player Player to check
 	 * @param radius The chunk radius around the player to check
 	 */
-	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, @Nullable Player player)
-	{
-		for (int x = -1; x < radius+1; x++)
-		{
-			for (int z = -1; z < radius + 1; z++)
-			{
-				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x-x, chunkPos.z-z);
-				if (player != null)
-				{
-					if (TeamUtils.getPermissionInChunk(currentChunkPos, player) == Permission.TEAM_MEMBER_ON_TEAM_CLAIM) {
-						return true;
-					}
-				}else{
-					if (TeamUtils.isClaimedChunk(chunkPos)){
-						return true;
-					}
-				}
+	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, @Nullable Player player) {
+		for (int x = -1; x < radius + 1; x++) {
+			for (int z = -1; z < radius + 1; z++) {
+				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
+				if (player != null) if (TeamUtils.getPermissionInChunk(currentChunkPos, player) == Permission.TEAM_MEMBER_ON_TEAM_CLAIM) return true;
+				else if (TeamUtils.isClaimedChunk(chunkPos)) return true;
 			}
 		}
 		return false;
@@ -448,14 +436,11 @@ public class TeamUtils {
 	 * @param chunkPos The center of the radius to claim the chunks in
 	 * @param radius The radius itself
 	 */
-	public static void claimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius)
-	{
-		for (int x = -1; x < radius+1; x++)
-		{
-			for (int z = -1; z < radius+1; z++)
-			{
+	public static void claimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
+		for (int x = -1; x < radius + 1; x++) {
+			for (int z = -1; z < radius + 1; z++) {
 				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
-				if (!TeamUtils.isClaimedChunk(currentChunkPos)) {TeamUtils.claimChunk(team, dimension, currentChunkPos);} // Avoid claiming claimed chunks, avoiding overlap
+				TeamUtils.claimChunkIfNotClaimed(team, dimension, currentChunkPos);// Don't try claiming claimed chunks, removing unnecessary overlapping when the object already exists in storage.
 			}
 		}
 	}
@@ -473,6 +458,10 @@ public class TeamUtils {
 			team.getClaimedChunks().put(dimension, list);
 		} else claimedChunks.add(pos);
 		return 1;
+	}
+
+	public static void claimChunkIfNotClaimed(Team team, ResourceLocation dimension, ChunkPos pos) {
+		if (!TeamUtils.isClaimedChunk(pos)) TeamUtils.claimChunk(team, dimension, pos);
 	}
 
 	public static List<Team> getTeamAndAllies(Team team) {

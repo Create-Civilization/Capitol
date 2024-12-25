@@ -86,7 +86,7 @@ public class CapitolBlock extends BaseEntityBlock {
 				&& placer instanceof Player player // Make sure nothing else is placing it
 				&& TeamUtils.hasTeam(player) // Make sure player has a team
 		) {
-			Team team = TeamUtils.getTeam(player).get();
+			Team team = TeamUtils.getTeam(player).getOrThrow();
 
 			ResourceLocation dimension = world.dimension().location();
 			ChunkPos chunkPos = new ChunkPos(pos);
