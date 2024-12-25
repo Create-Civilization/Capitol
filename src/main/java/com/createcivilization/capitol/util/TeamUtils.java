@@ -76,7 +76,6 @@ public class TeamUtils {
 	/**
 	 * @return A {@link ResourceLocation} object of the dimension the player is in.
 	 */
-	@SuppressWarnings("resource")
 	public static ResourceLocation getPlayerDimension(Player player) {
 		return player.level().dimension().location();
 	}
@@ -107,7 +106,6 @@ public class TeamUtils {
 	 * TODO: Completely redo the Permission system and replace it with a c2s synced config per team (done in the capitol block?)
 	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link BlockPos} specified in the parameters.
 	 */
-	@SuppressWarnings("resource")
 	public static Permission getPermissionInChunk(BlockPos pos, Player player) {
 		return getPermissionInChunk(player.level().getChunkAt(pos).getPos(), player);
 	}
@@ -119,7 +117,7 @@ public class TeamUtils {
 		boolean isInClaimedChunk = false;
 		Team teamWhoClaimedChunk = null;
 		for (Team team : loadedTeams) {
-			for (var claimedChunks : team.getClaimedChunks().values()) {
+			for (List<ChunkPos> claimedChunks : team.getClaimedChunks().values()) {
 				if (claimedChunks.contains(pos)) {
 					isInClaimedChunk = true;
 					teamWhoClaimedChunk = team;
@@ -412,6 +410,13 @@ public class TeamUtils {
 	public static int claimCurrentChunk(Player player) {
 		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
 	}
+	/**
+	 * Unclaims the current chunk for the given player's team.
+	 * @return 1 if successful, -1 if failed (for /command usage)
+	 */
+	public static int unclaimCurrentChunk(Player player) {
+		return getTeam(player).ifPresentOrElse(team -> unclaimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
+	}
 
 	/**
 	 * Checks if nearby chunks in radius are claimed by player's team.
@@ -419,14 +424,37 @@ public class TeamUtils {
 	 * @param radius The chunk radius around the player to check
 	 */
 	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, @Nullable Player player) {
-		for (int x = -1; x < radius + 1; x++) {
-			for (int z = -1; z < radius + 1; z++) {
+		radius++;
+		for (int x = -1; x < radius; x++) {
+			for (int z = -1; z < radius; z++) {
 				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
-				if (player != null) if (TeamUtils.getPermissionInChunk(currentChunkPos, player) == Permission.TEAM_MEMBER_ON_TEAM_CLAIM) return true;
+				if (player != null) if (allowedInChunk(player, currentChunkPos)) return true;
 				else if (TeamUtils.isClaimedChunk(chunkPos)) return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Check if player's team owns chunk at position.
+	 * @param player the player on which the team shall be checked.
+	 * @param chunkPos the position of the chunk.
+	 */
+	public static boolean allowedInChunk(Player player, ChunkPos chunkPos)
+	{
+		return TeamUtils.getPermissionInChunk(chunkPos, player) == Permission.TEAM_MEMBER_ON_TEAM_CLAIM;
+	}
+
+	/**
+	 * Check if team owns chunk at position.
+	 * @param team the team on which the team shall be checked.
+	 * @param chunkPos the position of the chunk.
+	 */
+	public static boolean allowedInChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos)
+	{
+		if (!TeamUtils.isClaimedChunk(chunkPos)) { return false; }
+		List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
+		return chunks.contains(chunkPos);
 	}
 
 	/**
@@ -436,9 +464,9 @@ public class TeamUtils {
 	 * @param chunkPos The center of the radius to claim the chunks in
 	 * @param radius The radius itself
 	 */
-	// Suck my one-liners
 	public static void claimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
-		for (int x = -1; x < radius + 1; x++) for (int z = -1; z < radius + 1; z++) TeamUtils.claimChunkIfNotClaimed(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));// Don't try claiming claimed chunks, removing unnecessary overlapping when the object already exists in storage.
+		radius++;
+		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.claimChunkIfNotClaimed(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
 	}
 
 	/**
@@ -447,12 +475,31 @@ public class TeamUtils {
 	 */
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
 		System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
-		var claimedChunks = team.getClaimedChunks().get(dimension);
+		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension); // Suck my proper typing
 		if (claimedChunks == null) {
 			List<ChunkPos> list = new ArrayList<>();
 			list.add(pos);
 			team.getClaimedChunks().put(dimension, list);
 		} else claimedChunks.add(pos);
+		return 1;
+	}
+
+	public static boolean hasCapitol(ChunkPos chunkPos, ResourceLocation dimension){
+		// check if capitol is in chunk
+		return false;
+	}
+
+	/**
+	 * Unclaims the given chunk from the given team.
+	 * @param team The team to unclaim for.
+	 * @param dimension The dimension of the chunk.
+	 * @param chunkPos The position of the chunk.
+	 * @return 1 if successful, -1 if failed
+	 */
+	public static int unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
+		System.out.println("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
+		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension);
+		claimedChunks.remove(chunkPos);
 		return 1;
 	}
 

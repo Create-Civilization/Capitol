@@ -93,8 +93,7 @@ public class CapitolBlock extends BaseEntityBlock {
 
 			ResourceLocation dimension = world.dimension().location();
 			ChunkPos chunkPos = new ChunkPos(pos);
-			// 1 is radius, set to a config var later!
-			TeamUtils.claimChunkRadius(team, dimension, chunkPos, Config.claimRadius.get());
+			TeamUtils.claimChunkRadius(team, dimension, chunkPos, Config.claimRadius.getOrDefault(1));
 		}else{
 			// Conditions not met, destroy
 			world.destroyBlock(pos, true);

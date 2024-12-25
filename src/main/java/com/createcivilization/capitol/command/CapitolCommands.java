@@ -23,5 +23,6 @@ public class CapitolCommands {
 		new RemoveTeamDebugCommand().register(dispatcher);
 		new ActivateWarTeamsDebugCommand().register(dispatcher);
 		new DisbandTeamCommand().register(dispatcher);
+		new UnclaimCurrentChunkCommand().register(dispatcher);
     }
 }
