@@ -13,6 +13,7 @@ import net.minecraft.world.level.*;
 
 import wiiu.mavity.util.ObjectHolder;
 
+import javax.annotation.Nullable;
 import java.awt.Color;
 import java.io.*;
 import java.time.*;
@@ -399,6 +400,52 @@ public class TeamUtils {
 	 */
 	public static int claimCurrentChunk(Player player) {
 		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
+	}
+
+	/**
+	 * Checks if nearby chunks in radius are claimed by player's team.
+	 * @param player Player to check
+	 * @param radius The chunk radius around the player to check
+	 */
+	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, @Nullable Player player)
+	{
+		for (int x = -1; x < radius+1; x++)
+		{
+			for (int z = -1; z < radius + 1; z++)
+			{
+				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x-x, chunkPos.z-z);
+				if (player != null)
+				{
+					if (TeamUtils.getPermissionInChunk(currentChunkPos, player) == Permission.TEAM_MEMBER_ON_TEAM_CLAIM) {
+						return true;
+					}
+				}else{
+					if (TeamUtils.isClaimedChunk(chunkPos)){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Claims chunks in a radius of a center position to a team
+	 * @param team The team to claim the chunks to
+	 * @param dimension The dimension to claim the chunks in
+	 * @param chunkPos The center of the radius to claim the chunks in
+	 * @param radius The radius itself
+	 */
+	public static void claimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius)
+	{
+		for (int x = -1; x < radius+1; x++)
+		{
+			for (int z = -1; z < radius+1; z++)
+			{
+				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
+				if (!TeamUtils.isClaimedChunk(currentChunkPos)) {TeamUtils.claimChunk(team, dimension, currentChunkPos);} // Avoid claiming claimed chunks, avoiding overlap
+			}
+		}
 	}
 
 	/**

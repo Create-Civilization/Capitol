@@ -2,14 +2,25 @@ package com.createcivilization.capitol.block.custom;
 
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 
+import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.core.*;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.shapes.*;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("all")
 public class CapitolBlock extends BaseEntityBlock {
@@ -51,6 +62,40 @@ public class CapitolBlock extends BaseEntityBlock {
 	@Override
 	public BlockState mirror(BlockState state, Mirror mirror) {
 		return state.rotate(mirror.getRotation(state.getValue(FACING)));
+	}
+	// onDestroyedByPlayer --> forge
+	@Override
+	public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
+		return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
+	}
+
+	// setPlacedBy --> Minecraft
+	// Check if:
+	// Player is in team
+	// Then:
+	// Claim chunk & chunk radius (CONFIG AMOUNT, DEFAULTING TO 1)
+	// Else:
+	// Break block
+	@Override
+	public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+		super.setPlacedBy(world, pos, state, placer, stack);
+
+		if (
+			!world.isClientSide
+				&& world.getBlockEntity(pos) instanceof CapitolBlockEntity capitolBlockEntity // Safety check
+				&& placer instanceof Player player // Make sure nothing else is placing it
+				&& TeamUtils.hasTeam(player) // Make sure player has a team
+		) {
+			Team team = TeamUtils.getTeam(player).get();
+
+			ResourceLocation dimension = world.dimension().location();
+			ChunkPos chunkPos = new ChunkPos(pos);
+			// 1 is radius, set to a config var later!
+			TeamUtils.claimChunkRadius(team, dimension, chunkPos, 1);
+		}else{
+			// Conditions not met, destroy
+			world.destroyBlock(pos, true);
+		}
 	}
 
 	@Override
