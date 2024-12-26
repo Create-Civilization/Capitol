@@ -1,0 +1,39 @@
+{
+	"$schema": "https://json-schema.org/draft-07/schema",
+	"title": "Team Data",
+	"description": "Layout for the team data file.",
+	"properties": {
+		"teamId": {
+			"description": "The identifier of the team",
+			"type": "string"
+		},
+		"name": {
+			"description": "The name of the team",
+			"type": "string"
+		},
+		"color": {
+			"description": "The color of the team",
+			"type": "integer"
+		},
+		"players": {
+			"description": "The players of the team, sorted by permission",
+			"type": "object"
+		},
+		"owner": {
+			"description": "The owner(s) of the team",
+			"type": "string"
+		},
+		"moderator": {
+			"description": "The moderator(s) of the team",
+			"type": "string"
+		},
+		"member": {
+			"description": "The member(s) of the team",
+			"type": "string"
+		},
+		"allies": {
+			"description": "The allies of the team",
+			"type": "array"
+		}
+	}
+}
