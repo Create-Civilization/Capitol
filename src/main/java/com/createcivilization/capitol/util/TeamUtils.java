@@ -18,6 +18,7 @@ import java.awt.Color;
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -172,12 +173,21 @@ public class TeamUtils {
 	 */
     public static void saveTeams() throws IOException {
         System.out.println("Saving teams...");
-        JsonWriter writer = new JsonWriter(new FileWriter(TeamUtils.getTeamDataFile()));
+		File teamDataFile = TeamUtils.getTeamDataFile();
+        JsonWriter writer = new JsonWriter(new FileWriter(teamDataFile));
         writer.beginArray();
         for (Team team : loadedTeams) writer.jsonValue(team.toString());
         writer.endArray();
         writer.close();
-		TeamUtils.saveChunks();
+		TeamUtils.saveMap(
+			teamDataFile,
+			"claimedChunks",
+			Team::getClaimedChunks,
+			Object::toString,
+			(List<ChunkPos> chunkList) -> chunkList.stream()
+				.map(chunkPos -> chunkPos.x + "," + chunkPos.z)
+				.toArray(String[]::new)
+		);
     }
 
 	/**
@@ -386,19 +396,26 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Saves the claimed chunks to the chunk data file.
+	 * Saves Map from Team.
 	 */
-	public static void saveChunks() throws IOException {
-		var file = TeamUtils.getChunkDataFile();
+	public static <K,V> void saveMap(
+		File file,
+		String jsonObjectName,
+		Function<Team, Map<K,V>> mapGenerator,
+		Function<K, String> keySerializer,
+		Function<V, String[]> valueSerializer
+	) throws IOException {
 		JsonWriter writer = new JsonWriter(new FileWriter(file));
 		writer.beginArray();
 		for (Team team : loadedTeams) {
 			writer.beginObject();
 			writer.name("teamId").value(team.getTeamId());
-			writer.name("claimedChunks").beginObject();
-			for (var entrySet : team.getClaimedChunks().entrySet()) {
-				writer.name(entrySet.getKey().toString()).beginArray();
-				for (var chunks : entrySet.getValue()) writer.value(chunks.x + "," + chunks.z);
+			writer.name(jsonObjectName).beginObject();
+			for (Map.Entry<K, V> entrySet : mapGenerator.apply(team).entrySet()) {
+				writer.name(keySerializer.apply(entrySet.getKey())).beginArray();
+				for (String value : valueSerializer.apply(entrySet.getValue())) {
+					writer.value(value);
+				}
 				writer.endArray();
 			}
 			writer.endObject();
