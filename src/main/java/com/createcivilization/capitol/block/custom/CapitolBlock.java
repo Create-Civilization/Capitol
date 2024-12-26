@@ -3,8 +3,7 @@ package com.createcivilization.capitol.block.custom;
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.Config;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.*;
 
 import net.minecraft.core.*;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +23,7 @@ import net.minecraft.world.phys.shapes.*;
 
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("all")
+@SuppressWarnings({"deprecation", "NullableProblems"})
 public class CapitolBlock extends BaseEntityBlock {
 
     public static final VoxelShape SHAPE = Block.box(0,0,0, 16,16,16);
@@ -85,16 +84,18 @@ public class CapitolBlock extends BaseEntityBlock {
 
 		if (
 			!world.isClientSide
-				&& world.getBlockEntity(pos) instanceof CapitolBlockEntity capitolBlockEntity // Safety check
+				&& world.getBlockEntity(pos) instanceof CapitolBlockEntity // Safety check
 				&& placer instanceof Player player // Make sure nothing else is placing it
 				&& TeamUtils.hasTeam(player) // Make sure player has a team
+				&& !TeamUtils.isInClaimedChunk(player, pos)
 		) {
-			Team team = TeamUtils.getTeam(player).getOrThrow();
-
-			ResourceLocation dimension = world.dimension().location();
-			ChunkPos chunkPos = new ChunkPos(pos);
-			TeamUtils.claimChunkRadius(team, dimension, chunkPos, Config.claimRadius.getOrDefault(1));
-		}else{
+			TeamUtils.claimChunkRadius(
+				TeamUtils.getTeam(player).getOrThrow(),
+				world.dimension().location(),
+				new ChunkPos(pos),
+				Config.claimRadius.getOrThrow() // It is NOT null.
+			);
+		} else {
 			// Conditions not met, destroy
 			world.destroyBlock(pos, true);
 		}

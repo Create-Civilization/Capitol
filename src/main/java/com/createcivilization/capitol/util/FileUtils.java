@@ -51,11 +51,15 @@ public class FileUtils {
 	 * Sets the contents of the {@link File} object if it has no contents already.
 	 */
 	public static void setContentsIfEmpty(File file, String newContents) throws IOException {
-		String contents = getFileContents(file);
-		if (contents.isBlank() || contents.isEmpty()) {
+		if (isFileEmpty(file)) {
 			var f = new FileWriter(file);
 			f.write(newContents);
 			f.close();
 		}
+	}
+
+	public static boolean isFileEmpty(File file) throws IOException {
+		String contents = getFileContents(file);
+		return contents.isEmpty() || contents.isBlank();
 	}
 }

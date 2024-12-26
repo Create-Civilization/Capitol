@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.*;
 import javax.annotation.Nullable;
 
 @Mixin(ChunkAccess.class)
-@SuppressWarnings("all")
+@SuppressWarnings("AddedMixinMembersNamePattern")
 public abstract class ChunkDataImpl implements IChunkData {
 
 	// Inject information into relevant chunks

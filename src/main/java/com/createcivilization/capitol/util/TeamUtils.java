@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 /**
  * Utilities related to teams.
  */
+@SuppressWarnings({"resource", "TypeMayBeWeakened"})
 public class TeamUtils {
 
 	/**
@@ -85,6 +86,10 @@ public class TeamUtils {
 	 */
 	public static boolean isInClaimedChunk(Player player) {
 		return isClaimedChunk(player.chunkPosition());
+	}
+
+	public static boolean isInClaimedChunk(Player player, BlockPos pos) {
+		return isClaimedChunk(player.level().getChunk(pos).getPos());
 	}
 
 	/**

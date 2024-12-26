@@ -14,16 +14,13 @@ public class ClaimCurrentChunkCommand extends AbstractTeamCommand {
     }
 
 	@Override
-	public int execute(Player player)
-	{
-		if (TeamUtils.isInClaimedChunk(player))
-		{
+	public int execute(Player player) {
+		if (TeamUtils.isInClaimedChunk(player)) {
 			// Chunk already claimed
 			player.sendSystemMessage(Component.literal("Chunk already claimed"));
 			return -1;
 		}
-		if (!TeamUtils.nearClaimedChunk(player.chunkPosition(), 1, player))
-		{
+		if (!TeamUtils.nearClaimedChunk(player.chunkPosition(), 1, player)) {
 			// Near chunk to extend
 			player.sendSystemMessage(Component.literal("Must be near a claimed chunk"));
 			return -1;

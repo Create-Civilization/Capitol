@@ -10,11 +10,13 @@ public class Config {
 
 	private Config() { throw new AssertionError("java.lang.reflect is cheating!"); }
 
-	public static final ObjectHolder<Integer> claimRadius = new ObjectHolder<>();
+	public static final ObjectHolder<Integer> claimRadius = new ObjectHolder<>(1);
 
 	public static void loadConfig() throws IOException {
 		System.out.println("Loading config...");
-		JsonReader configReader = new JsonReader(new StringReader(FileUtils.getFileContents(FileUtils.forceFileExistence(FileUtils.getLocalFile("config", "capitol_server.json")))));
+		File file = FileUtils.forceFileExistence(FileUtils.getLocalFile("config", "capitol_server.json"));
+		FileUtils.setContentsIfEmpty(file, "{\"claimRadius\": 1}");
+		JsonReader configReader = new JsonReader(new StringReader(FileUtils.getFileContents(file)));
 		configReader.beginObject();
 		while (configReader.hasNext()) {
 			String key = configReader.nextName();

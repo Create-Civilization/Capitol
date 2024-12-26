@@ -2,6 +2,8 @@ package wiiu.mavity.util;
 
 import org.jetbrains.annotations.*;
 
+import java.util.Objects;
+
 public class ObjectHolder<V> {
 
     private @Nullable V value;
@@ -26,9 +28,8 @@ public class ObjectHolder<V> {
         return this.isPresent() ? this.get() : defaultValue;
     }
 
-	public V getOrThrow() {
-		if (this.isEmpty()) throw new NullPointerException("Value was null!");
-		return this.get();
+	public @NotNull V getOrThrow() {
+		return Objects.requireNonNull(this.get(), "Value was null!");
 	}
 
     public String getAsString() {
