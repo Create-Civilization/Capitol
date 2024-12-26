@@ -18,7 +18,6 @@ import java.awt.Color;
 import java.io.*;
 import java.time.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -404,6 +403,15 @@ public class TeamUtils {
 		}
 		writer.endArray();
 		writer.close();
+	}
+
+	public static String[] chunksToStringArray(List<ChunkPos> positions) {
+		String[] result = new String[positions.size()];
+		for (int i = 0; i < positions.size(); i++) {
+			var pos = positions.get(i);
+			result[i] = pos.x + "," + pos.z;
+		}
+		return result;
 	}
 
 	/**
