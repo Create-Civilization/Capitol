@@ -37,7 +37,9 @@ public class JsonUtil {
 		writer.name(jsonObjectName).beginObject();
 		for (Map.Entry<K, V> entrySet : map.entrySet()) {
 			writer.name(keyToString.apply(entrySet.getKey()));
+			writer.beginArray();
 			for (String value : valueToString.apply(entrySet.getValue())) writer.value(value);
+			writer.endArray();
 		}
 		writer.endObject();
 		if (close) writer.close();

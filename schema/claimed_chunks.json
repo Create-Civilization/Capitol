@@ -1,0 +1,27 @@
+{
+	"$schema": "https://json-schema.org/draft-07/schema",
+	"title": "Claimed Chunks",
+	"description": "Layout for the chunk data file.",
+	"properties": {
+		"teamId": {
+			"description": "The identifier of the team who claimed the relative chunks.",
+			"type": "string"
+		},
+		"claimedChunks": {
+			"description": "The chunks that have been claimed by the team.",
+			"type": "object"
+		},
+		"minecraft:overworld": {
+			"description": "An array of strings that represent the chunks claimed by this team in the overworld.",
+			"type": "array"
+		},
+		"minecraft:the_nether": {
+			"description": "An array of strings that represent the chunks claimed by this team in the nether.",
+			"type": "array"
+		},
+		"minecraft:the_end": {
+			"description": "An array of strings that represent the chunks claimed by this team in the end.",
+			"type": "array"
+		}
+	}
+}

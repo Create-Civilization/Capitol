@@ -392,13 +392,14 @@ public class TeamUtils {
 		for (Team team : loadedTeams) {
 			writer.beginObject();
 			writer.name("teamId").value(team.getTeamId());
-			writer.name("claimedChunks").beginObject();
-			for (var entrySet : team.getClaimedChunks().entrySet()) {
-				writer.name(entrySet.getKey().toString()).beginArray();
-				for (var chunks : entrySet.getValue()) writer.value(chunks.x + "," + chunks.z);
-				writer.endArray(); // This better work
-			} // and it better be working with CapitolBlock
-			writer.endObject();
+			JsonUtil.advancedSaveJsonMapHoldingList(
+					writer,
+					"claimedChunks",
+					team.getClaimedChunks(),
+					ResourceLocation::toString, // Transforms the ResourceLocation into namespace:path
+					TeamUtils::chunksToStringArray,
+					false
+			);
 			writer.endObject();
 		}
 		writer.endArray();
