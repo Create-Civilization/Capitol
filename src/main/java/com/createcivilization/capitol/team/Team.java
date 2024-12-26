@@ -2,6 +2,7 @@ package com.createcivilization.capitol.team;
 
 import com.google.gson.stream.JsonWriter;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
@@ -19,6 +20,8 @@ public class Team {
     private Color color;
 
 	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
+
+	private Map<ResourceLocation, List<BlockPos>> capitolBlocks = new HashMap<>();
 
 	private List<String> allies = new ArrayList<>(); // List of ally teamIds
 
