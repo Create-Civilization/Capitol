@@ -179,15 +179,7 @@ public class TeamUtils {
         for (Team team : loadedTeams) writer.jsonValue(team.toString());
         writer.endArray();
         writer.close();
-		TeamUtils.saveMap(
-			teamDataFile,
-			"claimedChunks",
-			Team::getClaimedChunks,
-			Object::toString,
-			(List<ChunkPos> chunkList) -> chunkList.stream()
-				.map(chunkPos -> chunkPos.x + "," + chunkPos.z)
-				.toArray(String[]::new)
-		);
+		TeamUtils.saveChunks();
     }
 
 	/**
@@ -395,29 +387,18 @@ public class TeamUtils {
 		reader.endObject();
 	}
 
-	/**
-	 * Saves Map from Team.
-	 */
-	public static <K,V> void saveMap(
-		File file,
-		String jsonObjectName,
-		Function<Team, Map<K,V>> mapGenerator,
-		Function<K, String> keySerializer,
-		Function<V, String[]> valueSerializer
-	) throws IOException {
-		JsonWriter writer = new JsonWriter(new FileWriter(file));
+	public static void saveChunks() throws IOException {
+		JsonWriter writer = new JsonWriter(new FileWriter(TeamUtils.getChunkDataFile()));
 		writer.beginArray();
 		for (Team team : loadedTeams) {
 			writer.beginObject();
 			writer.name("teamId").value(team.getTeamId());
-			writer.name(jsonObjectName).beginObject();
-			for (Map.Entry<K, V> entrySet : mapGenerator.apply(team).entrySet()) {
-				writer.name(keySerializer.apply(entrySet.getKey())).beginArray();
-				for (String value : valueSerializer.apply(entrySet.getValue())) {
-					writer.value(value);
-				}
-				writer.endArray();
-			}
+			writer.name("claimedChunks").beginObject();
+			for (var entrySet : team.getClaimedChunks().entrySet()) {
+				writer.name(entrySet.getKey().toString()).beginArray();
+				for (var chunks : entrySet.getValue()) writer.value(chunks.x + "," + chunks.z);
+				writer.endArray(); // This better work
+			} // and it better be working with CapitolBlock
 			writer.endObject();
 			writer.endObject();
 		}
@@ -506,8 +487,8 @@ public class TeamUtils {
 		return 1;
 	}
 
-	public static boolean hasCapitol(ChunkPos chunkPos, ResourceLocation dimension){
-		// check if capitol is in chunk
+	// TODO: Implement (bruh)
+	public static boolean hasCapitol(ChunkPos chunkPos, ResourceLocation dimension) {
 		return false;
 	}
 
