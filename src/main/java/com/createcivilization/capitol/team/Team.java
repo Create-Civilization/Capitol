@@ -140,11 +140,13 @@ public class Team {
         }
 
         public TeamBuilder setPlayers(Map<String, List<UUID>> players) {
-            this.players = players;
+			this.players.clear();
+			this.addPlayers(players);
             return this;
         }
 
-        public TeamBuilder addPlayers(Map<String, List<UUID>> players) {
+        @SuppressWarnings("UnusedReturnValue")
+		public TeamBuilder addPlayers(Map<String, List<UUID>> players) {
             for (Map.Entry<String, List<UUID>> entry : players.entrySet()) addPlayer(entry.getKey(), entry.getValue());
             return this;
         }
