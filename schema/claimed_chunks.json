@@ -11,6 +11,10 @@
 			"description": "The chunks that have been claimed by the team.",
 			"type": "object"
 		},
+		"chunksWithCapitolBlock": {
+			"description": "The chunks that have a capitol block in them.",
+			"type": "object"
+		},
 		"minecraft:overworld": {
 			"description": "An array of strings that represent the chunks claimed by this team in the overworld.",
 			"type": "array"

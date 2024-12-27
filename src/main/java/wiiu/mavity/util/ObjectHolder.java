@@ -24,6 +24,10 @@ public class ObjectHolder<V> {
         this.value = newValue;
     }
 
+	public void setFrom(ObjectHolder<V> other) {
+		this.set(other.get());
+	}
+
     public V getOrDefault(@NotNull V defaultValue) {
         return this.isPresent() ? this.get() : defaultValue;
     }

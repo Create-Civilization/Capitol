@@ -3,7 +3,6 @@ package com.createcivilization.capitol.team;
 import com.createcivilization.capitol.util.JsonUtils;
 import com.google.gson.stream.JsonWriter;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
@@ -22,9 +21,9 @@ public class Team {
 
 	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
 
-	private Map<ResourceLocation, List<BlockPos>> capitolBlocks = new HashMap<>();
+	private Map<ResourceLocation, List<ChunkPos>> capitolBlocks = new HashMap<>();
 
-	private List<String> allies = new ArrayList<>(); // List of ally teamIds
+	private List<String> allies = new ArrayList<>();
 
     private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
         this.name = name;
@@ -61,6 +60,20 @@ public class Team {
 
 	public List<String> getAllies() {
 		return allies;
+	}
+
+	public Map<ResourceLocation, List<ChunkPos>> getCapitolBlocks() {
+		return capitolBlocks;
+	}
+
+	public void addCapitolBlock(ResourceLocation dimension, List<ChunkPos> chunkPositions) {
+		var alreadyAdded = this.capitolBlocks.get(dimension);
+		if (alreadyAdded != null) alreadyAdded.addAll(chunkPositions);
+		else this.capitolBlocks.put(dimension, chunkPositions);
+	}
+
+	public void addCapitolBlock(ResourceLocation dimension, ChunkPos chunkPosition) {
+		this.addCapitolBlock(dimension, new ArrayList<>(List.of(chunkPosition)));
 	}
 
 	public void addAllies(Collection<String> allies) {

@@ -89,10 +89,14 @@ public class CapitolBlock extends BaseEntityBlock {
 				&& TeamUtils.hasTeam(player) // Make sure player has a team
 				&& !TeamUtils.isInClaimedChunk(player, pos)
 		) {
+			Team team = TeamUtils.getTeam(player).getOrThrow();
+			ResourceLocation dimension = world.dimension().location();
+			ChunkPos chunk = new ChunkPos(pos);
+			team.addCapitolBlock(dimension, chunk);
 			TeamUtils.claimChunkRadius(
-				TeamUtils.getTeam(player).getOrThrow(),
-				world.dimension().location(),
-				new ChunkPos(pos),
+				team,
+				dimension,
+				chunk,
 				Config.claimRadius.getOrThrow() // It is NOT null.
 			);
 		} else {

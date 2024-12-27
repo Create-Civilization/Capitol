@@ -76,8 +76,7 @@ public class JsonUtils {
 			writer.name(jsonObjectName).beginObject();
 			for (Map.Entry<K, V> entrySet : map.entrySet()) {
 				writer.name(keyToString.apply(entrySet.getKey()));
-				if (entrySet.getValue() instanceof Collection<?>)
-					throw new RuntimeException("Called advanceSaveJsonMap expecting a map holding object values but was provided a map holding a Collection (abstraction of List)!");
+				if (entrySet.getValue() instanceof Collection<?>) throw new RuntimeException("Called advanceSaveJsonMap expecting a map holding object values but was provided a map holding a Collection (abstraction of List)!");
 				else {
 					writer.beginObject();
 					writer.value(valueToString.apply(entrySet.getValue()));

@@ -17,6 +17,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
  * Class to handle events related to player interaction in chunks.<br>
  * Events will be cancelled if the player is in a claimed chunk with no permissions or is interacting with a claimed chunk with no permissions.
  */
+@SuppressWarnings("TypeMayBeWeakened")
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class PlayerInteractionEvents {
 
@@ -82,7 +83,8 @@ public class PlayerInteractionEvents {
 		var player = event.getEntity();
 		player.sendSystemMessage(Component.literal("onPlayerUseItem firing!"));
 		var stack = event.getItemStack();
-		if (TeamUtils.isClaimedChunk(player.level().getChunk(event.getPos()).getPos()) && (stack.is(Items.ENDER_PEARL) || stack.getItem().getDescriptionId().replace("item.", "").replace(".", "").contains("boat"))) cancelIfHasInsufficientPermission(event, true, "use boats or enderpearls");
+		var level = player.level();
+		if (TeamUtils.isClaimedChunk(level.dimension().location(), level.getChunk(event.getPos()).getPos()) && (stack.is(Items.ENDER_PEARL) || stack.getItem().getDescriptionId().replace("item.", "").replace(".", "").contains("boat"))) cancelIfHasInsufficientPermission(event, true, "use boats or enderpearls");
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canUseItems(), "use items");
 	}
 
