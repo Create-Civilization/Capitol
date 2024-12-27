@@ -32,7 +32,7 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteractSpecific event) {
 		var player = event.getEntity();
-		player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
+		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canInteractWithEntities(), "interact with entities");
 	}
 
@@ -42,7 +42,7 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPlayerBreakBlock(PlayerInteractEvent.LeftClickBlock event) {
 		var player = event.getEntity();
-		player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
+		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canBreakBlocks(), "break blocks");
 	}
 
@@ -52,9 +52,11 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
 		var player = event.getEntity();
-		player.sendSystemMessage(Component.literal("onPlayerRightClickBlock firing!"));
+		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerRightClickBlock firing!"));
 		Permission permission = TeamUtils.getPermissionInChunk(event.getPos(), player);
-		if (player.getMainHandItem().getItem() instanceof BlockItem || player.getOffhandItem().getItem() instanceof BlockItem) onPlayerPlaceBlock(event, player, permission);
+		var mainHandItem = player.getMainHandItem().getItem();
+		var offhandItem = player.getOffhandItem().getItem();
+		if (mainHandItem instanceof BlockItem || offhandItem instanceof BlockItem || mainHandItem instanceof BucketItem || offhandItem instanceof BucketItem) onPlayerPlaceBlock(event, player, permission);
 		else onPlayerInteractBlock(event, player, permission);
 	}
 
@@ -62,7 +64,7 @@ public class PlayerInteractionEvents {
 	 * Handles players trying to place blocks.
 	 */
 	public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
-		player.sendSystemMessage(Component.literal("onPlayerPlaceBlock firing!"));
+		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerPlaceBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !permission.canPlaceBlocks(), "place blocks");
 	}
 
@@ -70,7 +72,7 @@ public class PlayerInteractionEvents {
 	 * Handles players trying to interact with blocks.
 	 */
 	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
-		player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
+		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !permission.canInteractBlocks(), "interact with blocks");
 	}
 
@@ -81,10 +83,18 @@ public class PlayerInteractionEvents {
 	@SuppressWarnings("resource")
 	public static void onPlayerUseItem(PlayerInteractEvent.RightClickItem event) {
 		var player = event.getEntity();
-		player.sendSystemMessage(Component.literal("onPlayerUseItem firing!"));
+		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerUseItem firing!"));
 		var stack = event.getItemStack();
 		var level = player.level();
-		if (TeamUtils.isClaimedChunk(level.dimension().location(), level.getChunk(event.getPos()).getPos()) && (stack.is(Items.ENDER_PEARL) || stack.getItem().getDescriptionId().replace("item.", "").replace(".", "").contains("boat"))) cancelIfHasInsufficientPermission(event, true, "use boats or enderpearls");
+		var item = stack.getItem();
+		if (TeamUtils.isClaimedChunk(level.dimension().location(), level.getChunk(event.getPos()).getPos())
+			&&
+			(
+				stack.is(Items.ENDER_PEARL) ||
+				item.getDescriptionId().replace("item.", "").replace(".", "").contains("boat") ||
+				item instanceof BucketItem
+			)
+		) cancelIfHasInsufficientPermission(event, true, "use boats, enderpearls or buckets");
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canUseItems(), "use items");
 	}
 

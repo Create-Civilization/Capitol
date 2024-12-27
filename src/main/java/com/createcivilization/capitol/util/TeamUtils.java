@@ -97,7 +97,6 @@ public class TeamUtils {
 	 */
 	public static boolean isClaimedChunk(ResourceLocation dimension, ChunkPos pos) {
 		boolean result = false;
-		System.out.println(dimension);
 		for (Team team : loadedTeams) {
 			var chunks = team.getClaimedChunks().get(dimension);
 			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) result = true;
@@ -354,7 +353,7 @@ public class TeamUtils {
 	 */
 	@SuppressWarnings("deprecation")
 	public static void loadChunksForTeam(JsonReader reader) throws IOException {
-		System.out.println("Loading chunk...");
+		if (Config.debugLogs.getOrThrow()) System.out.println("Loading chunk for team...");
 		reader.beginObject();
 		ObjectHolder<Team> team = new ObjectHolder<>();
 		String[] coords;
@@ -368,11 +367,11 @@ public class TeamUtils {
 						reader.beginArray();
 						while (reader.hasNext()) {
 							coords = reader.nextString().split(Pattern.quote(","));
-							System.out.println("Loading chunk... " + Arrays.toString(coords));
+							if (Config.debugLogs.getOrThrow()) System.out.println("Loading chunk... " + Arrays.toString(coords));
 							final String[] finalCoords = coords;
 							final int x = Integer.parseInt(finalCoords[0]);
 							final int z = Integer.parseInt(finalCoords[1]);
-							System.out.println(Capitol.server.getAsString());
+							if (Config.debugLogs.getOrThrow()) System.out.println(Capitol.server.getAsString());
 							Capitol.server.ifPresent((server) -> team.ifPresent((t) -> {
 								for (var entrySet : server.forgeGetWorldMap().entrySet()) {
 									ResourceLocation resourceLoc = new ResourceLocation(dimension);
@@ -519,7 +518,7 @@ public class TeamUtils {
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
-		System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
+		if (Config.debugLogs.getOrThrow()) System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
 		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension); // Suck my proper typing
 		if (claimedChunks == null) {
 			List<ChunkPos> list = new ArrayList<>();
@@ -542,7 +541,7 @@ public class TeamUtils {
 	 * @return 1 if successful, -1 if failed
 	 */
 	public static int unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
-		System.out.println("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
+		if (Config.debugLogs.getOrThrow()) System.out.println("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
 		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension);
 		claimedChunks.remove(chunkPos);
 		return 1;
