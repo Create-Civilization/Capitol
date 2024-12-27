@@ -12,14 +12,19 @@ public class JsonUtils {
 		try {
 			writer.name(jsonObjectName).beginObject();
 			for (Map.Entry<K, V> entrySet : map.entrySet()) {
-				writer.name(String.valueOf(entrySet.getKey()));
-				if (entrySet.getValue() instanceof Collection<?> valuesList) {
-					writer.beginArray();
-					for (Object value : valuesList) writer.value(String.valueOf(value));
-					writer.endArray();
+				String key = String.valueOf(entrySet.getKey());
+				V value = entrySet.getValue();
+				if (value instanceof Collection<?> valuesList) {
+					JsonUtils.saveJsonList(
+						writer,
+						key,
+						valuesList,
+						false
+					);
 				} else {
+					writer.name(key);
 					writer.beginObject();
-					writer.value(String.valueOf(entrySet.getValue()));
+					writer.value(String.valueOf(value));
 					writer.endObject();
 				}
 			}
@@ -84,6 +89,23 @@ public class JsonUtils {
 				}
 			}
 			writer.endObject();
+			if (close) writer.close();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static <V> void advancedSaveJsonList(
+		JsonWriter writer,
+		String jsonObjectName,
+		Function<V, String> valueToString,
+		Iterable<V> list,
+		boolean close
+	) {
+		try {
+			writer.name(jsonObjectName).beginArray();
+			for (V value : list) writer.value(valueToString.apply(value));
+			writer.endArray();
 			if (close) writer.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e);

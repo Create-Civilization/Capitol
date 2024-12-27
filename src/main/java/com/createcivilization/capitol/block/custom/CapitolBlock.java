@@ -93,6 +93,7 @@ public class CapitolBlock extends BaseEntityBlock {
 	// Else:
 	// Break block
 	@Override
+	@SuppressWarnings("resource")
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
 		super.setPlacedBy(world, pos, state, placer, stack);
 
