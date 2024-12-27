@@ -157,6 +157,14 @@ public class TeamUtils {
 		return new ObjectHolder<>();
 	}
 
+	public static ObjectHolder<Team> getTeam(ChunkPos pos, ResourceLocation dimension) {
+		for (Team team : loadedTeams) {
+			List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
+			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) return new ObjectHolder<>(team);
+		}
+		return null;
+	}
+
 	/**
 	 * Loads all the {@link Team}s from the team data file.
 	 */
@@ -463,6 +471,21 @@ public class TeamUtils {
 	}
 
 	/**
+	 * Check if chunk has CapitolBlock.
+	 * @param pos The chunk position.
+	 * @param dimension The dimension.
+	 * @return boolean
+	 */
+	public static boolean hasCapitolBlock(ChunkPos pos, ResourceLocation dimension){
+		boolean result = false;
+		for (Team team : loadedTeams) {
+			List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
+			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) result = true;
+		}
+		return result;
+	}
+
+	/**
 	 * Checks if nearby chunks in radius are claimed by player's team.
 	 * @param player Player to check
 	 * @param radius The chunk radius around the player to check
@@ -512,6 +535,17 @@ public class TeamUtils {
 		radius++;
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.claimChunkIfNotClaimed(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
 	}
+	/**
+	 * Unclaims chunks in a radius of a center position from a team
+	 * @param team The team to claim the chunks to
+	 * @param dimension The dimension to claim the chunks in
+	 * @param chunkPos The center of the radius to claim the chunks in
+	 * @param radius The radius itself
+	 */
+	public static void unclaimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
+		radius++;
+		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.unclaimChunkIfFromTeam(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
+	}
 
 	/**
 	 * Claims the given chunk for the given team.
@@ -528,10 +562,6 @@ public class TeamUtils {
 		return 1;
 	}
 
-	// TODO: Implement (bruh)
-	public static boolean hasCapitol(ChunkPos chunkPos, ResourceLocation dimension) {
-		return false;
-	}
 
 	/**
 	 * Unclaims the given chunk from the given team.
@@ -549,6 +579,9 @@ public class TeamUtils {
 
 	public static void claimChunkIfNotClaimed(Team team, ResourceLocation dimension, ChunkPos pos) {
 		if (!TeamUtils.isClaimedChunk(dimension, pos)) TeamUtils.claimChunk(team, dimension, pos);
+	}
+	public static void unclaimChunkIfFromTeam(Team team, ResourceLocation dimension, ChunkPos pos) {
+		if (TeamUtils.isClaimedChunk(dimension, pos) && TeamUtils.getTeam(pos, dimension).getOrThrow().equals(team)) TeamUtils.unclaimChunk(team, dimension, pos);
 	}
 
 	public static List<Team> getTeamAndAllies(Team team) {

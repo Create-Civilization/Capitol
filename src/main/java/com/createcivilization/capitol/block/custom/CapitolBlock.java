@@ -68,12 +68,26 @@ public class CapitolBlock extends BaseEntityBlock {
 	// onDestroyedByPlayer --> forge
 	@Override
 	public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
+//		ResourceLocation dimension = level.dimension().location();
+//		ChunkPos chunkPos = new ChunkPos(pos);
+//		TeamUtils.unclaimChunkRadius(
+//			Objects.requireNonNull(TeamUtils.getTeam(
+//				chunkPos,
+//				dimension
+//			)).get(),
+//			dimension,
+//			chunkPos,
+//			1
+//		);
+		// DISABLED FOR DEBUG PROTECTION
+
 		return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
 	}
 
 	// setPlacedBy --> Minecraft
 	// Check if:
 	// Player is in team
+	// Chunk does not have CapitolBlock
 	// Then:
 	// Claim chunk & chunk radius (CONFIG AMOUNT, DEFAULTING TO 1)
 	// Else:
@@ -87,6 +101,7 @@ public class CapitolBlock extends BaseEntityBlock {
 				&& world.getBlockEntity(pos) instanceof CapitolBlockEntity // Safety check
 				&& placer instanceof Player player // Make sure nothing else is placing it
 				&& TeamUtils.hasTeam(player) // Make sure player has a team
+				&& !TeamUtils.hasCapitolBlock(new ChunkPos(pos), placer.level().dimension().location())
 				&& !TeamUtils.isInClaimedChunk(player, pos)
 		) {
 			Team team = TeamUtils.getTeam(player).getOrThrow();
