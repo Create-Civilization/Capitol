@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.team;
 
+import com.createcivilization.capitol.util.JsonUtils;
 import com.google.gson.stream.JsonWriter;
 
 import net.minecraft.core.BlockPos;
@@ -10,7 +11,7 @@ import java.awt.Color;
 import java.io.*;
 import java.util.*;
 
-@SuppressWarnings("all")
+@SuppressWarnings("FieldMayBeFinal")
 public class Team {
 
     private String name, teamId;
@@ -71,35 +72,21 @@ public class Team {
 	 */
     @Override
     public String toString() {
-        JsonWriter writer = new JsonWriter(new StringWriter());
+		try (JsonWriter writer = new JsonWriter(new StringWriter())) {
+			writer.beginObject();
+			writer.name("name").value(name);
+			writer.name("teamId").value(teamId);
+			writer.name("color").value(color.getRGB());
+			JsonUtils.saveJsonMap(writer, "players", players, false);
+			JsonUtils.saveJsonList(writer, "allies", allies, false);
+			writer.endObject();
 
-        try {
-            writer.beginObject();
-            writer.name("name").value(name);
-            writer.name("teamId").value(teamId);
-            writer.name("color").value(color.getRGB());
-            writer.name("players").beginObject();
-            for (var entry : players.entrySet()) {
-                writer.name(entry.getKey()).beginArray();
-                for (UUID uuid : entry.getValue()) writer.value(uuid.toString());
-                writer.endArray();
-            }
-            writer.endObject();
-			writer.name("allies").beginArray();
-			for (String ally : allies) writer.value(ally);
-			writer.endArray();
-            writer.endObject();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write team data!", e);
-        }
-
-        try {
-            var field = writer.getClass().getDeclaredField("out");
-            field.trySetAccessible();
-            return field.get(writer).toString();
-        } catch (Throwable e) {
-            throw new RuntimeException("That's not even possible, bruh how'd you do that", e);
-        }
+			var field = writer.getClass().getDeclaredField("out");
+			field.trySetAccessible();
+			return field.get(writer).toString();
+		} catch (Throwable e) {
+			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
+		}
     }
 
     public static class TeamBuilder {
@@ -150,7 +137,7 @@ public class Team {
             return this;
         }
 
-		public TeamBuilder addAllies(List<String> allies) {
+		public TeamBuilder addAllies(Collection<String> allies) {
 			this.allies.addAll(allies);
 			return this;
 		}

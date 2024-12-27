@@ -392,7 +392,7 @@ public class TeamUtils {
 		for (Team team : loadedTeams) {
 			writer.beginObject();
 			writer.name("teamId").value(team.getTeamId());
-			JsonUtil.advancedSaveJsonMapHoldingList(
+			JsonUtils.advancedSaveJsonMapHoldingList(
 					writer,
 					"claimedChunks",
 					team.getClaimedChunks(),
