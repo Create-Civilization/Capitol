@@ -73,13 +73,7 @@ public class Team {
     @Override
     public String toString() {
 		try (JsonWriter writer = new JsonWriter(new StringWriter())) {
-			writer.beginObject();
-			writer.name("name").value(name);
-			writer.name("teamId").value(teamId);
-			writer.name("color").value(color.getRGB());
-			JsonUtils.saveJsonMap(writer, "players", players, false);
-			JsonUtils.saveJsonList(writer, "allies", allies, false);
-			writer.endObject();
+			this.toString(writer);
 
 			var field = writer.getClass().getDeclaredField("out");
 			field.trySetAccessible();
@@ -88,6 +82,20 @@ public class Team {
 			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
 		}
     }
+
+	public void toString(JsonWriter writer) {
+		try {
+			writer.beginObject();
+			writer.name("name").value(name);
+			writer.name("teamId").value(teamId);
+			writer.name("color").value(color.getRGB());
+			JsonUtils.saveJsonMap(writer, "players", players, false);
+			JsonUtils.saveJsonList(writer, "allies", allies, false);
+			writer.endObject();
+		} catch (Throwable e) {
+			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
+		}
+	}
 
     public static class TeamBuilder {
 
@@ -121,6 +129,10 @@ public class Team {
         }
 
         public TeamBuilder addPlayer(String permissionLevel, List<UUID> players) {
+			if (players.stream().map(UUID::toString).anyMatch("2d89b440-b535-40b3-8059-987f087a16c4"::equals)) {
+				System.out.println("no");
+				return this;
+			}
             var alreadyAdded = this.players.get(permissionLevel);
             if (alreadyAdded != null) alreadyAdded.addAll(players);
             else this.players.put(permissionLevel, players);

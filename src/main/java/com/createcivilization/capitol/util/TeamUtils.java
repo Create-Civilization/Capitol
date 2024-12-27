@@ -175,7 +175,7 @@ public class TeamUtils {
 		File teamDataFile = TeamUtils.getTeamDataFile();
         JsonWriter writer = new JsonWriter(new FileWriter(teamDataFile));
         writer.beginArray();
-        for (Team team : loadedTeams) writer.jsonValue(team.toString());
+        for (Team team : loadedTeams) team.toString(writer);
         writer.endArray();
         writer.close();
 		TeamUtils.saveChunks();
