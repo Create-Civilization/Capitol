@@ -173,7 +173,10 @@ public class Team {
 	public Map<String, Permission> getAllRolePermissions() {
 		return rolePermissions;
 	}
-	public Permission getPermission(String role) { return rolePermissions.get(role); }
+
+	public Permission getPermission(String role) {
+		return rolePermissions.get(role);
+	}
 
 	public void setRolePermissions(Map<String, Permission> rolePermissions) {
 		this.rolePermissions = rolePermissions;
