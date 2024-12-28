@@ -32,9 +32,16 @@ public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 		if (invitingTeamHolder.isEmpty()) return -1;
 		Team invitingTeam = invitingTeamHolder.getOrThrow();
 		CommandSourceStack source = context.getSource();
-		UUID uuid = Objects.requireNonNull(context.getSource().getPlayer()).getUUID();
-		Long timeout = invitingTeam.getInviteeTimestamp(uuid) + Config.inviteTimeout.getOrThrow();
-		if (invitingTeam.hasInvitee(uuid) && (invitingTeam.getInviteeTimestamp(uuid) + Config.inviteTimeout.getOrThrow()) > (System.currentTimeMillis() / 1000L)) {
+		Player player = Objects.requireNonNull(source.getPlayer());
+		UUID uuid = player.getUUID();
+		if (TeamUtils.hasTeam(player)){
+			source.sendFailure(Component.literal("You're already in a team"));
+			return -1;
+		}
+		if (
+			invitingTeam.hasInvitee(uuid)
+			&& (invitingTeam.getInviteeTimestamp(uuid) + Config.inviteTimeout.getOrThrow()) > (System.currentTimeMillis() / 1000L)
+		){
 			invitingTeam.addPlayer("member", uuid);
 			source.sendSuccess(() -> Component.literal("Successfully joined team \"" + invitingTeam.getName() + "\""), true);
 			return 1;

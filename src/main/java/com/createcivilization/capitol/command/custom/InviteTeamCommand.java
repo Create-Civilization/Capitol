@@ -30,11 +30,16 @@ public class InviteTeamCommand extends AbstractTeamCommand {
 	@Override
 	public int executeAllParams(CommandContext<CommandSourceStack> context) {
 		Team invitingTeam = TeamUtils.getTeam(context.getSource().getPlayer()).get();
+		CommandSourceStack inviter = context.getSource();
 		Player toInvite;
 		try {
 			toInvite = EntityArgument.getPlayer(context, "player");
 		} catch (CommandSyntaxException e) {
 			throw new RuntimeException(e);
+		}
+		if (TeamUtils.hasTeam(toInvite)) {
+			inviter.sendFailure(Component.literal("Player already in a team."));
+			return -1;
 		}
 		assert invitingTeam != null;
 		invitingTeam.addInvitee(toInvite.getUUID());
@@ -43,7 +48,7 @@ public class InviteTeamCommand extends AbstractTeamCommand {
 			.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + invitingTeam.getTeamId()))
 			.withColor(TextColor.fromRgb(0x00FF00))));
 
-		context.getSource().sendSuccess(() -> Component.literal("Successfully invited player to team"), true);
+		inviter.sendSuccess(() -> Component.literal("Successfully invited player to team"), true);
 		return 1;
 	}
 

@@ -17,8 +17,9 @@ public class Team {
     private String name, teamId;
 
     private Map<String, List<UUID>> players;
-	// So far roles are:
+	// Default roles:
 	// owner
+	// admin
 	// member
 
     private Color color;
