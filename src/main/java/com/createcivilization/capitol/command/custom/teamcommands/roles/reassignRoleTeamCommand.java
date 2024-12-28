@@ -13,14 +13,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.UUID;
 
 // WIP
-public class promoteRoleTeamCommand extends AbstractTeamCommand {
-	public promoteRoleTeamCommand() {
-		super("promote");
+public class reassignRoleTeamCommand extends AbstractTeamCommand {
+	public reassignRoleTeamCommand() {
+		super("reassignRole");
 		command = Commands.literal(commandName)
 			.requires(this::canExecuteAllParams)
 			.then(Commands.argument("player", EntityArgument.players()))
@@ -53,14 +52,14 @@ public class promoteRoleTeamCommand extends AbstractTeamCommand {
 		for (String currRole : team.getRoles()) if (Objects.equals(currRole.toLowerCase(), finalRole)) role = currRole;
 		assert player != null;
 		if (TeamUtils.isRoleHigher(team, team.getPlayerRole(player.getUUID()), role)){
-			source.sendFailure(Component.literal("Cannot promote player to a higher role than yours"));
+			source.sendFailure(Component.literal("Cannot reassign player to a higher role than yours"));
 			return -1;
 		}
 		UUID toPromoteUUID = toPromote.getUUID();
 		team.removePlayer(toPromoteUUID);
 		team.addPlayer(role, toPromoteUUID);
-		toPromote.sendSystemMessage(Component.literal("You have been successfully promoted to \"" + role + "\""));
-		source.sendSuccess(() -> Component.literal("Successfully promoted " + toPromote.getName()), true);
+		toPromote.sendSystemMessage(Component.literal("You have been successfully reassigned to \"" + role + "\""));
+		source.sendSuccess(() -> Component.literal("Successfully reassigned " + toPromote.getName()), true);
 		return 1;
 	}
 

@@ -30,6 +30,6 @@ public class CapitolCommands {
 		new InviteAcceptTeamCommand().register(dispatcher);
 		new LeaveTeamCommand().register(dispatcher);
 		new addRoleTeamCommand().register(dispatcher);
-		new promoteRoleTeamCommand().register(dispatcher);
+		new reassignRoleTeamCommand().register(dispatcher);
     }
 }
