@@ -49,6 +49,12 @@ public class Team {
 		if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid))); else players.get(role).add(uuid);
 	}
 
+	public void removePlayer(UUID uuid){
+		players.get(getPlayerRole(uuid)).remove(uuid);
+	}
+
+	public List<UUID> getPlayersWithRole(String role) {return players.get(role);}
+
 	public void addInvitee(UUID uuid) {
 		invites.put(uuid, System.currentTimeMillis() / 1000L);
 
@@ -74,6 +80,11 @@ public class Team {
     public String getName() {
         return name;
     }
+
+	public String getPlayerRole(UUID uuid) {
+		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if(entry.getValue().contains(uuid)) return entry.getKey();
+		return "";
+	}
 
 	public List<UUID> getAllPlayers() {
 		List<UUID> allPlayers = new ArrayList<>();

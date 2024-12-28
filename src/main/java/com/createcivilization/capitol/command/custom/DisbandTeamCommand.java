@@ -21,7 +21,7 @@ public class DisbandTeamCommand extends AbstractTeamCommand {
 	@Override
 	public int execute(Player player)
 	{
-		// Only runs if player owns the server (check canExecute)
+		// Only runs if player owns the team (check canExecute)
 		loadedTeams.remove(TeamUtils.getTeam(player).get());
 		player.sendSystemMessage(Component.literal("Team successfully disbanded"));
 		return 1;

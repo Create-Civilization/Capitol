@@ -26,5 +26,6 @@ public class CapitolCommands {
 		new UnclaimCurrentChunkCommand().register(dispatcher);
 		new InviteTeamCommand().register(dispatcher);
 		new InviteAcceptTeamCommand().register(dispatcher);
+		new LeaveTeamCommand().register(dispatcher);
     }
 }
