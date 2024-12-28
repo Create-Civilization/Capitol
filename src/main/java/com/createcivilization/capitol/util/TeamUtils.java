@@ -163,6 +163,14 @@ public class TeamUtils {
 		}
     }
 
+	public static boolean isRoleHigher(Team team, String role, String possiblyBiggerRole){
+		for (String currRole : team.getRoleRanking()) {
+			if (Objects.equals(currRole, possiblyBiggerRole)) return false;
+			else if (Objects.equals(currRole, role)) return true;
+		};
+		return false;
+	}
+
 	/**
 	 * Saves all the {@link Team}s to the team data file.
 	 */

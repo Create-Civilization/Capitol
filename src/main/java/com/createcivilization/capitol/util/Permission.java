@@ -6,5 +6,8 @@ public record Permission(
 	boolean useItems,
 	boolean interactEntities,
 	boolean interactBlocks,
-	boolean addRole
+	boolean addRole,
+	boolean editPermissions,
+	boolean promotePlayers,
+	boolean demotePlayers
 ) {}

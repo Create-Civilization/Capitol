@@ -29,7 +29,10 @@ public class PermissionUtil {
 			listPermission.get(2),
 			listPermission.get(3),
 			listPermission.get(4),
-			listPermission.get(5)
+			listPermission.get(5),
+			listPermission.get(6),
+			listPermission.get(7),
+			listPermission.get(8)
 		);
 	}
 }
