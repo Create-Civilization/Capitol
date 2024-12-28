@@ -1,6 +1,6 @@
 package com.createcivilization.capitol.command.custom.debug;
 
-import com.createcivilization.capitol.command.custom.AbstractTeamCommand;
+import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 

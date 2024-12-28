@@ -1,5 +1,6 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.teamcommands.chunks;
 
+import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.util.TeamUtils;
 
 import net.minecraft.commands.Commands;

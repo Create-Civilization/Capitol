@@ -1,7 +1,7 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.teamcommands.team;
 
+import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.FileUtils;
 import com.createcivilization.capitol.util.TeamUtils;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -13,11 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.entity.player.Player;
-
-import java.io.IOException;
-import java.util.List;
-
-import static com.createcivilization.capitol.util.TeamUtils.parseTeams;
 
 public class InviteTeamCommand extends AbstractTeamCommand {
 	public InviteTeamCommand() {

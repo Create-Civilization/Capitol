@@ -1,5 +1,6 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.debug;
 
+import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.util.TeamUtils
 	;
 import net.minecraft.commands.*;
@@ -10,8 +11,10 @@ public class ReloadTeamsCommand extends AbstractTeamCommand {
 
 	public ReloadTeamsCommand() {
 		super("reloadTeams");
-		command = Commands.literal(commandName).requires(this::canExecuteAllParams)
-			.executes(this::executeAllParams);
+		command = Commands.literal("debug")
+			.then(Commands.literal(commandName)
+			.requires(this::canExecuteAllParams)
+			.executes(this::executeAllParams));
 	}
 
 	@Override

@@ -1,12 +1,11 @@
 package com.createcivilization.capitol.command;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.command.custom.*;
 
-import com.createcivilization.capitol.command.custom.debug.ActivateWarTeamsDebugCommand;
-import com.createcivilization.capitol.command.custom.debug.GetTeamsDebugCommand;
-import com.createcivilization.capitol.command.custom.debug.RemoveTeamDebugCommand;
-import com.createcivilization.capitol.command.custom.debug.SmiteCommand;
+import com.createcivilization.capitol.command.custom.debug.*;
+import com.createcivilization.capitol.command.custom.teamcommands.chunks.ClaimCurrentChunkCommand;
+import com.createcivilization.capitol.command.custom.teamcommands.chunks.UnclaimCurrentChunkCommand;
+import com.createcivilization.capitol.command.custom.teamcommands.team.*;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

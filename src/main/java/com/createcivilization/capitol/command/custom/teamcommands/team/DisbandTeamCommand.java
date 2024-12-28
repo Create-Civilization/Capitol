@@ -1,14 +1,10 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.teamcommands.team;
 
+import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.util.TeamUtils;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-
-import java.util.Objects;
 
 import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
 

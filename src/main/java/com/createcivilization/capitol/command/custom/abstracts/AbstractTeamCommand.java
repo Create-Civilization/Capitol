@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.abstracts;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;

@@ -1,17 +1,14 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.teamcommands.team;
 
+import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.Config;
 import com.createcivilization.capitol.util.TeamUtils;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 import wiiu.mavity.util.ObjectHolder;
 

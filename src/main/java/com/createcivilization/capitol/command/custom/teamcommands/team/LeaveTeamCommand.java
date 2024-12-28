@@ -1,5 +1,6 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.teamcommands.team;
 
+import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.commands.Commands;
@@ -8,8 +9,6 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
 import java.util.UUID;
-
-import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
 
 public class LeaveTeamCommand extends AbstractTeamCommand {
 	public LeaveTeamCommand() {
