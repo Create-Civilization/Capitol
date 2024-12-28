@@ -16,10 +16,10 @@ public class Team {
 
     private String name, teamId;
 
-    private Map<String, List<UUID>> players;
+    private LinkedHashMap<String, List<UUID>> players;
 	// Default roles:
 	// owner
-	// admin
+	// moderator
 	// member
 
     private Color color;
@@ -30,11 +30,12 @@ public class Team {
 
 	// UUID = UUID of invitee
 	// Long = Unixtimestamp sent
+	// Not to save!
 	private Map<UUID, Long> invites = new HashMap<>();
 
 	private List<String> allies = new ArrayList<>();
 
-    private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
+    private Team(String name, String teamId, LinkedHashMap<String, List<UUID>> players, Color colour) {
         this.name = name;
         this.teamId = teamId;
         this.players = players;
@@ -47,6 +48,18 @@ public class Team {
 
 	public void addPlayer(String role, UUID uuid){
 		if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid))); else players.get(role).add(uuid);
+	}
+
+	public LinkedList<String> getRoleRanking() {
+		return new LinkedList<String>(players.keySet());
+	}
+
+	public void addRole(String roleName) {
+		players.put(roleName, new ArrayList<>());
+	}
+
+	public void removeRole(String roleName) {
+		players.remove(roleName);
 	}
 
 	public void removePlayer(UUID uuid){
@@ -141,7 +154,7 @@ public class Team {
 			writer.name("teamId").value(teamId);
 			writer.name("color").value(color.getRGB());
 			JsonUtils.saveJsonMap(writer, "players", players, false);
-			JsonUtils.saveJsonList(writer, "allies", allies, false);
+			JsonUtils.saveJsonList(writer, "moderator", allies, false);
 			writer.endObject();
 		} catch (Throwable e) {
 			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
@@ -152,7 +165,7 @@ public class Team {
 
         private String name, teamId;
 
-        private Map<String, List<UUID>> players = new HashMap<>();
+        private LinkedHashMap<String, List<UUID>> players = new LinkedHashMap<>();
 
         private Color color;
 
@@ -216,6 +229,10 @@ public class Team {
             Objects.requireNonNull(name);
             Objects.requireNonNull(teamId);
             Objects.requireNonNull(players);
+			// Default roles
+			players.putIfAbsent("owner", new ArrayList<>());
+			players.putIfAbsent("admin", new ArrayList<>());
+			players.putIfAbsent("member", new ArrayList<>());
             Objects.requireNonNull(color);
 			Team team = new Team(name, teamId, players, color);
 			team.addAllies(allies);

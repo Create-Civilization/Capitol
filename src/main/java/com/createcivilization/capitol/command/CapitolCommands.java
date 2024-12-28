@@ -3,7 +3,10 @@ package com.createcivilization.capitol.command;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.command.custom.*;
 
-import com.createcivilization.capitol.command.custom.GetTeamsDebugCommand;
+import com.createcivilization.capitol.command.custom.debug.ActivateWarTeamsDebugCommand;
+import com.createcivilization.capitol.command.custom.debug.GetTeamsDebugCommand;
+import com.createcivilization.capitol.command.custom.debug.RemoveTeamDebugCommand;
+import com.createcivilization.capitol.command.custom.debug.SmiteCommand;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

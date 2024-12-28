@@ -211,7 +211,7 @@ public class TeamUtils {
 	 */
     public static Team parseTeam(JsonReader reader) throws IOException {
         String name = null, teamId = null;
-        Map<String, List<UUID>> players = new HashMap<>();
+        Map<String, List<UUID>> players = new LinkedHashMap<>();
         Color color = null;
 		List<String> allies = new ArrayList<>();
         reader.beginObject();
@@ -223,11 +223,7 @@ public class TeamUtils {
                 case "players" -> {
                     reader.beginObject();
                     while (reader.hasNext()) {
-                        switch (reader.nextName()) {
-                            case "owner" -> players.put("owner", getListOfUUIDs(reader));
-                            case "moderator" -> players.put("moderator", getListOfUUIDs(reader));
-                            case "member" -> players.put("member", getListOfUUIDs(reader));
-                        }
+						players.put(reader.nextName(), getListOfUUIDs(reader));
                     }
                     reader.endObject();
                 }

@@ -1,5 +1,6 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.debug;
 
+import com.createcivilization.capitol.command.custom.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -16,7 +17,10 @@ public class GetTeamsDebugCommand extends AbstractTeamCommand {
 
 	public GetTeamsDebugCommand() {
 		super("getTeams");
-		command = Commands.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command = Commands.literal("debug")
+			.then(Commands.literal(commandName)
+			.requires(this::canExecuteAllParams)
+			.executes(this::executeAllParams));
 	}
 
 	@Override
@@ -27,13 +31,13 @@ public class GetTeamsDebugCommand extends AbstractTeamCommand {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		for (Team team : teams) player.sendSystemMessage(Component.literal("Name: \"" + team.getName() + "\" Id: \"" + team.getTeamId() + "\""));
+		for (Team team : teams) player.sendSystemMessage(Component.literal(team.toString()));
 		return 1;
 	}
 
 	@Override
 	public boolean canExecute(Player player) {
 		setMustWhat("be a player and an operator");
-		return TeamUtils.hasTeam(player);
+		return player.hasPermissions(4);
 	}
 }

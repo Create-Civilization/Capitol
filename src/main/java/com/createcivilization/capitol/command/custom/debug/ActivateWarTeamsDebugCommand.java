@@ -1,5 +1,6 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.debug;
 
+import com.createcivilization.capitol.command.custom.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
@@ -14,11 +15,12 @@ public class ActivateWarTeamsDebugCommand extends AbstractTeamCommand {
 
 	public ActivateWarTeamsDebugCommand() {
 		super("startWar");
-		command = Commands.literal(commandName)
+		command = Commands.literal("debug")
+			.then(Commands.literal(commandName)
 			.then(Commands.argument("attackerTeamName", StringArgumentType.string()))
 			.then(Commands.argument("defenderTeamName", StringArgumentType.string()))
 			.requires(this::canExecuteAllParams)
-			.executes(this::executeAllParams);
+			.executes(this::executeAllParams));
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.command.custom;
+package com.createcivilization.capitol.command.custom.debug;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
