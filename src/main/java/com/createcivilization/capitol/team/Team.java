@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.team;
 
+import com.createcivilization.capitol.util.Config;
 import com.createcivilization.capitol.util.JsonUtils;
 import com.google.gson.stream.JsonWriter;
 
@@ -16,12 +17,19 @@ public class Team {
     private String name, teamId;
 
     private Map<String, List<UUID>> players;
+	// So far roles are:
+	// owner
+	// member
 
     private Color color;
 
 	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
 
 	private Map<ResourceLocation, List<ChunkPos>> capitolBlocks = new HashMap<>();
+
+	// UUID = UUID of invitee
+	// Long = Unixtimestamp sent
+	private Map<UUID, Long> invites = new HashMap<>();
 
 	private List<String> allies = new ArrayList<>();
 
@@ -35,6 +43,24 @@ public class Team {
     public Color getColor() {
         return color;
     }
+
+	public void addPlayer(String role, UUID uuid){
+		if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid))); else players.get(role).add(uuid);
+	}
+
+	public void addInvitee(UUID uuid) {
+		invites.put(uuid, System.currentTimeMillis() / 1000L);
+
+		// Do some cleanup ;)
+		for (Map.Entry<UUID, Long> entry : invites.entrySet())
+		{
+			if (entry.getValue() + Config.inviteTimeout.getOrThrow() < System.currentTimeMillis() / 1000L) invites.remove(entry.getKey());
+		}
+	}
+
+	public long getInviteeTimestamp(UUID uuid) { return invites.get(uuid); }
+
+	public boolean hasInvitee(UUID uuid) { return invites.containsKey(uuid); }
 
     public Map<String, List<UUID>> getPlayers() {
         return players;

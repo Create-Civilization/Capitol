@@ -162,7 +162,7 @@ public class TeamUtils {
 			List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
 			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) return new ObjectHolder<>(team);
 		}
-		return null;
+		return new ObjectHolder<>();
 	}
 
 	/**

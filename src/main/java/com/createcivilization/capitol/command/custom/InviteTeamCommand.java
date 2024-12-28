@@ -11,6 +11,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.entity.player.Player;
 
 import java.io.IOException;
@@ -20,7 +21,7 @@ import static com.createcivilization.capitol.util.TeamUtils.parseTeams;
 
 public class InviteTeamCommand extends AbstractTeamCommand {
 	public InviteTeamCommand() {
-		super("invite");
+		super("invitePlayer");
 		command = Commands.literal(commandName).requires(this::canExecuteAllParams).then(
 			Commands.argument("player", EntityArgument.players()).executes(this::executeAllParams)
 		);
@@ -36,11 +37,13 @@ public class InviteTeamCommand extends AbstractTeamCommand {
 			throw new RuntimeException(e);
 		}
 		assert invitingTeam != null;
+		invitingTeam.addInvitee(toInvite.getUUID());
 		toInvite.sendSystemMessage(Component.literal(invitingTeam.getName() + " has invited you to join, click here to accept")
 			.setStyle(Style.EMPTY
-			.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/me hi"))
-			.withColor(net.minecraft.network.chat.TextColor.fromRgb(0x00FF00))));
+			.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + invitingTeam.getTeamId()))
+			.withColor(TextColor.fromRgb(0x00FF00))));
 
+		context.getSource().sendSuccess(() -> Component.literal("Successfully invited player to team"), true);
 		return 1;
 	}
 
