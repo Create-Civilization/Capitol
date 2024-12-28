@@ -5,6 +5,7 @@ import com.createcivilization.capitol.util.TeamUtils;
 
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
@@ -24,13 +25,14 @@ public class UnclaimCurrentChunkCommand extends AbstractTeamCommand {
 			player.sendSystemMessage(Component.literal("Chunk not claim claimed"));
 			return -1;
 		}
-		if (!TeamUtils.allowedInChunk(player, chunkPos)) {
+		ResourceLocation dimension = player.level().dimension().location();
+		if (!TeamUtils.allowedInChunk(player, dimension, chunkPos)) {
 
 			// Player is not allowed to unclaim chunk
 			player.sendSystemMessage(Component.literal("You are not allowed to unclaim this chunk"));
 			return -1;
 		}
-		if (TeamUtils.hasCapitolBlock(chunkPos, player.level().dimension().location())) {
+		if (TeamUtils.hasCapitolBlock(chunkPos, dimension)) {
 
 			// Claim has capitol block
 			player.sendSystemMessage(Component.literal("You are not allowed to unclaim a chunk with a Capital in it"));

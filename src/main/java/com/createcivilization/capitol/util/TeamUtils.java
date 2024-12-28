@@ -122,22 +122,7 @@ public class TeamUtils {
 	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link ChunkPos} specified in the parameters.
 	 */
 	public static Permission getPermissionInChunk(ChunkPos pos, Player player) {
-		boolean isInClaimedChunk = false;
-		Team teamWhoClaimedChunk = null;
-		for (Team team : loadedTeams) {
-			for (List<ChunkPos> claimedChunks : team.getClaimedChunks().values()) {
-				if (claimedChunks.contains(pos)) {
-					isInClaimedChunk = true;
-					teamWhoClaimedChunk = team;
-					break;
-				}
-			}
-		}
-
-		if (isInClaimedChunk) {
-			if (teamWhoClaimedChunk.getName().equals("Server")) return Permission.NON_TEAM_MEMBER_ON_SERVER_CLAIM;
-			else return teamWhoClaimedChunk.getAllPlayers().stream().anyMatch(player.getUUID()::equals) ? Permission.TEAM_MEMBER_ON_TEAM_CLAIM : Permission.NON_TEAM_MEMBER_ON_TEAM_CLAIM;
-		} else return Permission.TEAM_MEMBER_ON_TEAM_CLAIM;
+		return PermissionUtil.getPermission(getTeam(pos, player.level().dimension().location()).getOrThrow(),player);
 	}
 
 	/**
@@ -211,6 +196,7 @@ public class TeamUtils {
     public static Team parseTeam(JsonReader reader) throws IOException {
         String name = null, teamId = null;
         Map<String, List<UUID>> players = new LinkedHashMap<>();
+		Map<String, Permission> rolePermissions = new HashMap<>();
         Color color = null;
 		List<String> allies = new ArrayList<>();
         reader.beginObject();
@@ -224,6 +210,11 @@ public class TeamUtils {
                     while (reader.hasNext()) players.put(reader.nextName(), getListOfUUIDs(reader));
                     reader.endObject();
                 }
+				case "rolePermissions" -> {
+					reader.beginObject();
+					while (reader.hasNext()) rolePermissions.put(reader.nextName(), getPermission(reader));
+					reader.endObject();
+				}
 				case "allies" -> {
 					reader.beginArray();
 					while (reader.hasNext()) allies.add(reader.nextString());
@@ -236,6 +227,7 @@ public class TeamUtils {
                 .setName(name)
                 .setTeamId(teamId)
                 .setPlayers(players)
+				.setRolePermissions(rolePermissions)
                 .setColor(color)
 				.setAllies(allies)
                 .build();
@@ -248,6 +240,15 @@ public class TeamUtils {
         reader.endArray();
         return UUIDs;
     }
+	private static Permission getPermission(JsonReader reader) throws IOException {
+		List<Boolean> permission = new ArrayList<>();
+		reader.beginArray();
+		while (reader.hasNext()) {
+			permission.add(Objects.equals(reader.nextString(), "true"));
+		};
+		reader.endArray();
+		return PermissionUtil.listToPermission(permission);
+	}
 
     public static Team parseTeam(String str) throws IOException {
         return parseTeam(new JsonReader(new StringReader(str)));
@@ -484,12 +485,13 @@ public class TeamUtils {
 	 * @param radius The chunk radius around the player to check
 	 */
 	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, Player player) {
+		ResourceLocation dimension = player.level().dimension().location();
 		radius++;
 		for (int x = -1; x < radius; x++) {
 			for (int z = -1; z < radius; z++) {
 				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
-				if (allowedInChunk(player, currentChunkPos)) return true;
-				else if (TeamUtils.isClaimedChunk(player.level().dimension().location(), chunkPos)) return true;
+				if (allowedInChunk(player, dimension, currentChunkPos)) return true;
+				else if (TeamUtils.isClaimedChunk(dimension, chunkPos)) return true;
 			}
 		}
 		return false;
@@ -500,9 +502,10 @@ public class TeamUtils {
 	 * @param player the player on which the team shall be checked.
 	 * @param chunkPos the position of the chunk.
 	 */
-	public static boolean allowedInChunk(Player player, ChunkPos chunkPos)
-	{
-		return TeamUtils.getPermissionInChunk(chunkPos, player) == Permission.TEAM_MEMBER_ON_TEAM_CLAIM;
+	public static boolean allowedInChunk(Player player, ResourceLocation dimension, ChunkPos chunkPos) {
+		ObjectHolder<Team> holder = TeamUtils.getTeam(chunkPos, dimension);
+		if (holder.isEmpty()) return false;
+		return !Objects.equals(holder.getOrThrow().getPlayerRole(player.getUUID()), "non-member");
 	}
 
 	/**

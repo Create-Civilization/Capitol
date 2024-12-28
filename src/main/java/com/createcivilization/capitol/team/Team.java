@@ -2,6 +2,8 @@ package com.createcivilization.capitol.team;
 
 import com.createcivilization.capitol.util.Config;
 import com.createcivilization.capitol.util.JsonUtils;
+import com.createcivilization.capitol.util.Permission;
+import com.createcivilization.capitol.util.PermissionUtil;
 import com.google.gson.stream.JsonWriter;
 
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +18,7 @@ public class Team {
 
     private String name, teamId;
 
-    private LinkedHashMap<String, List<UUID>> players;
+    private Map<String, List<UUID>> players;
 	// Default roles:
 	// owner
 	// moderator
@@ -25,6 +27,8 @@ public class Team {
     private Color color;
 
 	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
+
+	private Map<String, Permission> rolePermissions = new HashMap<>();
 
 	private Map<ResourceLocation, List<ChunkPos>> capitolBlocks = new HashMap<>();
 
@@ -35,7 +39,7 @@ public class Team {
 
 	private List<String> allies = new ArrayList<>();
 
-    private Team(String name, String teamId, LinkedHashMap<String, List<UUID>> players, Color colour) {
+    private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
         this.name = name;
         this.teamId = teamId;
         this.players = players;
@@ -96,7 +100,7 @@ public class Team {
 
 	public String getPlayerRole(UUID uuid) {
 		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if(entry.getValue().contains(uuid)) return entry.getKey();
-		return "";
+		return "non-member";
 	}
 
 	public List<UUID> getAllPlayers() {
@@ -153,12 +157,26 @@ public class Team {
 			writer.name("name").value(name);
 			writer.name("teamId").value(teamId);
 			writer.name("color").value(color.getRGB());
+			Map<String, List<Boolean>> newRolePermissions = new HashMap<>();
+			for (Map.Entry<String, Permission> entry : rolePermissions.entrySet()){
+				newRolePermissions.put(entry.getKey(), PermissionUtil.permissionToList(entry.getValue()));
+			}
+			JsonUtils.saveJsonMap(writer, "rolePermissions", newRolePermissions, false);
 			JsonUtils.saveJsonMap(writer, "players", players, false);
-			JsonUtils.saveJsonList(writer, "moderator", allies, false);
+			JsonUtils.saveJsonList(writer, "allies", allies, false);
 			writer.endObject();
 		} catch (Throwable e) {
 			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
 		}
+	}
+
+	public Map<String, Permission> getAllRolePermissions() {
+		return rolePermissions;
+	}
+	public Permission getPermission(String role) { return rolePermissions.get(role); }
+
+	public void setRolePermissions(Map<String, Permission> rolePermissions) {
+		this.rolePermissions = rolePermissions;
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
@@ -166,7 +184,9 @@ public class Team {
 
         private String name, teamId;
 
-        private LinkedHashMap<String, List<UUID>> players = new LinkedHashMap<>();
+        private Map<String, List<UUID>> players = new HashMap<>();
+
+		private Map<String, Permission> rolePermissions = new HashMap<>();
 
         private Color color;
 
@@ -227,6 +247,16 @@ public class Team {
 			return this;
 		}
 
+		public TeamBuilder addPermission(String role, Permission permission){
+			rolePermissions.put(role, permission);
+			return this;
+		}
+
+		public TeamBuilder setRolePermissions(Map<String, Permission> permissions) {
+			for (Map.Entry<String, Permission> entry : permissions.entrySet()) addPermission(entry.getKey(), entry.getValue());
+			return this;
+		}
+
         public Team build() {
             Objects.requireNonNull(name);
             Objects.requireNonNull(teamId);
@@ -235,8 +265,42 @@ public class Team {
 			players.putIfAbsent("owner", new ArrayList<>());
 			players.putIfAbsent("moderator", new ArrayList<>());
 			players.putIfAbsent("member", new ArrayList<>());
+			// Default permissions
+			rolePermissions.putIfAbsent("owner", new Permission(
+				true,
+				true,
+				true,
+				true,
+				true,
+				true
+			));
+			rolePermissions.putIfAbsent("moderator", new Permission(
+				true,
+				true,
+				true,
+				true,
+				true,
+				true
+			));
+			rolePermissions.putIfAbsent("member", new Permission(
+				true,
+				true,
+				true,
+				true,
+				true,
+				false
+			));
+			rolePermissions.putIfAbsent("non-member", new Permission(
+				false,
+				false,
+				false,
+				false,
+				false,
+				false
+			));
             Objects.requireNonNull(color);
 			Team team = new Team(name, teamId, players, color);
+			team.setRolePermissions(rolePermissions);
 			team.addAllies(allies);
 			return team;
         }

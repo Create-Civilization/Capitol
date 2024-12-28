@@ -33,7 +33,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteractSpecific event) {
 		var player = event.getEntity();
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
-		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canInteractWithEntities(), "interact with entities");
+		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).interactEntities(), "interact with entities");
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerBreakBlock(PlayerInteractEvent.LeftClickBlock event) {
 		var player = event.getEntity();
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
-		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canBreakBlocks(), "break blocks");
+		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).breakBlocks(), "break blocks");
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class PlayerInteractionEvents {
 	 */
 	public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerPlaceBlock firing!"));
-		cancelIfHasInsufficientPermission(event, !permission.canPlaceBlocks(), "place blocks");
+		cancelIfHasInsufficientPermission(event, !permission.placeBlocks(), "place blocks");
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class PlayerInteractionEvents {
 	 */
 	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
-		cancelIfHasInsufficientPermission(event, !permission.canInteractBlocks(), "interact with blocks");
+		cancelIfHasInsufficientPermission(event, !permission.interactEntities(), "interact with blocks");
 	}
 
 	/**
@@ -95,13 +95,13 @@ public class PlayerInteractionEvents {
 				item instanceof BucketItem
 			)
 		) cancelIfHasInsufficientPermission(event, true, "use boats, enderpearls or buckets");
-		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).canUseItems(), "use items");
+		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).useItems(), "use items");
 	}
 
 	/**
 	 * Utility method to cancel the event if the player has insufficient permissions in the chunk.
 	 */
-	public static void cancelIfHasInsufficientPermission(PlayerInteractEvent event, boolean cancelIfTrue, String details) {
+	public static void cancelIfHasInsufficientPermission(PlayerInteractEvent event, Boolean cancelIfTrue, String details) {
 		if (cancelIfTrue) {
 			event.getEntity().sendSystemMessage(Component.literal("You do not have permission to " + details + " in this chunk!"));
 			event.setCancellationResult(InteractionResult.FAIL);
