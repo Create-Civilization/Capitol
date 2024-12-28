@@ -178,6 +178,8 @@ public class Team {
 		return rolePermissions.get(role);
 	}
 
+	public String[] getRoles() { return rolePermissions.keySet().toArray(new String[0]);}
+
 	public void setRolePermissions(Map<String, Permission> rolePermissions) {
 		this.rolePermissions = rolePermissions;
 	}
@@ -275,6 +277,9 @@ public class Team {
 				true,
 				true,
 				true,
+				true,
+				true,
+				true,
 				true
 			));
 			rolePermissions.putIfAbsent("moderator", new Permission(
@@ -283,6 +288,9 @@ public class Team {
 				true,
 				true,
 				true,
+				false,
+				false,
+				false,
 				false
 			));
 			rolePermissions.putIfAbsent("member", new Permission(
@@ -291,9 +299,15 @@ public class Team {
 				true,
 				true,
 				true,
+				false,
+				false,
+				false,
 				false
 			));
 			rolePermissions.putIfAbsent("non-member", new Permission(
+				false,
+				false,
+				false,
 				false,
 				false,
 				false,
