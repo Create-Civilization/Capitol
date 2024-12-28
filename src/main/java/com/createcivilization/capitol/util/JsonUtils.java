@@ -4,7 +4,7 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.*;
 
 public class JsonUtils {
 
@@ -14,14 +14,8 @@ public class JsonUtils {
 			for (Map.Entry<K, V> entrySet : map.entrySet()) {
 				String key = String.valueOf(entrySet.getKey());
 				V value = entrySet.getValue();
-				if (value instanceof Collection<?> valuesList) {
-					JsonUtils.saveJsonList(
-						writer,
-						key,
-						valuesList,
-						false
-					);
-				} else {
+				if (value instanceof Collection<?> valuesList) JsonUtils.saveJsonList(writer, key, valuesList, false);
+				else {
 					writer.name(key);
 					writer.beginObject();
 					writer.value(String.valueOf(value));
@@ -36,14 +30,13 @@ public class JsonUtils {
 	}
 
 	public static void saveJsonList(JsonWriter writer, String jsonObjectName, Iterable<?> list, boolean close) {
-		try {
-			writer.name(jsonObjectName).beginArray();
-			for (Object value : list) writer.value(String.valueOf(value));
-			writer.endArray();
-			if (close) writer.close();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		JsonUtils.advancedSaveJsonList(
+			writer,
+			jsonObjectName,
+			String::valueOf,
+			list,
+			close
+		);
 	}
 
 	public static <K, V extends Iterable<?>> void advancedSaveJsonMapHoldingList(
@@ -102,8 +95,24 @@ public class JsonUtils {
 		Iterable<V> list,
 		boolean close
 	) {
+		JsonUtils.advancedSaveJsonList(
+			writer,
+			() -> jsonObjectName,
+			valueToString,
+			list,
+			close
+		);
+	}
+
+	public static <V> void advancedSaveJsonList(
+		JsonWriter writer,
+		Supplier<String> jsonObjectNameSupplier,
+		Function<V, String> valueToString,
+		Iterable<V> list,
+		boolean close
+	) {
 		try {
-			writer.name(jsonObjectName).beginArray();
+			writer.name(jsonObjectNameSupplier.get()).beginArray();
 			for (V value : list) writer.value(valueToString.apply(value));
 			writer.endArray();
 			if (close) writer.close();
