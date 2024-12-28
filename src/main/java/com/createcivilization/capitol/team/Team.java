@@ -280,7 +280,7 @@ public class Team {
 				true,
 				true,
 				true,
-				true
+				false
 			));
 			rolePermissions.putIfAbsent("member", new Permission(
 				true,

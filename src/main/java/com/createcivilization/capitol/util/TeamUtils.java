@@ -497,6 +497,10 @@ public class TeamUtils {
 		return false;
 	}
 
+	public static Permission getPlayerPermission(Team team, Player player){
+		return team.getPermission(team.getPlayerRole(player.getUUID()));
+	}
+
 	/**
 	 * Check if player's team owns chunk at position.
 	 * @param player the player on which the team shall be checked.

@@ -73,7 +73,7 @@ public class PlayerInteractionEvents {
 	 */
 	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
-		cancelIfHasInsufficientPermission(event, !permission.interactEntities(), "interact with blocks");
+		cancelIfHasInsufficientPermission(event, !permission.interactBlocks(), "interact with blocks");
 	}
 
 	/**

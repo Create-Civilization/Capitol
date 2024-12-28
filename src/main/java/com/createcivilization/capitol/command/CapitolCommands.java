@@ -5,6 +5,7 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.command.custom.debug.*;
 import com.createcivilization.capitol.command.custom.teamcommands.chunks.ClaimCurrentChunkCommand;
 import com.createcivilization.capitol.command.custom.teamcommands.chunks.UnclaimCurrentChunkCommand;
+import com.createcivilization.capitol.command.custom.teamcommands.roles.addRoleTeamCommand;
 import com.createcivilization.capitol.command.custom.teamcommands.team.*;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,5 +30,6 @@ public class CapitolCommands {
 		new InviteTeamCommand().register(dispatcher);
 		new InviteAcceptTeamCommand().register(dispatcher);
 		new LeaveTeamCommand().register(dispatcher);
+		new addRoleTeamCommand().register(dispatcher);
     }
 }

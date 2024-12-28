@@ -5,6 +5,6 @@ public record Permission(
 	boolean placeBlocks,
 	boolean useItems,
 	boolean interactEntities,
-	boolean canInteractBlocks,
-	boolean canAddRole
+	boolean interactBlocks,
+	boolean addRole
 ) {}
