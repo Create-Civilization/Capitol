@@ -13,7 +13,6 @@ import net.minecraft.world.level.*;
 
 import wiiu.mavity.util.ObjectHolder;
 
-import javax.annotation.Nullable;
 import java.awt.Color;
 import java.io.*;
 import java.time.*;
@@ -222,9 +221,7 @@ public class TeamUtils {
                 case "color" -> color = new Color(reader.nextInt());
                 case "players" -> {
                     reader.beginObject();
-                    while (reader.hasNext()) {
-						players.put(reader.nextName(), getListOfUUIDs(reader));
-                    }
+                    while (reader.hasNext()) players.put(reader.nextName(), getListOfUUIDs(reader));
                     reader.endObject();
                 }
 				case "allies" -> {

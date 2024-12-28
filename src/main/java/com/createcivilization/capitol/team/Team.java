@@ -161,6 +161,7 @@ public class Team {
 		}
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
     public static class TeamBuilder {
 
         private String name, teamId;
@@ -169,6 +170,7 @@ public class Team {
 
         private Color color;
 
+		@SuppressWarnings("TypeMayBeWeakened")
 		private List<String> allies = new ArrayList<>();
 
         private TeamBuilder() {}
@@ -209,7 +211,6 @@ public class Team {
             return this;
         }
 
-        @SuppressWarnings("UnusedReturnValue")
 		public TeamBuilder addPlayers(Map<String, List<UUID>> players) {
             for (Map.Entry<String, List<UUID>> entry : players.entrySet()) addPlayer(entry.getKey(), entry.getValue());
             return this;
@@ -220,8 +221,9 @@ public class Team {
 			return this;
 		}
 
-		public TeamBuilder setAllies(List<String> allies) {
-			this.allies = allies;
+		public TeamBuilder setAllies(Collection<String> allies) {
+			this.allies.clear();
+			this.addAllies(allies);
 			return this;
 		}
 
@@ -231,7 +233,7 @@ public class Team {
             Objects.requireNonNull(players);
 			// Default roles
 			players.putIfAbsent("owner", new ArrayList<>());
-			players.putIfAbsent("admin", new ArrayList<>());
+			players.putIfAbsent("moderator", new ArrayList<>());
 			players.putIfAbsent("member", new ArrayList<>());
             Objects.requireNonNull(color);
 			Team team = new Team(name, teamId, players, color);
