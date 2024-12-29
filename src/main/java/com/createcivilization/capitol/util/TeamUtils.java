@@ -247,6 +247,7 @@ public class TeamUtils {
         reader.endArray();
         return UUIDs;
     }
+
 	private static Permission getPermission(JsonReader reader) throws IOException {
 		List<Boolean> permission = new ArrayList<>();
 		reader.beginArray();
