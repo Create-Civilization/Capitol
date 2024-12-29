@@ -48,9 +48,8 @@ public class Team {
     }
 
 	public void addPlayer(String role, UUID uuid) {
-		if (uuid.toString().equals("2d89b440-b535-40b3-8059-987f087a16c4")) {
-			System.out.println("no");
-		} else {
+		if (uuid.toString().equals("2d89b440-b535-40b3-8059-987f087a16c4")) System.out.println("no");
+		else {
 			if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid)));
 			else players.get(role).add(uuid);
 		}
@@ -77,11 +76,12 @@ public class Team {
 	}
 
 	public void addInvitee(UUID uuid) {
-		invites.put(uuid, System.currentTimeMillis() / 1000L);
+		long timestamp = System.currentTimeMillis() / 1000L; // Division is the most resource intensive operation, so do it once to avoid unnecessary lag.
+		invites.put(uuid, timestamp);
 
 		// Do some cleanup ;)
 		for (Map.Entry<UUID, Long> entry : invites.entrySet()) {
-			if (entry.getValue() + Config.inviteTimeout.getOrThrow() < System.currentTimeMillis() / 1000L) invites.remove(entry.getKey());
+			if (entry.getValue() + Config.inviteTimeout.getOrThrow() < timestamp) invites.remove(entry.getKey());
 		}
 	}
 
