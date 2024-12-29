@@ -16,9 +16,9 @@ import net.minecraft.text.Text;
 import java.util.*;
 
 // WIP
-public class reassignRoleTeamCommand extends AbstractTeamCommand {
+public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 
-	public reassignRoleTeamCommand() {
+	public ReassignRoleTeamCommand() {
 		super("reassignRole");
 		command = CommandManager.literal(commandName)
 			.requires(this::canExecuteAllParams)

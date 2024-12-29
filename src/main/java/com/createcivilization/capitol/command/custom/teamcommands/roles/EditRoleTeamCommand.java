@@ -11,9 +11,9 @@ import net.minecraft.server.command.*;
 import net.minecraft.text.Text;
 
 // WIP
-public class editRoleTeamCommand extends AbstractTeamCommand {
+public class EditRoleTeamCommand extends AbstractTeamCommand {
 
-	public editRoleTeamCommand() {
+	public EditRoleTeamCommand() {
 		super("editRole");
 		command = CommandManager.literal(commandName)
 			.requires(this::canExecuteAllParams)
