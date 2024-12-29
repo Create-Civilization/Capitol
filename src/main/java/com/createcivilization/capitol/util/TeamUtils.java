@@ -121,7 +121,7 @@ public class TeamUtils {
 	 */
 	public static Permission getPermissionInChunk(ChunkPos pos, PlayerEntity player) {
 		return getTeam(pos, player.getWorld().getRegistryKey().getValue())
-			.ifPresentOrElse(team -> TeamUtils.getPlayerPermission(team, player), () -> Permission.NONE_REFERENCE);
+			.ifPresentOrElse(team -> TeamUtils.getPlayerPermission(team, player), () -> Permission.NONE_REFERENCE); // Prevent null
 	}
 
 	/**
@@ -162,7 +162,7 @@ public class TeamUtils {
 		}
     }
 
-	public static boolean isRoleHigher(Team team, String role, String possiblyBiggerRole){
+	public static boolean isRoleHigher(Team team, String role, String possiblyBiggerRole) {
 		for (String currRole : team.getRoleRanking()) {
 			if (Objects.equals(currRole, possiblyBiggerRole)) return false;
 			else if (Objects.equals(currRole, role)) return true;
