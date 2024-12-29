@@ -4,15 +4,15 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 
-import net.minecraft.commands.*;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.command.*;
+import net.minecraft.text.Text;
 
 import wiiu.mavity.util.ObjectHolder;
 
 public abstract class AbstractTeamCommand extends AbstractCommand {
 
-    protected ArgumentBuilder<CommandSourceStack, ?> command;
+    protected ArgumentBuilder<ServerCommandSource, ?> command;
 
     protected AbstractTeamCommand(String commandName) {
         super(commandName);
@@ -26,37 +26,37 @@ public abstract class AbstractTeamCommand extends AbstractCommand {
     }
 
     @Override
-    public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("capitolTeams").requires((command) -> {
-            if (!command.isPlayer()) {
-                command.sendFailure(Component.literal("You must be a player to execute this command!"));
+    public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+        dispatcher.register(CommandManager.literal("capitolTeams").requires((command) -> {
+            if (!command.isExecutedByPlayer()) {
+                command.sendError(Text.literal("You must be a player to execute this command!"));
                 return false;
-            } else return !command.getLevel().isClientSide();
+            } else return !command.getWorld().isClient();
         }).then(this.command));
     }
 
 	// See AbstractCommand
     @Override
-    public boolean canExecuteAllParams(CommandSourceStack s) {
+    public boolean canExecuteAllParams(ServerCommandSource s) {
         return new ObjectHolder<>(s.getPlayer()).ifPresentOrElse(this::canExecute, () -> false);
     }
 
 	// Executes all Parameters passing CommandSourceStack
     @Override
-    public int executeAllParams(CommandContext<CommandSourceStack> command) {
-        ObjectHolder<Player> playerObject = new ObjectHolder<>(command.getSource().getPlayer());
+    public int executeAllParams(CommandContext<ServerCommandSource> command) {
+        ObjectHolder<PlayerEntity> playerObject = new ObjectHolder<>(command.getSource().getPlayer());
         return playerObject.ifPresentOrElse(this::execute, () -> {
-            command.getSource().sendFailure(Component.literal("You must " + this.mustWhat + " to use this command."));
+            command.getSource().sendError(Text.literal("You must " + this.mustWhat + " to use this command."));
             return -1;
         });
     }
 
 	// Executes command passing player
-    public int execute(Player player) {
+    public int execute(PlayerEntity player) {
 		return 1;
 	}
 
-    public boolean canExecute(Player player) {
+    public boolean canExecute(PlayerEntity player) {
 		return true;
 	}
 }

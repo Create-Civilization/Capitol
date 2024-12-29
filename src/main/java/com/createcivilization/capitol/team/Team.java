@@ -1,13 +1,10 @@
 package com.createcivilization.capitol.team;
 
-import com.createcivilization.capitol.util.Config;
-import com.createcivilization.capitol.util.JsonUtils;
-import com.createcivilization.capitol.util.Permission;
-import com.createcivilization.capitol.util.PermissionUtil;
+import com.createcivilization.capitol.util.*;
 import com.google.gson.stream.JsonWriter;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ChunkPos;
 
 import java.awt.Color;
 import java.io.*;
@@ -26,11 +23,11 @@ public class Team {
 
     private Color color;
 
-	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
+	private Map<Identifier, List<ChunkPos>> claimedChunks = new HashMap<>();
 
 	private Map<String, Permission> rolePermissions = new HashMap<>();
 
-	private Map<ResourceLocation, List<ChunkPos>> capitolBlocks = new HashMap<>();
+	private Map<Identifier, List<ChunkPos>> capitolBlocks = new HashMap<>();
 
 	// UUID = UUID of invitee
 	// Long = Unixtimestamp sent
@@ -55,7 +52,7 @@ public class Team {
 	}
 
 	public LinkedList<String> getRoleRanking() {
-		return new LinkedList<String>(players.keySet());
+		return new LinkedList<>(players.keySet());
 	}
 
 	public void addRole(String roleName) {
@@ -66,7 +63,7 @@ public class Team {
 		players.remove(roleName);
 	}
 
-	public void removePlayer(UUID uuid){
+	public void removePlayer(UUID uuid) {
 		players.get(getPlayerRole(uuid)).remove(uuid);
 	}
 
@@ -76,15 +73,18 @@ public class Team {
 		invites.put(uuid, System.currentTimeMillis() / 1000L);
 
 		// Do some cleanup ;)
-		for (Map.Entry<UUID, Long> entry : invites.entrySet())
-		{
+		for (Map.Entry<UUID, Long> entry : invites.entrySet()) {
 			if (entry.getValue() + Config.inviteTimeout.getOrThrow() < System.currentTimeMillis() / 1000L) invites.remove(entry.getKey());
 		}
 	}
 
-	public long getInviteeTimestamp(UUID uuid) { return invites.get(uuid); }
+	public long getInviteeTimestamp(UUID uuid) {
+		return invites.get(uuid);
+	}
 
-	public boolean hasInvitee(UUID uuid) { return invites.containsKey(uuid); }
+	public boolean hasInvitee(UUID uuid) {
+		return invites.containsKey(uuid);
+	}
 
     public Map<String, List<UUID>> getPlayers() {
         return players;
@@ -109,7 +109,7 @@ public class Team {
 		return allPlayers;
 	}
 
-	public Map<ResourceLocation, List<ChunkPos>> getClaimedChunks() {
+	public Map<Identifier, List<ChunkPos>> getClaimedChunks() {
 		return claimedChunks;
 	}
 
@@ -117,17 +117,17 @@ public class Team {
 		return allies;
 	}
 
-	public Map<ResourceLocation, List<ChunkPos>> getCapitolBlocks() {
+	public Map<Identifier, List<ChunkPos>> getCapitolBlocks() {
 		return capitolBlocks;
 	}
 
-	public void addCapitolBlock(ResourceLocation dimension, List<ChunkPos> chunkPositions) {
+	public void addCapitolBlock(Identifier dimension, List<ChunkPos> chunkPositions) {
 		var alreadyAdded = this.capitolBlocks.get(dimension);
 		if (alreadyAdded != null) alreadyAdded.addAll(chunkPositions);
 		else this.capitolBlocks.put(dimension, chunkPositions);
 	}
 
-	public void addCapitolBlock(ResourceLocation dimension, ChunkPos chunkPosition) {
+	public void addCapitolBlock(Identifier dimension, ChunkPos chunkPosition) {
 		this.addCapitolBlock(dimension, new ArrayList<>(List.of(chunkPosition)));
 	}
 

@@ -2,33 +2,34 @@ package com.createcivilization.capitol.command.custom.teamcommands.roles;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
+
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.command.*;
+import net.minecraft.text.Text;
 
 // WIP
 public class addRoleTeamCommand extends AbstractTeamCommand {
 	public addRoleTeamCommand() {
 		super("addRole");
-		command = Commands.literal(commandName)
+		command = CommandManager.literal(commandName)
 			.requires(this::canExecuteAllParams)
-			.then(Commands.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams)
+			.then(CommandManager.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams)
 		);
 	}
 
 	@Override
-	public int executeAllParams(CommandContext<CommandSourceStack> context) {
+	public int executeAllParams(CommandContext<ServerCommandSource> context) {
 		String roleName = StringArgumentType.getString(context, "roleName");
 		TeamUtils.getTeam(context.getSource().getPlayer()).getOrThrow().addRole(roleName);
-		context.getSource().sendSuccess(() -> Component.literal("Added role \"" + roleName + "\""), true);
+		context.getSource().sendFeedback(() -> Text.literal("Added role \"" + roleName + "\""), true);
 		return 1;
 	}
 
 	@Override
-	public boolean canExecute(Player player) {
+	public boolean canExecute(PlayerEntity player) {
 		setMustWhat("be a player, be in a team and have role making permissions");
 		return TeamUtils.hasTeam(player) && TeamUtils.getPlayerPermission(TeamUtils.getTeam(player).getOrThrow(), player).addRole();
 	}

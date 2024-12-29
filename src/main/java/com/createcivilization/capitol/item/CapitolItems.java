@@ -2,7 +2,7 @@ package com.createcivilization.capitol.item;
 
 import com.createcivilization.capitol.Capitol;
 
-import net.minecraft.world.item.Item;
+import net.minecraft.item.Item;
 
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.*;

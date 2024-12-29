@@ -4,14 +4,15 @@ import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.IChunkData;
 
 import com.createcivilization.capitol.util.TeamUtils;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.chunk.ChunkAccess;
+
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.chunk.Chunk;
 
 import org.spongepowered.asm.mixin.*;
 
 import javax.annotation.Nullable;
 
-@Mixin(ChunkAccess.class)
+@Mixin(Chunk.class)
 @SuppressWarnings("AddedMixinMembersNamePattern")
 public abstract class ChunkDataImpl implements IChunkData {
 
@@ -19,7 +20,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 
 	@Shadow
 	@Nullable
-	public abstract LevelAccessor getWorldForge();
+	public abstract WorldAccess getWorldForge();
 
 	// Represents a % of taken over progress
 	@Unique

@@ -1,14 +1,14 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.team.Team;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.player.PlayerEntity;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.RecordComponent;
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.*;
+import java.util.*;
 
+@SuppressWarnings("TypeMayBeWeakened")
 public class PermissionUtil {
+
 	public static List<Boolean> permissionToList(Permission permission) throws InvocationTargetException, IllegalAccessException {
 		List<Boolean> permissionList = new ArrayList<>();
 		RecordComponent[] components = permission.getClass().getRecordComponents();
@@ -19,9 +19,11 @@ public class PermissionUtil {
 		}
 		return permissionList;
 	}
-	public static Permission getPermission(Team team, Player player){
-		return team.getPermission(team.getPlayerRole(player.getUUID()));
+
+	public static Permission getPermission(Team team, PlayerEntity player) {
+		return team.getPermission(team.getPlayerRole(player.getUuid()));
 	}
+
 	public static Permission listToPermission(List<Boolean> listPermission) {
 		return new Permission(
 			listPermission.get(0),

@@ -5,9 +5,9 @@ import com.createcivilization.capitol.util.TeamUtils;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 
-import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.text.Text;
 
 import wiiu.mavity.util.ObjectHolder;
 
@@ -17,31 +17,31 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 
     public CreateTeamCommand() {
         super("createTeam");
-        command = Commands.literal(commandName).requires(this::canExecuteAllParams).executes((c) -> 1)
-                .then(Commands.argument("name", StringArgumentType.string())
-                        .then(Commands.argument("color", StringArgumentType.word())
+        command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).executes((c) -> 1)
+                .then(CommandManager.argument("name", StringArgumentType.string())
+                        .then(CommandManager.argument("color", StringArgumentType.word())
                                 .executes((command) -> {
                                     String
                                             color = StringArgumentType.getString(command, "color").toLowerCase(),
                                             name = StringArgumentType.getString(command, "name");
 									if (TeamUtils.teamExists(name)) {
-										command.getSource().sendFailure(Component.literal("A team with the name '" + name + "' already exists!"));
+										command.getSource().sendError(Text.literal("A team with the name '" + name + "' already exists!"));
 										return -1;
 									}
-                                    return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
+                                    return new ObjectHolder<PlayerEntity>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
                                         try {
                                             TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, (Color) Color.class.getDeclaredField(color).get(null)));
-                                            command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + color + "'."), true);
-											command.getSource().sendSystemMessage(Component.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
+                                            command.getSource().sendFeedback(() -> Text.literal("Created team '" + name + "' with color '" + color + "'."), true);
+											command.getSource().sendMessage(Text.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
                                             return 1;
                                         } catch (Throwable e) {
                                             e.printStackTrace(System.out);
                                             e.printStackTrace(System.err);
-                                            command.getSource().sendFailure(Component.literal("Invalid color: '" + color + "'!"));
+                                            command.getSource().sendError(Text.literal("Invalid color: '" + color + "'!"));
                                             return -1;
                                         }
                                     }, () -> {
-                                        command.getSource().sendFailure(Component.literal("You must " + this.mustWhat + " to use this command."));
+                                        command.getSource().sendError(Text.literal("You must " + this.mustWhat + " to use this command."));
                                         return -1;
                                     });
                                 })
@@ -50,7 +50,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
     }
 
 	@Override
-    public boolean canExecute(Player player) {
+    public boolean canExecute(PlayerEntity player) {
         setMustWhat("be a player and not be in a team");
         return !TeamUtils.hasTeam(player);
     }

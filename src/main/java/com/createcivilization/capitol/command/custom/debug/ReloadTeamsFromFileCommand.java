@@ -3,29 +3,29 @@ package com.createcivilization.capitol.command.custom.debug;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.util.TeamUtils;
 
-import net.minecraft.commands.*;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.command.*;
+import net.minecraft.text.Text;
 
 public class ReloadTeamsFromFileCommand extends AbstractTeamCommand {
 
 	public ReloadTeamsFromFileCommand() {
 		super("reloadTeamsFromFile");
-		command = Commands.literal("debug")
-			.then(Commands.literal(commandName)
+		command = CommandManager.literal("debug")
+			.then(CommandManager.literal(commandName)
 			.requires(this::canExecuteAllParams)
 			.executes(this::executeAllParams));
 	}
 
 	@Override
-	public boolean canExecuteAllParams(CommandSourceStack s) {
+	public boolean canExecuteAllParams(ServerCommandSource s) {
 		setMustWhat("be a player and an operator");
-		return s.hasPermission(4);
+		return s.hasPermissionLevel(4);
 	}
 
 	@Override
-	public int execute(Player player) {
-		player.sendSystemMessage(Component.literal("Reloading teams from file..."));
+	public int execute(PlayerEntity player) {
+		player.sendMessage(Text.literal("Reloading teams from file..."));
 		return TeamUtils.reloadTeamsFromFile();
 	}
 }

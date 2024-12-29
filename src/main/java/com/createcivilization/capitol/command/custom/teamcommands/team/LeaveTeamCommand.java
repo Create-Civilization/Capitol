@@ -1,37 +1,37 @@
 package com.createcivilization.capitol.command.custom.teamcommands.team;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
-import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.team.*;
 import com.createcivilization.capitol.util.TeamUtils;
-import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 
-import java.util.List;
-import java.util.UUID;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.text.Text;
+
+import java.util.*;
 
 public class LeaveTeamCommand extends AbstractTeamCommand {
 	public LeaveTeamCommand() {
 		super("leaveTeam");
-		command = Commands.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
 	}
 
 	@Override
-	public int execute(Player player)
+	public int execute(PlayerEntity player)
 	{
 		Team playerTeam = TeamUtils.getTeam(player).getOrThrow();
 		List<UUID> owners = playerTeam.getPlayersWithRole("owner");
-		if (owners.contains(player.getUUID()) && owners.size() == 1){
-			player.sendSystemMessage(Component.literal("You cannot leave the team as the only owner"));
+		if (owners.contains(player.getUuid()) && owners.size() == 1){
+			player.sendMessage(Text.literal("You cannot leave the team as the only owner"));
 			return -1;
 		}
-		playerTeam.removePlayer(player.getUUID());
-		player.sendSystemMessage(Component.literal("Successfully left team"));
+		playerTeam.removePlayer(player.getUuid());
+		player.sendMessage(Text.literal("Successfully left team"));
 		return 1;
 	}
 
 	@Override
-	public boolean canExecute(Player player) {
+	public boolean canExecute(PlayerEntity player) {
 		setMustWhat("be a player and in a team");
 		return TeamUtils.hasTeam(player);
 	}

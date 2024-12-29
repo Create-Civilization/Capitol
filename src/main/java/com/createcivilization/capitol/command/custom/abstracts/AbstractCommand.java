@@ -3,7 +3,8 @@ package com.createcivilization.capitol.command.custom.abstracts;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 
-import net.minecraft.commands.*;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 
 public abstract class AbstractCommand {
 
@@ -13,16 +14,17 @@ public abstract class AbstractCommand {
     protected AbstractCommand(String commandName) {
         this.commandName = commandName;
     }
+
 	// Method to check if all parameters can be executed
-    public boolean canExecuteAllParams(CommandSourceStack s) {
+    public boolean canExecuteAllParams(ServerCommandSource s) {
         return true;
     }
 
-    public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal(commandName).requires(this::canExecuteAllParams)
+    public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+        dispatcher.register(CommandManager.literal(commandName).requires(this::canExecuteAllParams)
                 .executes(this::executeAllParams)
         );
     }
 
-    public abstract int executeAllParams(CommandContext<CommandSourceStack> command);
+    public abstract int executeAllParams(CommandContext<ServerCommandSource> command);
 }

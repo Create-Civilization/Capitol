@@ -10,4 +10,7 @@ public record Permission(
 	boolean editPermissions,
 	boolean promotePlayers,
 	boolean demotePlayers
-) {}
+) {
+
+	public static final Permission NONE_REFERENCE = new Permission(false, false, true, true, true, false, false, false, false);
+}
