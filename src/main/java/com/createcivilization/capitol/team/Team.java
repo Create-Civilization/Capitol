@@ -3,8 +3,8 @@ package com.createcivilization.capitol.team;
 import com.createcivilization.capitol.util.*;
 import com.google.gson.stream.JsonWriter;
 
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.math.ChunkPos;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ChunkPos;
 
 import java.awt.Color;
 import java.io.*;
@@ -23,11 +23,11 @@ public class Team {
 
     private Color color;
 
-	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
+	private Map<Identifier, List<ChunkPos>> claimedChunks = new HashMap<>();
 
 	private Map<String, Permission> rolePermissions = new HashMap<>();
 
-	private Map<ResourceLocation, List<ChunkPos>> capitolBlocks = new HashMap<>();
+	private Map<Identifier, List<ChunkPos>> capitolBlocks = new HashMap<>();
 
 	// UUID = UUID of invitee
 	// Long = Unixtimestamp sent
@@ -116,7 +116,7 @@ public class Team {
 		return allPlayers;
 	}
 
-	public Map<ResourceLocation, List<ChunkPos>> getClaimedChunks() {
+	public Map<Identifier, List<ChunkPos>> getClaimedChunks() {
 		return claimedChunks;
 	}
 
@@ -124,17 +124,17 @@ public class Team {
 		return allies;
 	}
 
-	public Map<ResourceLocation, List<ChunkPos>> getCapitolBlocks() {
+	public Map<Identifier, List<ChunkPos>> getCapitolBlocks() {
 		return capitolBlocks;
 	}
 
-	public void addCapitolBlock(ResourceLocation dimension, List<ChunkPos> chunkPositions) {
+	public void addCapitolBlock(Identifier dimension, List<ChunkPos> chunkPositions) {
 		var alreadyAdded = this.capitolBlocks.get(dimension);
 		if (alreadyAdded != null) alreadyAdded.addAll(chunkPositions);
 		else this.capitolBlocks.put(dimension, chunkPositions);
 	}
 
-	public void addCapitolBlock(ResourceLocation dimension, ChunkPos chunkPosition) {
+	public void addCapitolBlock(Identifier dimension, ChunkPos chunkPosition) {
 		this.addCapitolBlock(dimension, new ArrayList<>(List.of(chunkPosition)));
 	}
 
