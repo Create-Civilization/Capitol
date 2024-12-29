@@ -110,7 +110,6 @@ public class TeamUtils {
 	}
 
 	/**
-	 * TODO: Completely redo the Permission system and replace it with a c2s synced config per team (done in the capitol block?)
 	 * @return The {@link Permission} the {@link PlayerEntity} has in the chunk at the {@link BlockPos} specified in the parameters.
 	 */
 	public static Permission getPermissionInChunk(BlockPos pos, PlayerEntity player) {
@@ -430,7 +429,7 @@ public class TeamUtils {
 					writer,
 					"claimedChunks",
 					team.getClaimedChunks(),
-					Identifier::toString, // Transforms the ResourceLocation into namespace:path
+					Identifier::toString, // Transforms the Identifier into namespace:path
 					TeamUtils::chunksToStringArray,
 					false
 			);
@@ -438,7 +437,7 @@ public class TeamUtils {
 				writer,
 				"chunksWithCapitolBlock",
 				team.getCapitolBlocks(),
-				Identifier::toString, // Transforms the ResourceLocation into namespace:path
+				Identifier::toString, // Transforms the Identifier into namespace:path
 				TeamUtils::chunksToStringArray,
 				false
 			);
@@ -464,6 +463,7 @@ public class TeamUtils {
 	public static int claimCurrentChunk(PlayerEntity player) {
 		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.getChunkPos()), () -> -1);
 	}
+
 	/**
 	 * Unclaims the current chunk for the given player's team.
 	 * @return 1 if successful, -1 if failed (for /command usage)
@@ -543,6 +543,7 @@ public class TeamUtils {
 		radius++;
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.claimChunkIfNotClaimed(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
 	}
+
 	/**
 	 * Unclaims chunks in a radius of a center position from a team
 	 * @param team The team to claim the chunks to
@@ -588,6 +589,7 @@ public class TeamUtils {
 	public static void claimChunkIfNotClaimed(Team team, Identifier dimension, ChunkPos pos) {
 		if (!TeamUtils.isClaimedChunk(dimension, pos)) TeamUtils.claimChunk(team, dimension, pos);
 	}
+
 	public static void unclaimChunkIfFromTeam(Team team, Identifier dimension, ChunkPos pos) {
 		if (TeamUtils.isClaimedChunk(dimension, pos) && TeamUtils.getTeam(pos, dimension).getOrThrow().equals(team)) TeamUtils.unclaimChunk(team, dimension, pos);
 	}

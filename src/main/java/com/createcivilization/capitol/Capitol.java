@@ -14,7 +14,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import wiiu.mavity.util.ObjectHolder;
 
-// git push origin main
+// git push origin yarn
 // git pull
 @Mod(Capitol.MOD_ID)
 public class Capitol {
