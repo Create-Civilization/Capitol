@@ -1,11 +1,11 @@
 package com.createcivilization.capitol.command;
 
 import com.createcivilization.capitol.Capitol;
-
 import com.createcivilization.capitol.command.custom.debug.*;
 import com.createcivilization.capitol.command.custom.teamcommands.chunks.*;
 import com.createcivilization.capitol.command.custom.teamcommands.roles.*;
 import com.createcivilization.capitol.command.custom.teamcommands.team.*;
+
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

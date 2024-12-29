@@ -83,11 +83,11 @@ public class TeamUtils {
 	 * @return If the {@link PlayerEntity}'s current position is in a claimed chunk.
 	 */
 	public static boolean isInClaimedChunk(PlayerEntity player) {
-		return isClaimedChunk(player.getWorld().getRegistryKey().getValue(), player.getChunkPos());
+		return TeamUtils.isClaimedChunk(player.getWorld().getRegistryKey().getValue(), player.getChunkPos());
 	}
 
 	public static boolean isInClaimedChunk(PlayerEntity player, BlockPos pos) {
-		return isClaimedChunk(player.getWorld().getRegistryKey().getValue(), player.getWorld().getChunk(pos).getPos());
+		return TeamUtils.isClaimedChunk(player.getWorld().getRegistryKey().getValue(), player.getWorld().getChunk(pos).getPos());
 	}
 
 	/**
@@ -106,21 +106,21 @@ public class TeamUtils {
 	 * @return The {@link Permission} the {@link PlayerEntity} has in the chunk they are currently in.
 	 */
 	public static Permission getPermissionInCurrentChunk(PlayerEntity player) {
-		return getPermissionInChunk(player.getChunkPos(), player);
+		return TeamUtils.getPermissionInChunk(player.getChunkPos(), player);
 	}
 
 	/**
 	 * @return The {@link Permission} the {@link PlayerEntity} has in the chunk at the {@link BlockPos} specified in the parameters.
 	 */
 	public static Permission getPermissionInChunk(BlockPos pos, PlayerEntity player) {
-		return getPermissionInChunk(player.getWorld().getChunk(pos).getPos(), player);
+		return TeamUtils.getPermissionInChunk(player.getWorld().getChunk(pos).getPos(), player);
 	}
 
 	/**
 	 * @return The {@link Permission} the {@link PlayerEntity} has in the chunk at the {@link ChunkPos} specified in the parameters.
 	 */
 	public static Permission getPermissionInChunk(ChunkPos pos, PlayerEntity player) {
-		return getTeam(pos, player.getWorld().getRegistryKey().getValue())
+		return TeamUtils.getTeam(pos, player.getWorld().getRegistryKey().getValue())
 			.ifPresentOrElse(team -> TeamUtils.getPlayerPermission(team, player), () -> Permission.NONE_REFERENCE); // Prevent null
 	}
 
@@ -157,7 +157,7 @@ public class TeamUtils {
 		try {
 			FileUtils.setContentsIfEmpty(file, "[\n]");
 		} finally {
-			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
+			loadedTeams.addAll(TeamUtils.parseTeams(FileUtils.getFileContents(file)));
 			TeamUtils.loadChunksForTeams();
 		}
     }
@@ -191,7 +191,7 @@ public class TeamUtils {
         JsonReader reader = new JsonReader(new StringReader(str));
         List<Team> teams = new ArrayList<>();
         reader.beginArray();
-        while (reader.hasNext()) teams.add(parseTeam(reader));
+        while (reader.hasNext()) teams.add(TeamUtils.parseTeam(reader));
         reader.endArray();
 		reader.close();
         return teams;
@@ -280,14 +280,15 @@ public class TeamUtils {
 		LocalDateTime time = LocalDateTime.now();
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder();
-		sb.append("team_");
-		sb.append(UUID.randomUUID().toString().substring(4));
-		sb.append(String.valueOf(random.nextBoolean()), 1, 4);
-		sb.append(time.getHour() / 13 + time.getNano());
-		sb.append(Month.values()[random.nextInt(0, Month.values().length - 1)].toString(), 0, 2);
-		sb.append(random.nextInt(1000, 9999));
-		sb.append(UUID.randomUUID().toString().substring(7));
-		sb.append(time.getDayOfYear());
+		sb
+			.append("team_")
+			.append(UUID.randomUUID().toString().substring(4))
+			.append(String.valueOf(random.nextBoolean()), 1, 4)
+			.append(time.getHour() / 13 + time.getNano())
+			.append(Month.values()[random.nextInt(0, Month.values().length - 1)].toString(), 0, 2)
+			.append(random.nextInt(1000, 9999))
+			.append(UUID.randomUUID().toString().substring(7))
+			.append(time.getDayOfYear());
 		if (random.nextBoolean()) sb.append(UUID.randomUUID().toString(), 3, 5);
 		else sb.append(time.getDayOfMonth());
 		return sb.toString();
@@ -462,7 +463,7 @@ public class TeamUtils {
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int claimCurrentChunk(PlayerEntity player) {
-		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.getChunkPos()), () -> -1);
+		return TeamUtils.getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.getChunkPos()), () -> -1);
 	}
 
 	/**
@@ -470,7 +471,7 @@ public class TeamUtils {
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int unclaimCurrentChunk(PlayerEntity player) {
-		return getTeam(player).ifPresentOrElse(team -> unclaimChunk(team, getPlayerDimension(player), player.getChunkPos()), () -> -1);
+		return TeamUtils.getTeam(player).ifPresentOrElse(team -> unclaimChunk(team, getPlayerDimension(player), player.getChunkPos()), () -> -1);
 	}
 
 	/**
@@ -499,7 +500,7 @@ public class TeamUtils {
 		for (int x = -1; x < radius; x++) {
 			for (int z = -1; z < radius; z++) {
 				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
-				if (allowedInChunk(player, dimension, currentChunkPos)) return true;
+				if (TeamUtils.allowedInChunk(player, dimension, currentChunkPos)) return true;
 				else if (TeamUtils.isClaimedChunk(dimension, chunkPos)) return true;
 			}
 		}
@@ -526,8 +527,7 @@ public class TeamUtils {
 	 * @param team the team on which the team shall be checked.
 	 * @param chunkPos the position of the chunk.
 	 */
-	public static boolean allowedInChunk(Team team, Identifier dimension, ChunkPos chunkPos)
-	{
+	public static boolean allowedInChunk(Team team, Identifier dimension, ChunkPos chunkPos) {
 		if (!TeamUtils.isClaimedChunk(dimension, chunkPos)) return false;
 		List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
 		return chunks.contains(chunkPos);
