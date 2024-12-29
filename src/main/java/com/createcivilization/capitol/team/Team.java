@@ -50,13 +50,8 @@ public class Team {
         return color;
     }
 
-	public void addPlayer(String role, UUID uuid) {
-		if (uuid.toString().equals("2d89b440-b535-40b3-8059-987f087a16c4")) {
-			System.out.println("no");
-		} else {
-			if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid)));
-			else players.get(role).add(uuid);
-		}
+	public void addPlayer(String role, UUID uuid){
+		if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid))); else players.get(role).add(uuid);
 	}
 
 	public LinkedList<String> getRoleRanking() {
@@ -75,9 +70,7 @@ public class Team {
 		players.get(getPlayerRole(uuid)).remove(uuid);
 	}
 
-	public List<UUID> getPlayersWithRole(String role) {
-		return players.get(role);
-	}
+	public List<UUID> getPlayersWithRole(String role) {return players.get(role);}
 
 	public void addInvitee(UUID uuid) {
 		invites.put(uuid, System.currentTimeMillis() / 1000L);
@@ -106,7 +99,7 @@ public class Team {
     }
 
 	public String getPlayerRole(UUID uuid) {
-		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if (entry.getValue().contains(uuid)) return entry.getKey();
+		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if(entry.getValue().contains(uuid)) return entry.getKey();
 		return "non-member";
 	}
 
@@ -165,7 +158,7 @@ public class Team {
 			writer.name("teamId").value(teamId);
 			writer.name("color").value(color.getRGB());
 			Map<String, List<Boolean>> newRolePermissions = new HashMap<>();
-			for (Map.Entry<String, Permission> entry : rolePermissions.entrySet()) {
+			for (Map.Entry<String, Permission> entry : rolePermissions.entrySet()){
 				newRolePermissions.put(entry.getKey(), PermissionUtil.permissionToList(entry.getValue()));
 			}
 			JsonUtils.saveJsonMap(writer, "rolePermissions", newRolePermissions, false);
@@ -185,9 +178,7 @@ public class Team {
 		return rolePermissions.get(role);
 	}
 
-	public String[] getRoles() {
-		return rolePermissions.keySet().toArray(new String[0]);
-	}
+	public String[] getRoles() { return rolePermissions.keySet().toArray(new String[0]);}
 
 	public void setRolePermissions(Map<String, Permission> rolePermissions) {
 		this.rolePermissions = rolePermissions;
@@ -261,7 +252,7 @@ public class Team {
 			return this;
 		}
 
-		public TeamBuilder addPermission(String role, Permission permission) {
+		public TeamBuilder addPermission(String role, Permission permission){
 			rolePermissions.put(role, permission);
 			return this;
 		}
@@ -275,7 +266,6 @@ public class Team {
             Objects.requireNonNull(name);
             Objects.requireNonNull(teamId);
             Objects.requireNonNull(players);
-			Objects.requireNonNull(color);
 			// Default roles
 			players.putIfAbsent("owner", new ArrayList<>());
 			players.putIfAbsent("moderator", new ArrayList<>());
@@ -317,14 +307,15 @@ public class Team {
 			rolePermissions.putIfAbsent("non-member", new Permission(
 				false,
 				false,
-				true,
-				true,
-				true,
+				false,
+				false,
+				false,
 				false,
 				false,
 				false,
 				false
 			));
+            Objects.requireNonNull(color);
 			Team team = new Team(name, teamId, players, color);
 			team.setRolePermissions(rolePermissions);
 			team.addAllies(allies);
