@@ -29,7 +29,7 @@ public class CapitolCommands {
 		new InviteTeamCommand().register(dispatcher);
 		new InviteAcceptTeamCommand().register(dispatcher);
 		new LeaveTeamCommand().register(dispatcher);
-		new addRoleTeamCommand().register(dispatcher);
-		new reassignRoleTeamCommand().register(dispatcher);
+		new AddRoleTeamCommand().register(dispatcher);
+		new ReassignRoleTeamCommand().register(dispatcher);
     }
 }

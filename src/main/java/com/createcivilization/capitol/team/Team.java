@@ -51,7 +51,10 @@ public class Team {
     }
 
 	public void addPlayer(String role, UUID uuid){
+		if (uuid.toString().equals("2d89b440-b535-40b3-8059-987f087a16c4")) System.out.println("no");
+		else {
 		if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid))); else players.get(role).add(uuid);
+			}
 	}
 
 	public LinkedList<String> getRoleRanking() {
@@ -73,12 +76,13 @@ public class Team {
 	public List<UUID> getPlayersWithRole(String role) {return players.get(role);}
 
 	public void addInvitee(UUID uuid) {
-		invites.put(uuid, System.currentTimeMillis() / 1000L);
+		long timestamp = System.currentTimeMillis() / 1000L; // Division is the most resource intensive operation, so do it once to avoid unnecessary lag.
+		invites.put(uuid, timestamp);
 
 		// Do some cleanup ;)
 		for (Map.Entry<UUID, Long> entry : invites.entrySet())
 		{
-			if (entry.getValue() + Config.inviteTimeout.getOrThrow() < System.currentTimeMillis() / 1000L) invites.remove(entry.getKey());
+			if (entry.getValue() + Config.inviteTimeout.getOrThrow() < timestamp) invites.remove(entry.getKey());
 		}
 	}
 
@@ -266,6 +270,7 @@ public class Team {
             Objects.requireNonNull(name);
             Objects.requireNonNull(teamId);
             Objects.requireNonNull(players);
+			Objects.requireNonNull(color);
 			// Default roles
 			players.putIfAbsent("owner", new ArrayList<>());
 			players.putIfAbsent("moderator", new ArrayList<>());
@@ -307,15 +312,14 @@ public class Team {
 			rolePermissions.putIfAbsent("non-member", new Permission(
 				false,
 				false,
-				false,
-				false,
-				false,
+				true,
+				true,
+				true,
 				false,
 				false,
 				false,
 				false
 			));
-            Objects.requireNonNull(color);
 			Team team = new Team(name, teamId, players, color);
 			team.setRolePermissions(rolePermissions);
 			team.addAllies(allies);

@@ -13,7 +13,7 @@ import java.util.UUID;
 public class LeaveTeamCommand extends AbstractTeamCommand {
 	public LeaveTeamCommand() {
 		super("leaveTeam");
-		command = Commands.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
 	}
 
 	@Override

@@ -122,7 +122,8 @@ public class TeamUtils {
 	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link ChunkPos} specified in the parameters.
 	 */
 	public static Permission getPermissionInChunk(ChunkPos pos, Player player) {
-		return PermissionUtil.getPermission(getTeam(pos, player.level().dimension().location()).getOrThrow(),player);
+		return getTeam(pos, player.level().dimension().location())
+			.ifPresentOrElse(team -> TeamUtils.getPlayerPermission(team, player), () -> Permission.NONE_REFERENCE); // Prevent null
 	}
 
 	/**
@@ -280,14 +281,15 @@ public class TeamUtils {
 		LocalDateTime time = LocalDateTime.now();
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder();
-		sb.append("team_");
-		sb.append(UUID.randomUUID().toString().substring(4));
-		sb.append(String.valueOf(random.nextBoolean()), 1, 4);
-		sb.append(time.getHour() / 13 + time.getNano());
-		sb.append(Month.values()[random.nextInt(0, Month.values().length - 1)].toString(), 0, 2);
-		sb.append(random.nextInt(1000, 9999));
-		sb.append(UUID.randomUUID().toString().substring(7));
-		sb.append(time.getDayOfYear());
+		sb
+			.append("team_")
+			.append(UUID.randomUUID().toString().substring(4))
+			.append(String.valueOf(random.nextBoolean()), 1, 4)
+			.append(time.getHour() / 13 + time.getNano())
+			.append(Month.values()[random.nextInt(0, Month.values().length - 1)].toString(), 0, 2)
+			.append(random.nextInt(1000, 9999))
+			.append(UUID.randomUUID().toString().substring(7))
+			.append(time.getDayOfYear());
 		if (random.nextBoolean()) sb.append(UUID.randomUUID().toString(), 3, 5);
 		else sb.append(time.getDayOfMonth());
 		return sb.toString();

@@ -17,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 public class InviteTeamCommand extends AbstractTeamCommand {
 	public InviteTeamCommand() {
 		super("invitePlayer");
-		command = Commands.literal(commandName).requires(this::canExecuteAllParams).then(
+		command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).then(
 			Commands.argument("player", EntityArgument.players()).executes(this::executeAllParams)
 		);
 	}

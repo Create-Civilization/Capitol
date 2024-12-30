@@ -11,7 +11,7 @@ import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
 public class DisbandTeamCommand extends AbstractTeamCommand {
 	public DisbandTeamCommand() {
 		super("disbandTeam");
-		command = Commands.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
 	}
 
 	@Override

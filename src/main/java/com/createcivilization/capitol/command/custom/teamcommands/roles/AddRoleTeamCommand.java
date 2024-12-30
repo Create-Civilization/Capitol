@@ -10,8 +10,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 // WIP
-public class addRoleTeamCommand extends AbstractTeamCommand {
-	public addRoleTeamCommand() {
+public class AddRoleTeamCommand extends AbstractTeamCommand {
+	public AddRoleTeamCommand() {
 		super("addRole");
 		command = Commands.literal(commandName)
 			.requires(this::canExecuteAllParams)

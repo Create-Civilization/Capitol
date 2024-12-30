@@ -17,8 +17,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 // WIP
-public class reassignRoleTeamCommand extends AbstractTeamCommand {
-	public reassignRoleTeamCommand() {
+public class ReassignRoleTeamCommand extends AbstractTeamCommand {
+	public ReassignRoleTeamCommand() {
 		super("reassignRole");
 		command = Commands.literal(commandName)
 			.requires(this::canExecuteAllParams)

@@ -31,10 +31,14 @@ public final class DataHandler {
 		 * This mixin also sets {@link Capitol#server} to be the server instance.
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
-        public void loadTeams(CallbackInfoReturnable<Boolean> cir) throws IOException {
-			Config.loadConfig();
+        public void loadTeams(CallbackInfoReturnable<Boolean> cir) {
 			Capitol.server.set((MinecraftServer) (Object) this);
-            TeamUtils.loadTeams();
+			try {
+				Config.loadConfig();
+				TeamUtils.loadTeams();
+			} catch (IOException e) {
+				throw new RuntimeException("An error occurred trying to load config and teams for Capitol!", e);
+			}
         }
     }
 
@@ -45,18 +49,26 @@ public final class DataHandler {
 		 * Saves the teams every time /save-all or the autosave feature runs.
 		 */
 		@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;saveAll()V", shift = At.Shift.BEFORE), method = "saveEverything")
-		private void autoSaveTeams(boolean suppressLog, boolean flush, boolean forced, CallbackInfoReturnable<Boolean> cir) throws IOException {
-			Config.saveConfig();
-			TeamUtils.saveTeams();
+		private void autoSaveTeams(boolean suppressLog, boolean flush, boolean forced, CallbackInfoReturnable<Boolean> cir) {
+			try {
+				Config.saveConfig();
+				TeamUtils.saveTeams();
+			} catch (IOException e) {
+				throw new RuntimeException("An error occurred trying to save config and teams for Capitol!", e);
+			}
 		}
 
 		/**
 		 * Saves the teams when the server stops, right before the player list is saved and cleared.
 		 */
 		@Inject(at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;)V", shift = At.Shift.BEFORE, ordinal = 1), method = "stopServer")
-		private void saveTeams(CallbackInfo ci) throws IOException {
-			Config.saveConfig();
-			TeamUtils.saveTeams();
+		private void saveTeams(CallbackInfo ci) {
+			try {
+				Config.saveConfig();
+				TeamUtils.saveTeams();
+			} catch (IOException e) {
+				throw new RuntimeException("An error occurred trying to save config and teams for Capitol!", e);
+			}
 		}
 	}
 

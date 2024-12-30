@@ -18,7 +18,7 @@ public class GetTeamsDebugCommand extends AbstractTeamCommand {
 	public GetTeamsDebugCommand() {
 		super("getTeams");
 		command = Commands.literal("debug")
-			.then(Commands.literal(commandName)
+			.then(Commands.literal(subCommandName)
 			.requires(this::canExecuteAllParams)
 			.executes(this::executeAllParams));
 	}
