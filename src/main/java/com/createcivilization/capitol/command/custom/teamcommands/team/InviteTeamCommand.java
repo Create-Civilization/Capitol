@@ -16,7 +16,7 @@ public class InviteTeamCommand extends AbstractTeamCommand {
 
 	public InviteTeamCommand() {
 		super("invitePlayer");
-		command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).then(
+		command = CommandManager.literal(subCommandName).requires(this::canExecuteAllParams).then(
 			CommandManager.argument("player", EntityArgumentType.players()).executes(this::executeAllParams)
 		);
 	}

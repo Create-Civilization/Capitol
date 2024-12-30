@@ -15,7 +15,7 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 
 	public EditRoleTeamCommand() {
 		super("editRole");
-		command = CommandManager.literal(commandName)
+		command = CommandManager.literal(subCommandName)
 			.requires(this::canExecuteAllParams)
 			.then(CommandManager.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams)
 		);

@@ -18,7 +18,7 @@ import java.util.*;
 public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 	public InviteAcceptTeamCommand() {
 		super("inviteAccept");
-		command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).then(
+		command = CommandManager.literal(subCommandName).requires(this::canExecuteAllParams).then(
 				CommandManager.argument("teamId", StringArgumentType.string()).executes(this::executeAllParams)
 		);
 	}

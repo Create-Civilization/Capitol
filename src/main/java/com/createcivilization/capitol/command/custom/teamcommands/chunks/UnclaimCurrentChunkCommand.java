@@ -13,7 +13,7 @@ public class UnclaimCurrentChunkCommand extends AbstractTeamCommand {
 
     public UnclaimCurrentChunkCommand() {
         super("unclaimCurrentChunk");
-        command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+        command = CommandManager.literal(subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
     }
 
 	@Override

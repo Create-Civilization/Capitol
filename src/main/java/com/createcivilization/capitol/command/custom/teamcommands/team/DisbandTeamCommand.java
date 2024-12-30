@@ -13,7 +13,7 @@ public class DisbandTeamCommand extends AbstractTeamCommand {
 
 	public DisbandTeamCommand() {
 		super("disbandTeam");
-		command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command = CommandManager.literal(subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
 	}
 
 	@Override

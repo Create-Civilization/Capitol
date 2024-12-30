@@ -17,7 +17,7 @@ public class RemoveTeamDebugCommand extends AbstractTeamCommand {
 	public RemoveTeamDebugCommand() {
 		super("removeTeam");
 		command = CommandManager.literal("debug")
-			.then(CommandManager.literal(commandName)
+			.then(CommandManager.literal(subCommandName)
 			.then(CommandManager.argument("teamName", StringArgumentType.string())
 			.requires(this::canExecuteAllParams)
 			.executes(this::executeAllParams)));

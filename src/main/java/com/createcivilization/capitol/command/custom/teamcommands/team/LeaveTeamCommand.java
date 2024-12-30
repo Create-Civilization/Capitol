@@ -13,7 +13,7 @@ import java.util.*;
 public class LeaveTeamCommand extends AbstractTeamCommand {
 	public LeaveTeamCommand() {
 		super("leaveTeam");
-		command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command = CommandManager.literal(subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
 	}
 
 	@Override

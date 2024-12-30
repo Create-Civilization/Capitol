@@ -17,7 +17,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 
     public CreateTeamCommand() {
         super("createTeam");
-        command = CommandManager.literal(commandName).requires(this::canExecuteAllParams).executes((c) -> 1)
+        command = CommandManager.literal(subCommandName).requires(this::canExecuteAllParams).executes((c) -> 1)
                 .then(CommandManager.argument("name", StringArgumentType.string())
                         .then(CommandManager.argument("color", StringArgumentType.word())
                                 .executes((command) -> {

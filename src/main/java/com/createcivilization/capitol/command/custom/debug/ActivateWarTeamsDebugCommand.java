@@ -15,7 +15,7 @@ public class ActivateWarTeamsDebugCommand extends AbstractTeamCommand {
 	public ActivateWarTeamsDebugCommand() {
 		super("startWar");
 		command = CommandManager.literal("debug")
-			.then(CommandManager.literal(commandName)
+			.then(CommandManager.literal(subCommandName)
 			.then(CommandManager.argument("attackerTeamName", StringArgumentType.string()))
 			.then(CommandManager.argument("defenderTeamName", StringArgumentType.string()))
 			.requires(this::canExecuteAllParams)

@@ -20,7 +20,7 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 
 	public ReassignRoleTeamCommand() {
 		super("reassignRole");
-		command = CommandManager.literal(commandName)
+		command = CommandManager.literal(subCommandName)
 			.requires(this::canExecuteAllParams)
 			.then(CommandManager.argument("player", EntityArgumentType.players()))
 			.then(CommandManager.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams));

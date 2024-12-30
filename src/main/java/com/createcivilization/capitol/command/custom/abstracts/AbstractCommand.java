@@ -3,13 +3,11 @@ package com.createcivilization.capitol.command.custom.abstracts;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.command.*;
 
 public abstract class AbstractCommand {
 
     protected final String commandName;
-
 
     protected AbstractCommand(String commandName) {
         this.commandName = commandName;

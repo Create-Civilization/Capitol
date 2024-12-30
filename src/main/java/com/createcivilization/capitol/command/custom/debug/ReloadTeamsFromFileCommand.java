@@ -12,7 +12,7 @@ public class ReloadTeamsFromFileCommand extends AbstractTeamCommand {
 	public ReloadTeamsFromFileCommand() {
 		super("reloadTeamsFromFile");
 		command = CommandManager.literal("debug")
-			.then(CommandManager.literal(commandName)
+			.then(CommandManager.literal(subCommandName)
 			.requires(this::canExecuteAllParams)
 			.executes(this::executeAllParams));
 	}
