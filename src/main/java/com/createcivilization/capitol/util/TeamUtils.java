@@ -11,6 +11,7 @@ import net.minecraft.resources.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 
+import wiiu.mavity.util.IfPresentFunction;
 import wiiu.mavity.util.ObjectHolder;
 
 import java.awt.Color;
@@ -104,26 +105,26 @@ public class TeamUtils {
 	}
 
 	/**
-	 * @return The {@link Permission} the {@link Player} has in the chunk they are currently in.
+	 * @return The Permission map the {@link Player} has in the chunk they are currently in.
 	 */
-	public static Permission getPermissionInCurrentChunk(Player player) {
+	public static Map<String, Boolean> getPermissionInCurrentChunk(Player player) {
 		return getPermissionInChunk(player.chunkPosition(), player);
 	}
 
 	/**
 	 * TODO: Completely redo the Permission system and replace it with a c2s synced config per team (done in the capitol block?)
-	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link BlockPos} specified in the parameters.
+	 * @return The Permission map the {@link Player} has in the chunk at the {@link BlockPos} specified in the parameters.
 	 */
-	public static Permission getPermissionInChunk(BlockPos pos, Player player) {
+	public static Map<String, Boolean> getPermissionInChunk(BlockPos pos, Player player) {
 		return getPermissionInChunk(player.level().getChunkAt(pos).getPos(), player);
 	}
 
 	/**
-	 * @return The {@link Permission} the {@link Player} has in the chunk at the {@link ChunkPos} specified in the parameters.
+	 * @return The Permission map the {@link Player} has in the chunk at the {@link ChunkPos} specified in the parameters.
 	 */
-	public static Permission getPermissionInChunk(ChunkPos pos, Player player) {
+	public static Map<String, Boolean> getPermissionInChunk(ChunkPos pos, Player player) {
 		return getTeam(pos, player.level().dimension().location())
-			.ifPresentOrElse(team -> TeamUtils.getPlayerPermission(team, player), () -> Permission.NONE_REFERENCE); // Prevent null
+			.ifPresentOrElse((IfPresentFunction<Team, Map<String, Boolean>>) team -> TeamUtils.getPlayerPermission(team, player), () -> PermissionUtil.newPermission("all_true")); // Prevent null
 	}
 
 	/**
@@ -205,7 +206,7 @@ public class TeamUtils {
     public static Team parseTeam(JsonReader reader) throws IOException {
         String name = null, teamId = null;
         Map<String, List<UUID>> players = new LinkedHashMap<>();
-		Map<String, Permission> rolePermissions = new HashMap<>();
+		Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
         Color color = null;
 		List<String> allies = new ArrayList<>();
         reader.beginObject();
@@ -221,7 +222,14 @@ public class TeamUtils {
                 }
 				case "rolePermissions" -> {
 					reader.beginObject();
-					while (reader.hasNext()) rolePermissions.put(reader.nextName(), getPermission(reader));
+					while (reader.hasNext()) {
+						String role = reader.nextName();
+						Map<String, Boolean> permissions = new HashMap<>();
+						reader.beginObject();
+						while (reader.hasNext()) permissions.put(reader.nextName(), reader.nextBoolean());
+						reader.endObject();
+						rolePermissions.put(role, permissions);
+					}
 					reader.endObject();
 				}
 				case "allies" -> {
@@ -249,15 +257,6 @@ public class TeamUtils {
         reader.endArray();
         return UUIDs;
     }
-	private static Permission getPermission(JsonReader reader) throws IOException {
-		List<Boolean> permission = new ArrayList<>();
-		reader.beginArray();
-		while (reader.hasNext()) {
-			permission.add(Objects.equals(reader.nextString(), "true"));
-		};
-		reader.endArray();
-		return PermissionUtil.listToPermission(permission);
-	}
 
     public static Team parseTeam(String str) throws IOException {
         return parseTeam(new JsonReader(new StringReader(str)));
@@ -507,7 +506,7 @@ public class TeamUtils {
 		return false;
 	}
 
-	public static Permission getPlayerPermission(Team team, Player player){
+	public static Map<String, Boolean> getPlayerPermission(Team team, Player player){
 		return team.getPermission(team.getPlayerRole(player.getUUID()));
 	}
 

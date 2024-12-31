@@ -30,6 +30,6 @@ public class AddRoleTeamCommand extends AbstractTeamCommand {
 	@Override
 	public boolean canExecute(Player player) {
 		setMustWhat("be a player, be in a team and have role making permissions");
-		return TeamUtils.hasTeam(player) && TeamUtils.getPlayerPermission(TeamUtils.getTeam(player).getOrThrow(), player).addRole();
+		return TeamUtils.hasTeam(player) && TeamUtils.getPlayerPermission(TeamUtils.getTeam(player).getOrThrow(), player).get("addRole");
 	}
 }

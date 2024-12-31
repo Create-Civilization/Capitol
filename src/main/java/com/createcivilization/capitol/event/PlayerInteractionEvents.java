@@ -13,6 +13,8 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
+import java.util.Map;
+
 /**
  * Class to handle events related to player interaction in chunks.<br>
  * Events will be cancelled if the player is in a claimed chunk with no permissions or is interacting with a claimed chunk with no permissions.
@@ -33,7 +35,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteractSpecific event) {
 		var player = event.getEntity();
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
-		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).interactEntities(), "interact with entities");
+		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("interactEntities"), "interact with entities");
 	}
 
 	/**
@@ -43,7 +45,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerBreakBlock(PlayerInteractEvent.LeftClickBlock event) {
 		var player = event.getEntity();
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
-		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).breakBlocks(), "break blocks");
+		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("breakBlocks"), "break blocks");
 	}
 
 	/**
@@ -53,7 +55,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
 		var player = event.getEntity();
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerRightClickBlock firing!"));
-		Permission permission = TeamUtils.getPermissionInChunk(event.getPos(), player);
+		Map<String, Boolean> permission = TeamUtils.getPermissionInChunk(event.getPos(), player);
 		var mainHandItem = player.getMainHandItem().getItem();
 		var offhandItem = player.getOffhandItem().getItem();
 		if (mainHandItem instanceof BlockItem || offhandItem instanceof BlockItem || mainHandItem instanceof BucketItem || offhandItem instanceof BucketItem) onPlayerPlaceBlock(event, player, permission);
@@ -63,17 +65,17 @@ public class PlayerInteractionEvents {
 	/**
 	 * Handles players trying to place blocks.
 	 */
-	public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
+	public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player, Map<String, Boolean> permission) {
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerPlaceBlock firing!"));
-		cancelIfHasInsufficientPermission(event, !permission.placeBlocks(), "place blocks");
+		cancelIfHasInsufficientPermission(event, !permission.get("placeBlocks"), "place blocks");
 	}
 
 	/**
 	 * Handles players trying to interact with blocks.
 	 */
-	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Permission permission) {
+	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Map<String, Boolean> permission) {
 		if (Config.debugLogs.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
-		cancelIfHasInsufficientPermission(event, !permission.interactBlocks(), "interact with blocks");
+		cancelIfHasInsufficientPermission(event, !permission.get("interactBlocks"), "interact with blocks");
 	}
 
 	/**
@@ -95,7 +97,7 @@ public class PlayerInteractionEvents {
 				item instanceof BucketItem
 			)
 		) cancelIfHasInsufficientPermission(event, true, "use boats, enderpearls or buckets");
-		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).useItems(), "use items");
+		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("useItems"), "use items");
 	}
 
 	/**

@@ -30,7 +30,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 									}
                                     return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
                                         try {
-                                            TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, (Color) Color.class.getDeclaredField(color).get(null)));
+                                            TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, (Color)  Color.class.getField(color).get(null)));
                                             command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + color + "'."), true);
 											command.getSource().sendSystemMessage(Component.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
                                             return 1;

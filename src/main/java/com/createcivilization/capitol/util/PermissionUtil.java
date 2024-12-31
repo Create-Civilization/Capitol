@@ -1,38 +1,78 @@
 package com.createcivilization.capitol.util;
 
-import com.createcivilization.capitol.team.Team;
-import net.minecraft.world.entity.player.Player;
+import com.google.gson.stream.JsonWriter;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.RecordComponent;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 public class PermissionUtil {
-	public static List<Boolean> permissionToList(Permission permission) throws InvocationTargetException, IllegalAccessException {
-		List<Boolean> permissionList = new ArrayList<>();
-		RecordComponent[] components = permission.getClass().getRecordComponents();
 
-		for (RecordComponent component : components) {
-			Object value = component.getAccessor().invoke(permission);
-			permissionList.add((Boolean) value);
+	private static final ArrayList<String> permissions = new ArrayList<>(List.of(
+		"breakBlocks",
+		"placeBlocks",
+		"useItems",
+		"interactEntities",
+		"interactBlocks",
+		"addRole",
+		"editPermissions"
+	));
+
+	public static Map<String, Boolean> newPermission(String keyword){
+		Map<String, Boolean> permission = new HashMap<>();
+		return switch (keyword) {
+			case "all_true" -> {
+				for (String perm : permissions) permission.put(perm, true);
+				yield permission;
+			}
+			case "all_false" -> {
+				for (String perm : permissions) permission.put(perm, false);
+				yield permission;
+			}
+			case "moderator" -> PermissionUtil.newPermission(
+				true,
+				true,
+				true,
+				true,
+				true,
+				true,
+				true
+			);
+			case "member" -> PermissionUtil.newPermission(
+				true,
+				true,
+				true,
+				true,
+				true,
+				false,
+				false
+			);
+			default -> null; // Throw null pointer exception, luv ya :>
+		};
+	}
+
+	public static Map<String, Boolean> newPermission(Boolean... permissionsToPut){
+		return newPermission(List.of(permissionsToPut));
+	}
+
+	public static Map<String, Boolean> newPermission(List<Boolean> permissionsToPut){
+		Map<String, Boolean> permission = new HashMap<>();
+		int i = 0;
+		for (Boolean permissionToPut : permissionsToPut) {
+			permission.put(permissions.get(i), permissionToPut);
+			i++;
+		};
+		return permission;
+	}
+
+	public static void savePermission(JsonWriter writer, Map<String, Map<String, Boolean>> rolePermissions) throws IOException {
+		writer.name("rolePermissions").beginObject();
+		for (Map.Entry<String, Map<String , Boolean>> mapEntry : rolePermissions.entrySet()){
+			writer.name(mapEntry.getKey()).beginObject();
+			for (Map.Entry<String, Boolean> subEntry : mapEntry.getValue().entrySet()){
+				writer.name(subEntry.getKey()).value(subEntry.getValue());
+			}
+			writer.endObject();
 		}
-		return permissionList;
-	}
-	public static Permission getPermission(Team team, Player player){
-		return team.getPermission(team.getPlayerRole(player.getUUID()));
-	}
-	public static Permission listToPermission(List<Boolean> listPermission) {
-		return new Permission(
-			listPermission.get(0),
-			listPermission.get(1),
-			listPermission.get(2),
-			listPermission.get(3),
-			listPermission.get(4),
-			listPermission.get(5),
-			listPermission.get(6),
-			listPermission.get(7),
-			listPermission.get(8)
-		);
+		writer.endObject();
 	}
 }
