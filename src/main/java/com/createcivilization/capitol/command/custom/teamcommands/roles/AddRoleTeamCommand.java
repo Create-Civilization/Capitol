@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Player;
 public class AddRoleTeamCommand extends AbstractTeamCommand {
 	public AddRoleTeamCommand() {
 		super("addRole");
-		command = Commands.literal(commandName)
+		command = Commands.literal(subCommandName)
 			.requires(this::canExecuteAllParams)
 			.then(Commands.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams)
 		);

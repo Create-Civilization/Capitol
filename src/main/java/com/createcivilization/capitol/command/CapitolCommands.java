@@ -31,5 +31,6 @@ public class CapitolCommands {
 		new LeaveTeamCommand().register(dispatcher);
 		new AddRoleTeamCommand().register(dispatcher);
 		new ReassignRoleTeamCommand().register(dispatcher);
+		new EditRoleTeamCommand().register(dispatcher);
     }
 }

@@ -6,6 +6,7 @@ import com.createcivilization.capitol.util.TeamUtils;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -20,10 +21,12 @@ import java.util.UUID;
 public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 	public ReassignRoleTeamCommand() {
 		super("reassignRole");
-		command = Commands.literal(commandName)
+		command = Commands.literal(subCommandName)
 			.requires(this::canExecuteAllParams)
-			.then(Commands.argument("player", EntityArgument.players()))
-			.then(Commands.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams));
+			.then(Commands.argument("player", EntityArgument.players())
+			.then(Commands.argument("roleName", StringArgumentType.string())
+				.suggests(SUGGESTION_PROVIDER)
+				.executes(this::executeAllParams)));
 	}
 
 	@Override
@@ -36,11 +39,15 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 		} catch (CommandSyntaxException e) {
 			throw new RuntimeException(e);
 		}
+		if (Objects.equals(player, toPromote)) {
+			source.sendFailure(Component.literal("Cannot reassign your own role"));
+			return -1;
+		}
 
 		Team team = TeamUtils.getTeam(player).getOrThrow();
 		String role = StringArgumentType.getString(context,"roleName");
 
-		if (!Objects.equals(TeamUtils.getTeam(player), TeamUtils.getTeam(toPromote))){
+		if (!Objects.equals(TeamUtils.getTeam(player).get().getTeamId(), TeamUtils.getTeam(toPromote).get().getTeamId())){
 			source.sendFailure(Component.literal("Player is not from the same team as you"));
 			return -1;
 		}
@@ -58,8 +65,9 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 		UUID toPromoteUUID = toPromote.getUUID();
 		team.removePlayer(toPromoteUUID);
 		team.addPlayer(role, toPromoteUUID);
-		toPromote.sendSystemMessage(Component.literal("You have been successfully reassigned to \"" + role + "\""));
-		source.sendSuccess(() -> Component.literal("Successfully reassigned " + toPromote.getName()), true);
+		toPromote.sendSystemMessage(Component.literal("You have been successfully reassigned to the role \"" + role + "\""));
+		String finalRole1 = role;
+		source.sendSuccess(() -> Component.literal("Successfully reassigned \"" + toPromote.getName().getString() + "\" to \"" + finalRole1 + "\""), true);
 		return 1;
 	}
 
@@ -69,4 +77,15 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 		return TeamUtils.hasTeam(player)
 			&& TeamUtils.getPlayerPermission(TeamUtils.getTeam(player).getOrThrow(), player).get("editPermissions");
 	}
+
+	private static final SuggestionProvider<CommandSourceStack> SUGGESTION_PROVIDER = (context, builder) -> {
+		CommandSourceStack source = context.getSource();
+		Team team = TeamUtils.getTeam(source.getPlayer()).getOrThrow();
+		String playerRole = team.getPlayerRole(Objects.requireNonNull(source.getPlayer()).getUUID());
+		Arrays.stream(team.getRoles())
+			.filter(role -> !TeamUtils.isRoleHigher(team, playerRole, role))
+			.forEach(builder::suggest);
+		return builder.buildFuture();
+	};
+
 }

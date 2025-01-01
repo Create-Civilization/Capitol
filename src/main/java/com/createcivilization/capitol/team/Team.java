@@ -177,6 +177,11 @@ public class Team {
 		return rolePermissions.get(role);
 	}
 
+	public void setPermission(String role, String permission, Boolean value) {
+		rolePermissions.get(role).remove(permission);
+		rolePermissions.get(role).put(permission, value);
+	}
+
 	public String[] getRoles() { return rolePermissions.keySet().toArray(new String[0]);}
 
 	public void setRolePermissions(Map<String, Map<String, Boolean>> rolePermissions) {

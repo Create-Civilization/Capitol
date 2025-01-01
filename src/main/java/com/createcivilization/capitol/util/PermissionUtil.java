@@ -7,7 +7,7 @@ import java.util.*;
 
 public class PermissionUtil {
 
-	private static final ArrayList<String> permissions = new ArrayList<>(List.of(
+	public static final ArrayList<String> permissions = new ArrayList<>(List.of(
 		"breakBlocks",
 		"placeBlocks",
 		"useItems",
