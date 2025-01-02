@@ -16,11 +16,11 @@ public class KeyBindings {
 
 	private static final String CATEGORY = "key.categories." + Capitol.MOD_ID;
 
-	public final KeyMapping exampleKey = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".main_menu",
+	public final KeyMapping openStatistics = new KeyMapping(
+		"key." + Capitol.MOD_ID + ".stats",
 		KeyConflictContext.IN_GAME,
 		InputConstants.getKey(
-			InputConstants.KEY_M,
+			InputConstants.KEY_L,
 			-1
 		),
 		CATEGORY
@@ -28,6 +28,6 @@ public class KeyBindings {
 
 	@SubscribeEvent
 	public static void register(RegisterKeyMappingsEvent event) {
-		event.register(KeyBindings.INSTANCE.exampleKey);
+		event.register(KeyBindings.INSTANCE.openStatistics);
 	}
 }
