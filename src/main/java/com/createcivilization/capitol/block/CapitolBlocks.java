@@ -13,6 +13,7 @@ import net.minecraftforge.registries.*;
 
 import java.util.function.Supplier;
 
+@SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
 public class CapitolBlocks {
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Capitol.MOD_ID);
@@ -20,14 +21,12 @@ public class CapitolBlocks {
     public static final RegistryObject<Block> CAPITOL_BLOCK = registerBlock("capitol_block",
             () -> new CapitolBlock(BlockBehaviour.Properties.copy(Blocks.LECTERN).noOcclusion()));
 
-    @SuppressWarnings("all")
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);
         registerBlockItem(name, toReturn);
         return toReturn;
     }
 
-    @SuppressWarnings("all")
     private static <T extends Block> RegistryObject<Item> registerBlockItem(String name, RegistryObject<T> block) {
         return CapitolItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }

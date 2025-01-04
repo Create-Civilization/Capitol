@@ -2,22 +2,21 @@ package com.createcivilization.capitol.command.custom.teamcommands.roles;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.PermissionUtil;
-import com.createcivilization.capitol.util.TeamUtils;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
+import com.createcivilization.capitol.util.*;
+
+import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+
+import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
 // WIP
 public class EditRoleTeamCommand extends AbstractTeamCommand {
+
 	public EditRoleTeamCommand() {
 		super("editRole");
 		command = Commands.literal(subCommandName)
@@ -80,5 +79,4 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 			.forEach(builder::suggest);
 		return builder.buildFuture();
 	};
-
 }

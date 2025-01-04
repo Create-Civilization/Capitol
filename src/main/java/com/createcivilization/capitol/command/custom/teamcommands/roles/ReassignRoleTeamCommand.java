@@ -3,22 +3,23 @@ package com.createcivilization.capitol.command.custom.teamcommands.roles;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 // WIP
 public class ReassignRoleTeamCommand extends AbstractTeamCommand {
+
 	public ReassignRoleTeamCommand() {
 		super("reassignRole");
 		command = Commands.literal(subCommandName)
@@ -87,5 +88,4 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 			.forEach(builder::suggest);
 		return builder.buildFuture();
 	};
-
 }
