@@ -131,13 +131,9 @@ public class CapitolBlock extends BaseEntityBlock {
 		if (!level.isClientSide()) {
 			return InteractionResult.CONSUME;
 		}
-		Minecraft minecraft = Minecraft.getInstance();
-
-		// Avoid crashing on right click
 		ObjectHolder<Team> team = TeamUtils.getTeam(new ChunkPos(pos), level.dimension().location());
-		if (team.isEmpty()) return InteractionResult.CONSUME;
+		if (team.isEmpty()) return InteractionResult.FAIL;
 
-		minecraft.setScreen(new TeamStatisticsScreen(team.getOrThrow()));
 		return InteractionResult.CONSUME;
 	}
 
