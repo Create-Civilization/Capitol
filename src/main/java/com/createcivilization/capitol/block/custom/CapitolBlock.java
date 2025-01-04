@@ -126,16 +126,16 @@ public class CapitolBlock extends BaseEntityBlock {
 		}
 	}
 
-	@Override
-	public InteractionResult use(BlockState pState, Level level, BlockPos pos, Player player, InteractionHand pHand, BlockHitResult pHit) {
-		if (!level.isClientSide()) {
-			return InteractionResult.CONSUME;
-		}
-		ObjectHolder<Team> team = TeamUtils.getTeam(new ChunkPos(pos), level.dimension().location());
-		if (team.isEmpty()) return InteractionResult.FAIL;
-
-		return InteractionResult.CONSUME;
-	}
+//	@Override
+//	public InteractionResult use(BlockState pState, Level level, BlockPos pos, Player player, InteractionHand pHand, BlockHitResult pHit) {
+//		if (!level.isClientSide()) {
+//			return InteractionResult.CONSUME;
+//		}
+//		ObjectHolder<Team> team = TeamUtils.getTeam(new ChunkPos(pos), level.dimension().location());
+//		if (team.isEmpty()) return InteractionResult.FAIL;
+//
+//		return InteractionResult.CONSUME;
+//	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
