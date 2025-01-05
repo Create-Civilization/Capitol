@@ -1,10 +1,10 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.toclient.S2CaddChunk;
-import com.createcivilization.capitol.packets.toclient.S2CaddTeam;
-import com.createcivilization.capitol.packets.toclient.S2CremoveChunk;
-import com.createcivilization.capitol.packets.toclient.S2CremoveTeam;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CaddChunk;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CaddTeam;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveChunk;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveTeam;
 import com.createcivilization.capitol.team.*;
 
 import com.google.gson.stream.*;
@@ -12,6 +12,7 @@ import com.google.gson.stream.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.*;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 
@@ -311,9 +312,9 @@ public class TeamUtils {
                 .setColor(color)
                 .build();
 
-		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-			PacketHandler.sendToAllClients(new S2CaddTeam(created));
-		});
+		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () ->
+			PacketHandler.sendToAllClients(new S2CaddTeam(created))
+		);
 
 		return created;
     }
@@ -625,5 +626,16 @@ public class TeamUtils {
 		teams.add(team);
 		team.getAllies().forEach(teamId -> getTeam(teamId).ifPresent(teams::add));
 		return teams;
+	}
+
+	public static void synchronizeServerDataWithPlayer(ServerPlayer player) {
+		for (Team team : TeamUtils.loadedTeams) {
+			PacketHandler.sendToPlayer(new S2CaddTeam(team), player);
+			for (Map.Entry<ResourceLocation, List<ChunkPos>> chunkEntry : team.getClaimedChunks().entrySet()) {
+				for (ChunkPos chunkPos : chunkEntry.getValue()) {
+					PacketHandler.sendToPlayer(new S2CaddChunk(team.getTeamId(), chunkPos, chunkEntry.getKey()), player);
+				}
+			}
+		}
 	}
 }
