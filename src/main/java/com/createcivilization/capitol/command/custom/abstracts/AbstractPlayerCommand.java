@@ -14,8 +14,8 @@ import wiiu.mavity.util.ObjectHolder;
 
 public abstract class AbstractPlayerCommand extends AbstractCommand {
 
-	protected ObjectHolder<ArgumentBuilder<CommandSourceStack, ?>> command = new ObjectHolder<>();
-	protected ObjectHolder<String> subCommandName = new ObjectHolder<>();
+	protected final ObjectHolder<ArgumentBuilder<CommandSourceStack, ?>> command = new ObjectHolder<>();
+	protected final ObjectHolder<String> subCommandName = new ObjectHolder<>();
 
 	protected AbstractPlayerCommand(String commandName, @Nullable String subCommandName) {
 		super(commandName);
@@ -44,7 +44,7 @@ public abstract class AbstractPlayerCommand extends AbstractCommand {
 	}
 
 	public boolean canExecuteBaseCommand(CommandSourceStack command) {
-		return !command.getLevel().isClientSide;
+		return !command.getLevel().isClientSide();
 	}
 
 	// See AbstractCommand
@@ -56,8 +56,7 @@ public abstract class AbstractPlayerCommand extends AbstractCommand {
 	// Executes all Parameters passing CommandSourceStack
 	@Override
 	public int executeAllParams(CommandContext<CommandSourceStack> command) {
-		ObjectHolder<Player> playerObject = new ObjectHolder<>(command.getSource().getPlayer());
-		return playerObject.ifPresentOrElse(this::execute, () -> {
+		return new ObjectHolder<>(command.getSource().getPlayer()).ifPresentOrElse(this::execute, () -> {
 			command.getSource().sendFailure(Component.literal("You must " + this.mustWhat + " to use this command."));
 			return -1;
 		});

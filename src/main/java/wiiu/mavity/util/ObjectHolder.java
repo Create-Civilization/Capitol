@@ -65,9 +65,25 @@ public class ObjectHolder<V> {
     }
 
 	public Class<?> getType() {
-		return this.ifPresentOrElse(V::getClass, () -> Void.class);
+		return this.ifPresentOrElse(V::getClass, () -> Void.TYPE);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (!(obj instanceof ObjectHolder<?> other)) return false;
+		return this.getType() == other.getType();
+	}
+
+	public boolean deepEquals(Object obj) {
+		if (obj == null) return false;
+		if (!(obj instanceof ObjectHolder<?> other)) return false;
+		if (this.getType() != other.getType()) return false;
+		if (this.isPresent() && other.isPresent()) return this.getOrThrow().equals(other.getOrThrow());
+		return false;
+	}
+
+	@Override
     public String toString() {
         return this.getClass().getSimpleName() + "{value=" + this.getAsString() + "}";
     }
