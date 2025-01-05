@@ -1,10 +1,7 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CaddChunk;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CaddTeam;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveChunk;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveTeam;
+import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
 import com.google.gson.stream.*;
@@ -165,7 +162,7 @@ public class TeamUtils {
         System.out.println("Loading teams...");
         var file = TeamUtils.getTeamDataFile();
 		try {
-			FileUtils.setContentsIfEmpty(file, "[\n]");
+			FileUtils.setContentsIfEmpty(file, "[" + System.lineSeparator() + "]");
 		} finally {
 			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
 			TeamUtils.loadChunksForTeams();
@@ -307,13 +304,13 @@ public class TeamUtils {
     public static Team createTeam(String name, Player player, Color color) {
         Team created =  Team.TeamBuilder.create()
                 .setName(name)
-                .setTeamId(createRandomTeamId())
+                .setTeamId(TeamUtils.createRandomTeamId())
                 .addPlayer("owner", new ArrayList<>(List.of(player.getUUID())))
                 .setColor(color)
                 .build();
 
 		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () ->
-			PacketHandler.sendToAllClients(new S2CaddTeam(created))
+			PacketHandler.sendToAllClients(new S2CAddTeam(created))
 		);
 
 		return created;
@@ -326,7 +323,7 @@ public class TeamUtils {
 		loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
 
 		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-			PacketHandler.sendToAllClients(new S2CremoveTeam(teamId));
+			PacketHandler.sendToAllClients(new S2CRemoveTeam(teamId));
 		});
 	}
 
@@ -587,7 +584,7 @@ public class TeamUtils {
 		} else claimedChunks.add(pos);
 
 		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-			PacketHandler.sendToAllClients(new S2CaddChunk(team.getTeamId(), pos, dimension));
+			PacketHandler.sendToAllClients(new S2CAddChunk(team.getTeamId(), pos, dimension));
 		});
 
 		return 1;
@@ -608,7 +605,7 @@ public class TeamUtils {
 		claimedChunks.remove(chunkPos);
 
 		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-			PacketHandler.sendToAllClients(new S2CremoveChunk(team.getTeamId(), chunkPos, dimension));
+			PacketHandler.sendToAllClients(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension));
 		});
 
 		return 1;
@@ -630,10 +627,10 @@ public class TeamUtils {
 
 	public static void synchronizeServerDataWithPlayer(ServerPlayer player) {
 		for (Team team : TeamUtils.loadedTeams) {
-			PacketHandler.sendToPlayer(new S2CaddTeam(team), player);
+			PacketHandler.sendToPlayer(new S2CAddTeam(team), player);
 			for (Map.Entry<ResourceLocation, List<ChunkPos>> chunkEntry : team.getClaimedChunks().entrySet()) {
 				for (ChunkPos chunkPos : chunkEntry.getValue()) {
-					PacketHandler.sendToPlayer(new S2CaddChunk(team.getTeamId(), chunkPos, chunkEntry.getKey()), player);
+					PacketHandler.sendToPlayer(new S2CAddChunk(team.getTeamId(), chunkPos, chunkEntry.getKey()), player);
 				}
 			}
 		}

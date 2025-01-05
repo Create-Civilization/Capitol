@@ -2,7 +2,7 @@ package com.createcivilization.capitol.block.custom;
 
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 
-import com.createcivilization.capitol.packets.toclient.gui.S2CopenTeamStatistics;
+import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -135,7 +135,7 @@ public class CapitolBlock extends BaseEntityBlock {
 
 		DistExecutor.unsafeRunWhenOn(
 			Dist.DEDICATED_SERVER,
-			() -> () -> PacketHandler.sendToPlayer(new S2CopenTeamStatistics(team.getOrThrow().getTeamId()), (ServerPlayer) player)
+			() -> () -> PacketHandler.sendToPlayer(new S2COpenTeamStatistics(team.getOrThrow().getTeamId()), (ServerPlayer) player)
 		);
 
 		return InteractionResult.CONSUME;

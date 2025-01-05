@@ -1,21 +1,24 @@
 package com.createcivilization.capitol.packets.toclient.syncing;
 
 import com.createcivilization.capitol.packets.ClientPacketHandler;
+
 import net.minecraft.network.FriendlyByteBuf;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class S2CremoveTeam {
+public class S2CRemoveTeam {
+
 	private final String toRemoveId;
 
-	public S2CremoveTeam(String teamId) {
+	public S2CRemoveTeam(String teamId) {
 		this.toRemoveId = teamId;
 	}
 
-	public S2CremoveTeam(FriendlyByteBuf friendlyByteBuf) {
+	public S2CRemoveTeam(FriendlyByteBuf friendlyByteBuf) {
 		// Decode
 		this.toRemoveId = friendlyByteBuf.readUtf();
 	}

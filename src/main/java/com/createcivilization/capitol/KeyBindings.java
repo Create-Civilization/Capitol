@@ -1,7 +1,9 @@
 package com.createcivilization.capitol;
 
 import com.mojang.blaze3d.platform.InputConstants;
+
 import net.minecraft.client.KeyMapping;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
@@ -10,6 +12,7 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = Capitol.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class KeyBindings {
+
 	public static final KeyBindings INSTANCE = new KeyBindings();
 
 	private KeyBindings() {}
@@ -35,6 +38,7 @@ public class KeyBindings {
 		),
 		CATEGORY
 	);
+
 	public final KeyMapping openClaimMenu = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".open_claim_menu",
 		KeyConflictContext.IN_GAME,
@@ -44,7 +48,6 @@ public class KeyBindings {
 		),
 		CATEGORY
 	);
-
 
 	@SubscribeEvent
 	public static void register(RegisterKeyMappingsEvent event) {

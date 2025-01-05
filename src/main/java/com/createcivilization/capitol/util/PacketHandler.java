@@ -1,13 +1,13 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.toclient.gui.S2CopenTeamStatistics;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CaddChunk;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CaddTeam;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveChunk;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveTeam;
-import com.createcivilization.capitol.packets.toserver.C2ScreateTeam;
-import com.createcivilization.capitol.packets.toserver.syncing.C2SrequestSync;
+import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CAddChunk;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CAddTeam;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveChunk;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveTeam;
+import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
+import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
@@ -30,47 +30,47 @@ public class PacketHandler {
 		int id = 0;
 
 		// S2C packets
-		INSTANCE.messageBuilder(S2CaddTeam.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CaddTeam::encode)
-			.decoder(S2CaddTeam::new)
-			.consumerMainThread(S2CaddTeam::handle)
+		INSTANCE.messageBuilder(S2CAddTeam.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+			.encoder(S2CAddTeam::encode)
+			.decoder(S2CAddTeam::new)
+			.consumerMainThread(S2CAddTeam::handle)
 			.add();
 
-		INSTANCE.messageBuilder(S2CremoveTeam.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CremoveTeam::encode)
-			.decoder(S2CremoveTeam::new)
-			.consumerMainThread(S2CremoveTeam::handle)
+		INSTANCE.messageBuilder(S2CRemoveTeam.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+			.encoder(S2CRemoveTeam::encode)
+			.decoder(S2CRemoveTeam::new)
+			.consumerMainThread(S2CRemoveTeam::handle)
 			.add();
 
-		INSTANCE.messageBuilder(S2CaddChunk.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CaddChunk::encode)
-			.decoder(S2CaddChunk::new)
-			.consumerMainThread(S2CaddChunk::handle)
+		INSTANCE.messageBuilder(S2CAddChunk.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+			.encoder(S2CAddChunk::encode)
+			.decoder(S2CAddChunk::new)
+			.consumerMainThread(S2CAddChunk::handle)
 			.add();
 
-		INSTANCE.messageBuilder(S2CremoveChunk.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CremoveChunk::encode)
-			.decoder(S2CremoveChunk::new)
-			.consumerMainThread(S2CremoveChunk::handle)
+		INSTANCE.messageBuilder(S2CRemoveChunk.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+			.encoder(S2CRemoveChunk::encode)
+			.decoder(S2CRemoveChunk::new)
+			.consumerMainThread(S2CRemoveChunk::handle)
 			.add();
 
-		INSTANCE.messageBuilder(S2CopenTeamStatistics.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CopenTeamStatistics::encode)
-			.decoder(S2CopenTeamStatistics::new)
-			.consumerMainThread(S2CopenTeamStatistics::handle)
+		INSTANCE.messageBuilder(S2COpenTeamStatistics.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+			.encoder(S2COpenTeamStatistics::encode)
+			.decoder(S2COpenTeamStatistics::new)
+			.consumerMainThread(S2COpenTeamStatistics::handle)
 			.add();
 
 		// C2S packets
-		INSTANCE.messageBuilder(C2SrequestSync.class, id++, NetworkDirection.PLAY_TO_SERVER)
-			.encoder(C2SrequestSync::encode)
-			.decoder(C2SrequestSync::new)
-			.consumerMainThread(C2SrequestSync::handle)
+		INSTANCE.messageBuilder(C2SRequestSync.class, id++, NetworkDirection.PLAY_TO_SERVER)
+			.encoder(C2SRequestSync::encode)
+			.decoder(C2SRequestSync::new)
+			.consumerMainThread(C2SRequestSync::handle)
 			.add();
 
-		INSTANCE.messageBuilder(C2ScreateTeam.class, id++, NetworkDirection.PLAY_TO_SERVER)
-			.encoder(C2ScreateTeam::encode)
-			.decoder(C2ScreateTeam::new)
-			.consumerMainThread(C2ScreateTeam::handle)
+		INSTANCE.messageBuilder(C2SCreateTeam.class, id++, NetworkDirection.PLAY_TO_SERVER)
+			.encoder(C2SCreateTeam::encode)
+			.decoder(C2SCreateTeam::new)
+			.consumerMainThread(C2SCreateTeam::handle)
 			.add();
 	}
 

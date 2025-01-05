@@ -1,7 +1,9 @@
 package com.createcivilization.capitol.packets.toserver;
 
 import com.createcivilization.capitol.packets.ServerPacketHandler;
+
 import net.minecraft.network.FriendlyByteBuf;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
@@ -9,16 +11,17 @@ import net.minecraftforge.network.NetworkEvent;
 import java.awt.*;
 import java.util.function.Supplier;
 
-public class C2ScreateTeam {
+public class C2SCreateTeam {
+
 	String teamName;
 	Color teamColor;
 
-	public C2ScreateTeam(String name, Color chosenColor) {
+	public C2SCreateTeam(String name, Color chosenColor) {
 		this.teamName = name;
 		this.teamColor = chosenColor;
 	}
 
-	public C2ScreateTeam(FriendlyByteBuf friendlyByteBuf) {
+	public C2SCreateTeam(FriendlyByteBuf friendlyByteBuf) {
 		// Decode
 		this.teamName = friendlyByteBuf.readUtf();
 		int r = friendlyByteBuf.readInt();

@@ -1,23 +1,24 @@
 package com.createcivilization.capitol.packets.toclient.gui;
 
 import com.createcivilization.capitol.packets.ClientPacketHandler;
+
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.ChunkPos;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class S2CopenTeamStatistics {
+public class S2COpenTeamStatistics {
+
 	private final String teamId;
 
-	public S2CopenTeamStatistics(String teamId) {
+	public S2COpenTeamStatistics(String teamId) {
 		this.teamId = teamId;
 	}
 
-	public S2CopenTeamStatistics(FriendlyByteBuf friendlyByteBuf) {
+	public S2COpenTeamStatistics(FriendlyByteBuf friendlyByteBuf) {
 		// Decode
 		this.teamId = friendlyByteBuf.readUtf();
 	}

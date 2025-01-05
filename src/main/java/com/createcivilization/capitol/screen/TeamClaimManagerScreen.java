@@ -2,16 +2,19 @@ package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class TeamClaimManager extends Screen {
+public class TeamClaimManagerScreen extends Screen {
+
 	private static final Component TITLE = Component.translatable("gui.capitol.claim_block_menu");
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
 
@@ -24,7 +27,7 @@ public class TeamClaimManager extends Screen {
 	private int playerAmount;
 	private final Component EXITBUTTON_COMPONENT = Component.literal("X");
 
-	public TeamClaimManager(@NotNull Team team) {
+	public TeamClaimManagerScreen(@NotNull Team team) {
 		super(TITLE);
 		this.menuTeam = team;
 		this.imageWidth = 176;
@@ -102,5 +105,4 @@ public class TeamClaimManager extends Screen {
 	public boolean isPauseScreen() {
 		return false;
 	}
-
 }

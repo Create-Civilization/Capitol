@@ -1,27 +1,30 @@
 package com.createcivilization.capitol.packets.toclient.syncing;
 
 import com.createcivilization.capitol.packets.ClientPacketHandler;
+
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class S2CaddChunk {
+public class S2CRemoveChunk {
+
 	private final String claimingTeamId;
 	private final ChunkPos chunkToAdd;
 	private final ResourceLocation dimension;
 
-	public S2CaddChunk(String teamId, ChunkPos chunkPos, ResourceLocation dim) {
+	public S2CRemoveChunk(String teamId, ChunkPos chunkPos, ResourceLocation dim) {
 		this.claimingTeamId = teamId;
 		this.chunkToAdd = chunkPos;
 		this.dimension = dim;
 	}
 
-	public S2CaddChunk(FriendlyByteBuf friendlyByteBuf) {
+	public S2CRemoveChunk(FriendlyByteBuf friendlyByteBuf) {
 		// Decode
 		this.claimingTeamId = friendlyByteBuf.readUtf();
 		this.chunkToAdd = friendlyByteBuf.readChunkPos();
@@ -37,7 +40,7 @@ public class S2CaddChunk {
 	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
 		NetworkEvent.Context ctx = contextSupplier.get();
 		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.addChunk(this.claimingTeamId, this.chunkToAdd, this.dimension))
+			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.removeChunk(this.claimingTeamId, this.chunkToAdd, this.dimension))
 		);
 
 		ctx.setPacketHandled(true);

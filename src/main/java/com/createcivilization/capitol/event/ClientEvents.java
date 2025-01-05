@@ -2,9 +2,9 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.KeyBindings;
-import com.createcivilization.capitol.screen.CreateRequestScreenTeam;
-import com.createcivilization.capitol.screen.TeamClaimManager;
-import com.createcivilization.capitol.screen.TeamStatistics;
+import com.createcivilization.capitol.screen.CreateTeamScreen;
+import com.createcivilization.capitol.screen.TeamClaimManagerScreen;
+import com.createcivilization.capitol.screen.TeamStatisticsScreen;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.client.Minecraft;
@@ -41,7 +41,7 @@ public class ClientEvents {
 			KeyBindings.INSTANCE.openStatistics.consumeClick()
 			&& getTeamOrDisplayClientMessage(player).isPresent()
 		) {
-			instance.setScreen(new TeamStatistics(playerTeam.getOrThrow()));
+			instance.setScreen(new TeamStatisticsScreen(playerTeam.getOrThrow()));
 		}
 		if (KeyBindings.INSTANCE.viewChunks.consumeClick()) {
 			viewChunks = !viewChunks;
@@ -52,9 +52,9 @@ public class ClientEvents {
 			KeyBindings.INSTANCE.openClaimMenu.consumeClick()
 		) {
 			if(getTeamOrDisplayClientMessage(player).isPresent())
-				instance.setScreen(new TeamClaimManager(playerTeam.getOrThrow()));
+				instance.setScreen(new TeamClaimManagerScreen(playerTeam.getOrThrow()));
 			else
-				instance.setScreen(new CreateRequestScreenTeam());
+				instance.setScreen(new CreateTeamScreen());
 		}
 
 		if (viewChunks && timeStamp % 5 == 0) {

@@ -1,8 +1,9 @@
 package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.toserver.C2ScreateTeam;
+import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
 import com.createcivilization.capitol.util.PacketHandler;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -13,7 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.awt.*;
 
-public class CreateRequestScreenTeam extends Screen {
+public class CreateTeamScreen extends Screen {
+
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
 
 	private int teamTitleComponentWidth;
@@ -21,16 +23,16 @@ public class CreateRequestScreenTeam extends Screen {
 	private int leftPos, topPos;
 
 	private static final Component TITLE = Component.translatable("gui." + Capitol.MOD_ID + ".create_team");
-	private static final Component EXITBUTTON_COMPONENT = Component.literal("X");
-	private static final Component CREATETEAMBUTTON_COMPONENT = Component.literal("Create Team");
-	private static final Component NOTEAM = Component.literal("You are not in a team, either create a team or join a team");
+	private static final Component EXIT = Component.literal("X");
+	private static final Component CREATE_TEAM = Component.literal("Create Team");
+	private static final Component NO_TEAM = Component.literal("You are not in a team, either create a team or join a team");
 	private static final Component NAME_HERE = Component.literal("Team name here");
 	private static final Component COLOR_HERE = Component.literal("Color name here");
 	private static final Component INVALID_COLOR = Component.literal("Invalid color");
 	private static final Component TEAM_SUCCESS = Component.literal("Team successfully created");
 
 
-	public CreateRequestScreenTeam() {
+	public CreateTeamScreen() {
 		super(TITLE);
 		this.imageWidth = 176;
 		this.imageHeight = 166;
@@ -51,7 +53,7 @@ public class CreateRequestScreenTeam extends Screen {
 					Component.empty(),
 					button -> this.onClose()
 				)
-				.bounds((this.width + this.imageWidth) / 2 - this.font.width(EXITBUTTON_COMPONENT.getVisualOrderText()) - 4,
+				.bounds((this.width + this.imageWidth) / 2 - this.font.width(EXIT.getVisualOrderText()) - 4,
 					this.topPos + 4,
 					9,
 					9)
@@ -62,9 +64,9 @@ public class CreateRequestScreenTeam extends Screen {
 			new StringWidget(
 				this.leftPos + 6,
 				this.topPos + 16,
-				this.font.width(NOTEAM.getVisualOrderText()),
+				this.font.width(NO_TEAM.getVisualOrderText()),
 				18,
-				NOTEAM,
+				NO_TEAM,
 				this.font
 			)
 		);
@@ -93,10 +95,10 @@ public class CreateRequestScreenTeam extends Screen {
 
 		Button confirmCreation = addRenderableWidget(
 			Button.builder(
-				CREATETEAMBUTTON_COMPONENT,
+					CREATE_TEAM,
 				button -> {
 					try {
-						PacketHandler.sendToServer(new C2ScreateTeam(teamName.getValue(), (Color)  Color.class.getField(colorName.getValue().toLowerCase()).get(null)));
+						PacketHandler.sendToServer(new C2SCreateTeam(teamName.getValue(), (Color)  Color.class.getField(colorName.getValue().toLowerCase()).get(null)));
 					} catch (IllegalAccessException | NoSuchFieldException e) {
 						this.onClose();
 						minecraft.player.displayClientMessage(INVALID_COLOR, true);
@@ -125,7 +127,7 @@ public class CreateRequestScreenTeam extends Screen {
 
 		Button createTeamInit = addRenderableWidget(
 			Button.builder(
-				CREATETEAMBUTTON_COMPONENT,
+					CREATE_TEAM,
 				button -> {
 					button.visible = false;
 					button.active = false;
@@ -163,8 +165,8 @@ public class CreateRequestScreenTeam extends Screen {
 
 		guiGraphics.drawString(
 			this.font,
-			EXITBUTTON_COMPONENT,
-			(this.width + this.imageWidth) / 2 - this.font.width(EXITBUTTON_COMPONENT.getVisualOrderText()) - 4,
+			EXIT,
+			(this.width + this.imageWidth) / 2 - this.font.width(EXIT.getVisualOrderText()) - 4,
 			this.topPos + 4,
 			0x787878,
 			false
