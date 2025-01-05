@@ -26,6 +26,16 @@ public class KeyBindings {
 		CATEGORY
 	);
 
+	public final KeyMapping viewChunks = new KeyMapping(
+		"key." + Capitol.MOD_ID + ".viewChunks",
+		KeyConflictContext.IN_GAME,
+		InputConstants.getKey(
+			InputConstants.KEY_V,
+			-1
+		),
+		CATEGORY
+	);
+
 	@SubscribeEvent
 	public static void register(RegisterKeyMappingsEvent event) {
 		event.register(KeyBindings.INSTANCE.openStatistics);

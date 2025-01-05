@@ -115,6 +115,9 @@ public class Team {
 	public Map<ResourceLocation, List<ChunkPos>> getClaimedChunks() {
 		return claimedChunks;
 	}
+	public List<ChunkPos> getClaimedChunksOfDimension(ResourceLocation dimension) {
+		return claimedChunks.get(dimension);
+	}
 
 	public List<String> getAllies() {
 		return allies;

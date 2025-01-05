@@ -1,0 +1,36 @@
+package com.createcivilization.capitol.packets.toclient;
+
+import com.createcivilization.capitol.packets.ClientPacketHandler;
+import com.createcivilization.capitol.team.Team;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+public class S2CremoveTeam {
+	private final String toRemoveId;
+
+	public S2CremoveTeam(String teamId) {
+		this.toRemoveId = teamId;
+	}
+
+	public S2CremoveTeam(FriendlyByteBuf friendlyByteBuf) {
+		// Decode
+		this.toRemoveId = friendlyByteBuf.readUtf();
+	}
+
+	public void encode(FriendlyByteBuf friendlyByteBuf) {
+		friendlyByteBuf.writeUtf(this.toRemoveId);
+	}
+
+	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context ctx = contextSupplier.get();
+		ctx.enqueueWork(
+			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.removeTeam(this.toRemoveId))
+		);
+
+		ctx.setPacketHandled(true);
+	}
+}

@@ -4,6 +4,7 @@ import com.createcivilization.capitol.block.CapitolBlocks;
 import com.createcivilization.capitol.block.entity.CapitolBlockEntities;
 import com.createcivilization.capitol.item.CapitolItems;
 
+import com.createcivilization.capitol.util.PacketHandler;
 import net.minecraft.server.MinecraftServer;
 
 import net.minecraftforge.common.MinecraftForge;
@@ -36,5 +37,7 @@ public class Capitol {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event) {}
+    private void commonSetup(final FMLCommonSetupEvent event) {
+		event.enqueueWork(PacketHandler::register);
+	}
 }

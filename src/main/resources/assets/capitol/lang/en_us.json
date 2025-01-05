@@ -2,5 +2,6 @@
 	"block.capitol.capitol_block": "Capitol Block",
 	"container.capitol.capitol_block": "Capitol",
 	"key.categories.capitol": "Capitol",
-	"key.capitol.stats": "Open claim statistics"
+	"key.capitol.stats": "Open claim statistics",
+	"key.capitol.viewChunks": "Toggle claim visibility"
 }

@@ -1,0 +1,42 @@
+package com.createcivilization.capitol.packets.toclient;
+
+import com.createcivilization.capitol.packets.ClientPacketHandler;
+import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.TeamUtils;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.io.IOException;
+import java.util.function.Supplier;
+
+public class S2CaddTeam {
+	private final Team toAdd;
+
+	public S2CaddTeam(Team team) {
+		this.toAdd = team;
+	}
+
+	public S2CaddTeam(FriendlyByteBuf friendlyByteBuf) {
+		// Decode
+		try {
+			this.toAdd = TeamUtils.parseTeam(friendlyByteBuf.readUtf());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void encode(FriendlyByteBuf friendlyByteBuf) {
+		friendlyByteBuf.writeUtf(this.toAdd.toString());
+	}
+
+	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context ctx = contextSupplier.get();
+		ctx.enqueueWork(
+			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.addTeam(this.toAdd))
+		);
+
+		ctx.setPacketHandled(true);
+	}
+}

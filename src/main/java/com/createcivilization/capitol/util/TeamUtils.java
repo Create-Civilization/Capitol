@@ -1,6 +1,10 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.packets.toclient.S2CaddChunk;
+import com.createcivilization.capitol.packets.toclient.S2CaddTeam;
+import com.createcivilization.capitol.packets.toclient.S2CremoveChunk;
+import com.createcivilization.capitol.packets.toclient.S2CremoveTeam;
 import com.createcivilization.capitol.team.*;
 
 import com.google.gson.stream.*;
@@ -11,6 +15,8 @@ import net.minecraft.resources.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import wiiu.mavity.util.IfPresentFunction;
 import wiiu.mavity.util.ObjectHolder;
 
@@ -298,20 +304,29 @@ public class TeamUtils {
 	 * @return A new {@link Team} with the given parameters.
 	 */
     public static Team createTeam(String name, Player player, Color color) {
-        return Team.TeamBuilder.create()
+        Team created =  Team.TeamBuilder.create()
                 .setName(name)
                 .setTeamId(createRandomTeamId())
                 .addPlayer("owner", new ArrayList<>(List.of(player.getUUID())))
                 .setColor(color)
                 .build();
+
+		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
+			PacketHandler.sendToAllClients(new S2CaddTeam(created));
+		});
+
+		return created;
     }
 
 	/**
 	 * @param teamId The team to delete
-	 * @return boolean (Success)
 	 */
-	public static boolean removeTeam(String teamId) {
-		return loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
+	public static void removeTeam(String teamId) {
+		loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
+
+		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
+			PacketHandler.sendToAllClients(new S2CremoveTeam(teamId));
+		});
 	}
 
 	/**
@@ -562,12 +577,18 @@ public class TeamUtils {
 	 */
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
 		if (Config.debugLogs.getOrThrow()) System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
+
 		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension); // Suck my proper typing
 		if (claimedChunks == null) {
 			List<ChunkPos> list = new ArrayList<>();
 			list.add(pos);
 			team.getClaimedChunks().put(dimension, list);
 		} else claimedChunks.add(pos);
+
+		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
+			PacketHandler.sendToAllClients(new S2CaddChunk(team.getTeamId(), pos, dimension));
+		});
+
 		return 1;
 	}
 
@@ -581,8 +602,14 @@ public class TeamUtils {
 	 */
 	public static int unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
 		if (Config.debugLogs.getOrThrow()) System.out.println("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
+
 		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension);
 		claimedChunks.remove(chunkPos);
+
+		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
+			PacketHandler.sendToAllClients(new S2CremoveChunk(team.getTeamId(), chunkPos, dimension));
+		});
+
 		return 1;
 	}
 
