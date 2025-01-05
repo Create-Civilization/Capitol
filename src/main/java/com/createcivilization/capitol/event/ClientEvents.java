@@ -1,35 +1,32 @@
 package com.createcivilization.capitol.event;
 
-import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.KeyBindings;
-import com.createcivilization.capitol.screen.CreateTeamScreen;
-import com.createcivilization.capitol.screen.TeamClaimManagerScreen;
-import com.createcivilization.capitol.screen.TeamStatisticsScreen;
+import com.createcivilization.capitol.*;
+import com.createcivilization.capitol.screen.*;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.*;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import wiiu.mavity.util.ObjectHolder;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Mod.EventBusSubscriber(modid = Capitol.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientEvents {
+
 	private static final Component NOT_IN_TEAM = Component.literal("You are not in a team");
 	private static final Minecraft instance = Minecraft.getInstance();
 	private static boolean viewChunks;
 	private static ObjectHolder<Team> playerTeam;
-
 
 	@SubscribeEvent
 	public static void clientTick(TickEvent.ClientTickEvent event) {
@@ -85,13 +82,13 @@ public class ClientEvents {
 		if (teamHolder.isEmpty()) {
 			player.displayClientMessage(NOT_IN_TEAM, true);
 			return teamHolder;
-		}else {
+		} else {
 			playerTeam = teamHolder;
 			return playerTeam;
 		}
 	}
 
-	private static void displayClaimBorderVertice (ChunkPos chunkPos, Team team, int xDiff, int zDiff, Level level, ResourceLocation dimension, LocalPlayer player) {
+	private static void displayClaimBorderVertice(ChunkPos chunkPos, Team team, int xDiff, int zDiff, Level level, ResourceLocation dimension, LocalPlayer player) {
 		// Avoid displaying vertices on which another chunk is at
 		if (chunkIsOfTheSameTeam(team, new ChunkPos(chunkPos.x - xDiff, chunkPos.z - zDiff), dimension)) return;
 		for (int i = -8; i < 8; i++) {
@@ -104,7 +101,7 @@ public class ClientEvents {
 		}
 	}
 
-	private static boolean chunkIsOfTheSameTeam (Team baseTeam, ChunkPos chunkToCheck, ResourceLocation dimension) {
+	private static boolean chunkIsOfTheSameTeam(Team baseTeam, ChunkPos chunkToCheck, ResourceLocation dimension) {
 		ObjectHolder<Team> holder = TeamUtils.getTeam(chunkToCheck, dimension);
 		if (holder.isEmpty()) return false;
 		return Objects.equals(baseTeam.getTeamId(), holder.getOrThrow().getTeamId());

@@ -15,8 +15,7 @@ import net.minecraft.world.level.*;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
-import wiiu.mavity.util.IfPresentFunction;
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.util.*;
 
 import java.awt.Color;
 import java.io.*;
@@ -478,6 +477,7 @@ public class TeamUtils {
 	public static int claimCurrentChunk(Player player) {
 		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
 	}
+
 	/**
 	 * Unclaims the current chunk for the given player's team.
 	 * @return 1 if successful, -1 if failed (for /command usage)
@@ -492,7 +492,7 @@ public class TeamUtils {
 	 * @param dimension The dimension.
 	 * @return boolean
 	 */
-	public static boolean hasCapitolBlock(ChunkPos pos, ResourceLocation dimension){
+	public static boolean hasCapitolBlock(ChunkPos pos, ResourceLocation dimension) {
 		boolean result = false;
 		for (Team team : loadedTeams) {
 			List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
@@ -519,7 +519,7 @@ public class TeamUtils {
 		return false;
 	}
 
-	public static Map<String, Boolean> getPlayerPermission(Team team, Player player){
+	public static Map<String, Boolean> getPlayerPermission(Team team, Player player) {
 		return team.getPermission(team.getPlayerRole(player.getUUID()));
 	}
 
@@ -539,8 +539,7 @@ public class TeamUtils {
 	 * @param team the team on which the team shall be checked.
 	 * @param chunkPos the position of the chunk.
 	 */
-	public static boolean allowedInChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos)
-	{
+	public static boolean allowedInChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
 		if (!TeamUtils.isClaimedChunk(dimension, chunkPos)) return false;
 		List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
 		return chunks.contains(chunkPos);
@@ -557,6 +556,7 @@ public class TeamUtils {
 		radius++;
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.claimChunkIfNotClaimed(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
 	}
+
 	/**
 	 * Unclaims chunks in a radius of a center position from a team
 	 * @param team The team to claim the chunks to
@@ -614,6 +614,7 @@ public class TeamUtils {
 	public static void claimChunkIfNotClaimed(Team team, ResourceLocation dimension, ChunkPos pos) {
 		if (!TeamUtils.isClaimedChunk(dimension, pos)) TeamUtils.claimChunk(team, dimension, pos);
 	}
+
 	public static void unclaimChunkIfFromTeam(Team team, ResourceLocation dimension, ChunkPos pos) {
 		if (TeamUtils.isClaimedChunk(dimension, pos) && TeamUtils.getTeam(pos, dimension).getOrThrow().equals(team)) TeamUtils.unclaimChunk(team, dimension, pos);
 	}

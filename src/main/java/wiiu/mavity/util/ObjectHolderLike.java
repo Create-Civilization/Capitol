@@ -13,6 +13,6 @@ public interface ObjectHolderLike<V> extends Supplier<V> {
 	default void set(V value) {} // Override has functionality
 
 	default ObjectHolder<V> getHolder() {
-		return (ObjectHolder<V>) this;
+		return new ObjectHolder<>(this.get());
 	}
 }

@@ -25,7 +25,7 @@ public class TeamStatisticsScreen extends Screen {
 	private int leftPos, topPos;
 	private int chunkAmount;
 	private int playerAmount;
-	private final Component EXITBUTTON_COMPONENT = Component.literal("X");
+	private final Component EXIT = Component.literal("X");
 
 	public TeamStatisticsScreen(@NotNull Team team) {
 		super(TITLE);
@@ -54,7 +54,7 @@ public class TeamStatisticsScreen extends Screen {
 					Component.empty(),
 					button -> this.onClose()
 				)
-				.bounds((this.width + this.imageWidth) / 2 - this.font.width(EXITBUTTON_COMPONENT.getVisualOrderText()) - 4,
+				.bounds((this.width + this.imageWidth) / 2 - this.font.width(EXIT.getVisualOrderText()) - 4,
 					this.topPos + 4,
 					9,
 					9)
@@ -93,8 +93,8 @@ public class TeamStatisticsScreen extends Screen {
 
 		guiGraphics.drawString(
 			this.font,
-			EXITBUTTON_COMPONENT,
-			(this.width + this.imageWidth) / 2 - this.font.width(EXITBUTTON_COMPONENT.getVisualOrderText()) - 4,
+			EXIT,
+			(this.width + this.imageWidth) / 2 - this.font.width(EXIT.getVisualOrderText()) - 4,
 			this.topPos + 4,
 			0x787878,
 			false
@@ -105,5 +105,4 @@ public class TeamStatisticsScreen extends Screen {
 	public boolean isPauseScreen() {
 		return false;
 	}
-
 }

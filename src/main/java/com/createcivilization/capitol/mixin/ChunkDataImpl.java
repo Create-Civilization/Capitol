@@ -1,9 +1,8 @@
 package com.createcivilization.capitol.mixin;
 
 import com.createcivilization.capitol.team.War;
-import com.createcivilization.capitol.util.IChunkData;
+import com.createcivilization.capitol.util.*;
 
-import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.chunk.ChunkAccess;
 

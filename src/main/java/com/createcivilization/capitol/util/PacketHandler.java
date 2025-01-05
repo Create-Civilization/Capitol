@@ -2,17 +2,14 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CAddChunk;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CAddTeam;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveChunk;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveTeam;
+import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
+
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
+
+import net.minecraftforge.network.*;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public class PacketHandler {

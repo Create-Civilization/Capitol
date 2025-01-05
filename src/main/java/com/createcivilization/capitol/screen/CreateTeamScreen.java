@@ -5,14 +5,12 @@ import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
 import com.createcivilization.capitol.util.PacketHandler;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class CreateTeamScreen extends Screen {
 
@@ -42,7 +40,7 @@ public class CreateTeamScreen extends Screen {
 	protected void init() {
 		super.init();
 		teamTitleComponentWidth = this.font.width(TITLE.getVisualOrderText());
-		if (minecraft==null || minecraft.player == null) return;
+		if (minecraft == null || minecraft.player == null) return;
 
 		this.leftPos = (this.width - this.imageWidth) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
@@ -177,5 +175,4 @@ public class CreateTeamScreen extends Screen {
 	public boolean isPauseScreen() {
 		return false;
 	}
-
 }
