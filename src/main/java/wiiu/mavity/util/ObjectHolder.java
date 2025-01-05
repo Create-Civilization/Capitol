@@ -2,10 +2,9 @@ package wiiu.mavity.util;
 
 import org.jetbrains.annotations.*;
 
-import java.util.function.Supplier;
 import java.util.Objects;
 
-public class ObjectHolder<V> implements Supplier<V> {
+public class ObjectHolder<V> implements ObjectHolderLike<V> {
 
     private @Nullable V value;
 
@@ -17,19 +16,26 @@ public class ObjectHolder<V> implements Supplier<V> {
         this.set(null);
     }
 
+	@Override
     public @Nullable V get() {
         return this.value;
     }
 
+	@Override
     public void set(@Nullable V newValue) {
         this.value = newValue;
     }
 
-	public void setFrom(ObjectHolder<V> other) {
+	public void setFrom(ObjectHolderLike<V> other) {
 		this.set(other.get());
 	}
 
-    public V getOrDefault(@NotNull V defaultValue) {
+	@Override
+	public ObjectHolder<V> getHolder() {
+		return this;
+	}
+
+	public V getOrDefault(@NotNull V defaultValue) {
         return this.isPresent() ? this.get() : defaultValue;
     }
 
