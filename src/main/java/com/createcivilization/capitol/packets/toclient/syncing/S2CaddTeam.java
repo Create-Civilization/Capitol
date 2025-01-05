@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.packets.toclient;
+package com.createcivilization.capitol.packets.toclient.syncing;
 
 import com.createcivilization.capitol.packets.ClientPacketHandler;
 import com.createcivilization.capitol.team.Team;

@@ -1,7 +1,6 @@
-package com.createcivilization.capitol.packets.toclient;
+package com.createcivilization.capitol.packets.toclient.syncing;
 
 import com.createcivilization.capitol.packets.ClientPacketHandler;
-import com.createcivilization.capitol.team.Team;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;

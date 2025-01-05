@@ -1,10 +1,12 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.toclient.S2CaddChunk;
-import com.createcivilization.capitol.packets.toclient.S2CaddTeam;
-import com.createcivilization.capitol.packets.toclient.S2CremoveChunk;
-import com.createcivilization.capitol.packets.toclient.S2CremoveTeam;
+import com.createcivilization.capitol.packets.toclient.gui.S2CopenTeamStatistics;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CaddChunk;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CaddTeam;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveChunk;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveTeam;
+import com.createcivilization.capitol.packets.toserver.syncing.C2SrequestSync;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
@@ -25,6 +27,8 @@ public class PacketHandler {
 
 	public static void register() {
 		int id = 0;
+
+		// S2C packets
 		INSTANCE.messageBuilder(S2CaddTeam.class, id++, NetworkDirection.PLAY_TO_CLIENT)
 			.encoder(S2CaddTeam::encode)
 			.decoder(S2CaddTeam::new)
@@ -47,6 +51,19 @@ public class PacketHandler {
 			.encoder(S2CremoveChunk::encode)
 			.decoder(S2CremoveChunk::new)
 			.consumerMainThread(S2CremoveChunk::handle)
+			.add();
+
+		INSTANCE.messageBuilder(S2CopenTeamStatistics.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+			.encoder(S2CopenTeamStatistics::encode)
+			.decoder(S2CopenTeamStatistics::new)
+			.consumerMainThread(S2CopenTeamStatistics::handle)
+			.add();
+
+		// C2S packets
+		INSTANCE.messageBuilder(C2SrequestSync.class, id++, NetworkDirection.PLAY_TO_SERVER)
+			.encoder(C2SrequestSync::encode)
+			.decoder(C2SrequestSync::new)
+			.consumerMainThread(C2SrequestSync::handle)
 			.add();
 	}
 

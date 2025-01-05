@@ -2,13 +2,13 @@ package com.createcivilization.capitol.block.custom;
 
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 
-import com.createcivilization.capitol.screen.TeamStatisticsScreen;
+import com.createcivilization.capitol.packets.toclient.gui.S2CopenTeamStatistics;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,6 +26,8 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.*;
 
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
 import wiiu.mavity.util.ObjectHolder;
 
@@ -126,16 +128,18 @@ public class CapitolBlock extends BaseEntityBlock {
 		}
 	}
 
-//	@Override
-//	public InteractionResult use(BlockState pState, Level level, BlockPos pos, Player player, InteractionHand pHand, BlockHitResult pHit) {
-//		if (!level.isClientSide()) {
-//			return InteractionResult.CONSUME;
-//		}
-//		ObjectHolder<Team> team = TeamUtils.getTeam(new ChunkPos(pos), level.dimension().location());
-//		if (team.isEmpty()) return InteractionResult.FAIL;
-//
-//		return InteractionResult.CONSUME;
-//	}
+	@Override
+	public InteractionResult use(BlockState pState, Level level, BlockPos pos, Player player, InteractionHand pHand, BlockHitResult pHit) {
+		ObjectHolder<Team> team = TeamUtils.getTeam(new ChunkPos(pos), level.dimension().location());
+		if (team.isEmpty()) return InteractionResult.FAIL;
+
+		DistExecutor.unsafeRunWhenOn(
+			Dist.DEDICATED_SERVER,
+			() -> () -> PacketHandler.sendToPlayer(new S2CopenTeamStatistics(team.getOrThrow().getTeamId()), (ServerPlayer) player)
+		);
+
+		return InteractionResult.CONSUME;
+	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
