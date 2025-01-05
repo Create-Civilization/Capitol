@@ -2,9 +2,10 @@ package wiiu.mavity.util;
 
 import org.jetbrains.annotations.*;
 
+import java.util.function.Supplier;
 import java.util.Objects;
 
-public class ObjectHolder<V> {
+public class ObjectHolder<V> implements Supplier<V> {
 
     private @Nullable V value;
 
@@ -85,6 +86,6 @@ public class ObjectHolder<V> {
 
 	@Override
     public String toString() {
-        return this.getClass().getSimpleName() + "{value=" + this.getAsString() + "}";
+        return this.getClass().getSimpleName() + "@" + Integer.toHexString(this.hashCode()) + "{value=" + this.getAsString() + "}";
     }
 }

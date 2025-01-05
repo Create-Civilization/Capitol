@@ -17,7 +17,7 @@ public class PermissionUtil {
 		"editPermissions"
 	));
 
-	public static Map<String, Boolean> newPermission(String keyword){
+	public static Map<String, Boolean> newPermission(String keyword) {
 		Map<String, Boolean> permission = new HashMap<>();
 		return switch (keyword) {
 			case "all_true" -> {
@@ -46,15 +46,24 @@ public class PermissionUtil {
 				false,
 				false
 			);
+			case "non-member" -> PermissionUtil.newPermission(
+				false,
+				false,
+				true,
+				true,
+				true,
+				false,
+				false
+			);
 			default -> null; // Throw null pointer exception, luv ya :>
 		};
 	}
 
-	public static Map<String, Boolean> newPermission(Boolean... permissionsToPut){
+	public static Map<String, Boolean> newPermission(Boolean... permissionsToPut) {
 		return newPermission(List.of(permissionsToPut));
 	}
 
-	public static Map<String, Boolean> newPermission(List<Boolean> permissionsToPut){
+	public static Map<String, Boolean> newPermission(Iterable<Boolean> permissionsToPut) {
 		Map<String, Boolean> permission = new HashMap<>();
 		int i = 0;
 		for (Boolean permissionToPut : permissionsToPut) {

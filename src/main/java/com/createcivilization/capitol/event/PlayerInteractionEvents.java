@@ -103,7 +103,7 @@ public class PlayerInteractionEvents {
 	/**
 	 * Utility method to cancel the event if the player has insufficient permissions in the chunk.
 	 */
-	public static void cancelIfHasInsufficientPermission(PlayerInteractEvent event, Boolean cancelIfTrue, String details) {
+	public static void cancelIfHasInsufficientPermission(PlayerInteractEvent event, boolean cancelIfTrue, String details) {
 		if (cancelIfTrue) {
 			event.getEntity().sendSystemMessage(Component.literal("You do not have permission to " + details + " in this chunk!"));
 			event.setCancellationResult(InteractionResult.FAIL);

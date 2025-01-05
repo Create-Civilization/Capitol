@@ -279,7 +279,7 @@ public class Team {
 			rolePermissions.putIfAbsent("owner", PermissionUtil.newPermission("all_true"));
 			rolePermissions.putIfAbsent("moderator", PermissionUtil.newPermission("moderator"));
 			rolePermissions.putIfAbsent("member", PermissionUtil.newPermission("member"));
-			rolePermissions.putIfAbsent("non-member", PermissionUtil.newPermission("all_false"));
+			rolePermissions.putIfAbsent("non-member", PermissionUtil.newPermission("non-member"));
 			Team team = new Team(name, teamId, players, color);
 			team.setRolePermissions(rolePermissions);
 			team.addAllies(allies);
