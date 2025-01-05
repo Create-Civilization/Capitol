@@ -20,7 +20,6 @@ public class CapitolCommands {
 		new ReloadTeamsFromFileCommand().register(dispatcher);
 		new ReloadTeamsCommand().register(dispatcher);
 		new ClaimCurrentChunkCommand().register(dispatcher);
-		new SmiteCommand().register(dispatcher);
 		new GetTeamsDebugCommand().register(dispatcher);
 		new RemoveTeamDebugCommand().register(dispatcher);
 		new ActivateWarTeamsDebugCommand().register(dispatcher);

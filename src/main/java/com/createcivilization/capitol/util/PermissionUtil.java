@@ -49,9 +49,9 @@ public class PermissionUtil {
 			case "non-member" -> PermissionUtil.newPermission(
 				false,
 				false,
-				true,
-				true,
-				true,
+				Config.nonMemberUseItems.getOrThrow(),
+				Config.nonMemberInteractEntities.getOrThrow(),
+				Config.nonMemberInteractBlocks.getOrThrow(),
 				false,
 				false
 			);

@@ -33,7 +33,7 @@ public class FileUtils {
 	}
 
 	public static File getLocalFile(String parent, String fileName) {
-		return new File(getLocalFile(parent), fileName);
+		return new File(FileUtils.getLocalFile(parent), fileName);
 	}
 
 	/**
@@ -51,15 +51,17 @@ public class FileUtils {
 	 * Sets the contents of the {@link File} object if it has no contents already.
 	 */
 	public static void setContentsIfEmpty(File file, String newContents) throws IOException {
-		if (isFileEmpty(file)) {
-			var f = new FileWriter(file);
-			f.write(newContents);
-			f.close();
-		}
+		if (FileUtils.isFileEmpty(file)) FileUtils.setFileContents(file, newContents);
+	}
+
+	public static void setFileContents(File file, String newContents) throws IOException {
+		var f = new FileWriter(file);
+		f.write(newContents);
+		f.close();
 	}
 
 	public static boolean isFileEmpty(File file) throws IOException {
-		String contents = getFileContents(file);
+		String contents = FileUtils.getFileContents(file);
 		return contents.isEmpty() || contents.isBlank();
 	}
 }

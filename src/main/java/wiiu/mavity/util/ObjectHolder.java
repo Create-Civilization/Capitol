@@ -1,6 +1,7 @@
 package wiiu.mavity.util;
 
 import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus.*;
 
 import java.util.Objects;
 
@@ -50,6 +51,26 @@ public class ObjectHolder<V> implements ObjectHolderLike<V> {
     public String getAsString() {
         return String.valueOf(this.get());
     }
+
+	public String getAsJsonString() {
+		V v = this.get();
+		if (v != null) {
+			if (v instanceof Number || v instanceof Boolean) {
+				return "" + v;
+			} else return "\"" + v + "\""; // Strings and other objects that we can't predict
+		} else return "null";
+	}
+
+	/**
+	 * DO NOT USE THIS METHOD WHATSOEVER
+	 */
+	@SuppressWarnings("unchecked")
+	@Experimental
+	@Internal
+	@VisibleForTesting
+	public void forceSet(Object o) {
+		this.set((V) o);
+	}
 
     public boolean isPresent() {
         return !this.isEmpty();

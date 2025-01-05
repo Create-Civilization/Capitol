@@ -5,6 +5,7 @@ import com.google.gson.stream.*;
 import wiiu.mavity.util.ObjectHolder;
 
 import java.io.*;
+import java.util.StringJoiner;
 
 public class Config {
 
@@ -14,17 +15,30 @@ public class Config {
 	public static final ObjectHolder<Boolean> debugLogs = new ObjectHolder<>(false);
 	public static final ObjectHolder<Integer> inviteTimeout = new ObjectHolder<>(120);
 
+	public static final ObjectHolder<Boolean> nonMemberUseItems = new ObjectHolder<>(true);
+	public static final ObjectHolder<Boolean> nonMemberInteractEntities = new ObjectHolder<>(true);
+	public static final ObjectHolder<Boolean> nonMemberInteractBlocks = new ObjectHolder<>(true);
+
 	public static void loadConfig() throws IOException {
 		System.out.println("Loading config...");
 		File file = FileUtils.forceFileExistence(FileUtils.getLocalFile("config", "capitol_server.json"));
-		FileUtils.setContentsIfEmpty(file, "{\"claimRadius\": 1, \"debugLogs\": false, \"inviteTimeout\": 120}");
+		FileUtils.setContentsIfEmpty(file, Config.generateFileContents());
 		JsonReader configReader = new JsonReader(new StringReader(FileUtils.getFileContents(file)));
 		configReader.beginObject();
+		String key;
 		while (configReader.hasNext()) {
-			switch (configReader.nextName()) {
-				case "claimRadius" -> claimRadius.set(configReader.nextInt());
-				case "debugLogs" -> debugLogs.set(configReader.nextBoolean());
-				case "inviteTimeout" -> inviteTimeout.set(configReader.nextInt());
+			key = configReader.nextName();
+			try {
+				var field = Config.class.getDeclaredField(key);
+				field.setAccessible(true);
+				ObjectHolder<?> holder = (ObjectHolder<?>) field.get(null);
+				Class<?> type = holder.getType();
+				if (type == Integer.TYPE || type == Integer.class) holder.forceSet(configReader.nextInt());
+				else if (type == Boolean.TYPE || type == Boolean.class) holder.forceSet(configReader.nextBoolean());
+				else if (type == Void.TYPE || type == Void.class) throw new RuntimeException("Field with name '" + key + "' should have a preset value for reflection support!");
+				else System.out.println(type.getSimpleName());
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
 			}
 		}
 		configReader.endObject();
@@ -32,15 +46,24 @@ public class Config {
 		System.out.println("Config loaded!");
 	}
 
+	public static String generateFileContents() {
+		String lineSeparator = System.lineSeparator();
+		String tab = "    ";
+		StringJoiner sj = new StringJoiner("," + lineSeparator + tab, "{" + lineSeparator + tab, lineSeparator + "}");
+		for (var field : Config.class.getDeclaredFields()) {
+			try {
+				field.setAccessible(true);
+				sj.add("\"" + field.getName() + "\"" + ": " + ((ObjectHolder<?>) field.get(null)).getAsJsonString());
+			} catch (Throwable ignored) {}
+		}
+		return sj.toString();
+	}
+
 	public static void saveConfig() throws IOException {
 		System.out.println("Saving config...");
-		JsonWriter writer = new JsonWriter(new FileWriter(FileUtils.forceFileExistence(FileUtils.getLocalFile("config", "capitol_server.json"))));
-		writer.beginObject();
-		writer.name("claimRadius").value(claimRadius.getOrThrow());
-		writer.name("debugLogs").value(debugLogs.getOrThrow());
-		writer.name("inviteTimeout").value(inviteTimeout.getOrThrow());
-		writer.endObject();
-		writer.close();
+		FileUtils.setFileContents(
+			FileUtils.forceFileExistence(FileUtils.getLocalFile("config", "capitol_server.json")), Config.generateFileContents()
+		);
 		System.out.println("Config saved!");
 	}
 }
