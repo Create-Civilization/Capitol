@@ -6,6 +6,7 @@ import com.createcivilization.capitol.packets.toclient.syncing.S2CaddChunk;
 import com.createcivilization.capitol.packets.toclient.syncing.S2CaddTeam;
 import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveChunk;
 import com.createcivilization.capitol.packets.toclient.syncing.S2CremoveTeam;
+import com.createcivilization.capitol.packets.toserver.C2ScreateTeam;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SrequestSync;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -64,6 +65,12 @@ public class PacketHandler {
 			.encoder(C2SrequestSync::encode)
 			.decoder(C2SrequestSync::new)
 			.consumerMainThread(C2SrequestSync::handle)
+			.add();
+
+		INSTANCE.messageBuilder(C2ScreateTeam.class, id++, NetworkDirection.PLAY_TO_SERVER)
+			.encoder(C2ScreateTeam::encode)
+			.decoder(C2ScreateTeam::new)
+			.consumerMainThread(C2ScreateTeam::handle)
 			.add();
 	}
 

@@ -1,8 +1,9 @@
 package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.packets.toserver.C2ScreateTeam;
+import com.createcivilization.capitol.util.PacketHandler;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
@@ -10,8 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.*;
 
 public class CreateRequestScreenTeam extends Screen {
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
@@ -26,20 +26,9 @@ public class CreateRequestScreenTeam extends Screen {
 	private static final Component NOTEAM = Component.literal("You are not in a team, either create a team or join a team");
 	private static final Component NAME_HERE = Component.literal("Team name here");
 	private static final Component COLOR_HERE = Component.literal("Color name here");
+	private static final Component INVALID_COLOR = Component.literal("Invalid color");
+	private static final Component TEAM_SUCCESS = Component.literal("Team successfully created");
 
-	private static List<AbstractWidget> requestScene = new ArrayList<>();
-	private static List<AbstractWidget> createScene = new ArrayList<>();
-
-	private static void swapScene(List<AbstractWidget> fromScene, List<AbstractWidget> toScene) {
-		for (AbstractWidget widget : fromScene) {
-			widget.visible = false;
-			widget.active = false;
-		}
-		for (AbstractWidget widget : toScene) {
-			widget.active = true;
-			widget.visible = true;
-		}
-	}
 
 	public CreateRequestScreenTeam() {
 		super(TITLE);
@@ -51,7 +40,7 @@ public class CreateRequestScreenTeam extends Screen {
 	protected void init() {
 		super.init();
 		teamTitleComponentWidth = this.font.width(TITLE.getVisualOrderText());
-		if (minecraft==null) return;
+		if (minecraft==null || minecraft.player == null) return;
 
 		this.leftPos = (this.width - this.imageWidth) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
@@ -69,7 +58,7 @@ public class CreateRequestScreenTeam extends Screen {
 				.build()
 		);
 
-		requestScene.add(addRenderableWidget(
+		StringWidget noTeam = addRenderableWidget(
 			new StringWidget(
 				this.leftPos + 6,
 				this.topPos + 16,
@@ -78,12 +67,77 @@ public class CreateRequestScreenTeam extends Screen {
 				NOTEAM,
 				this.font
 			)
-		));
+		);
 
-		requestScene.add(addRenderableWidget(
+		EditBox teamName = addRenderableWidget(
+			new EditBox(
+				this.font,
+				this.leftPos + 25,
+				this.topPos + 34,
+				126,
+				18,
+				NAME_HERE
+			)
+		);
+
+		EditBox colorName = addRenderableWidget(
+			new EditBox(
+				this.font,
+				this.leftPos + 25,
+				this.topPos + 60,
+				126,
+				18,
+				COLOR_HERE
+			)
+		);
+
+		Button confirmCreation = addRenderableWidget(
 			Button.builder(
 				CREATETEAMBUTTON_COMPONENT,
-				button -> swapScene(requestScene, createScene)
+				button -> {
+					try {
+						PacketHandler.sendToServer(new C2ScreateTeam(teamName.getValue(), (Color)  Color.class.getField(colorName.getValue().toLowerCase()).get(null)));
+					} catch (IllegalAccessException | NoSuchFieldException e) {
+						this.onClose();
+						minecraft.player.displayClientMessage(INVALID_COLOR, true);
+						return;
+					}
+					// TODO: SUCCESS SCREEN
+					minecraft.player.displayClientMessage(TEAM_SUCCESS, true);
+					this.onClose();
+				}
+			)
+				.bounds(
+					this.leftPos + 25,
+					this.topPos + 86,
+					126,
+					18
+				)
+				.build()
+		);
+
+		teamName.visible = false;
+		teamName.active = false;
+		colorName.visible = false;
+		colorName.active = false;
+		confirmCreation.active = false;
+		confirmCreation.visible = false;
+
+		Button createTeamInit = addRenderableWidget(
+			Button.builder(
+				CREATETEAMBUTTON_COMPONENT,
+				button -> {
+					button.visible = false;
+					button.active = false;
+					noTeam.visible = false;
+					noTeam.active = false;
+					teamName.visible = true;
+					teamName.active = true;
+					colorName.visible = true;
+					colorName.active = true;
+					confirmCreation.active = true;
+					confirmCreation.visible = true;
+				}
 			)
 				.bounds(
 					this.leftPos + 25,
@@ -92,33 +146,8 @@ public class CreateRequestScreenTeam extends Screen {
 					18
 				)
 				.build()
-		));
-
-		createScene.add(
-			addRenderableWidget(
-				new EditBox(
-					this.font,
-					this.leftPos + 25,
-					this.topPos + 34,
-					126,
-					18,
-					NAME_HERE
-				)
-			)
 		);
 
-		createScene.add(
-			addRenderableWidget(
-				new EditBox(
-					this.font,
-					this.leftPos + 25,
-					this.topPos + 60,
-					126,
-					18,
-					COLOR_HERE
-				)
-			)
-		);
 	}
 
 	@Override
