@@ -1,7 +1,7 @@
 package com.createcivilization.capitol.packets;
 
 import com.createcivilization.capitol.packets.toserver.syncing.C2SrequestSync;
-import com.createcivilization.capitol.screen.TeamStatisticsScreen;
+import com.createcivilization.capitol.screen.TeamStatistics;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.PacketHandler;
 import com.createcivilization.capitol.util.TeamUtils;
@@ -53,7 +53,7 @@ public class ClientPacketHandler {
 			// This SHOULD throw if team is not loaded due to the server already checking for team existance
 			// If it throws, client is out of sync, thus needs to be synced
 			Team team = TeamUtils.getTeam(teamId).getOrThrow();
-			instance.setScreen(new TeamStatisticsScreen(team));
+			instance.setScreen(new TeamStatistics(team));
 		});
 	}
 }

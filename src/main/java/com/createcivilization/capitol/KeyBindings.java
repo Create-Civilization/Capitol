@@ -27,7 +27,7 @@ public class KeyBindings {
 	);
 
 	public final KeyMapping viewChunks = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".viewChunks",
+		"key." + Capitol.MOD_ID + ".view_chunks",
 		KeyConflictContext.IN_GAME,
 		InputConstants.getKey(
 			InputConstants.KEY_V,
@@ -35,6 +35,16 @@ public class KeyBindings {
 		),
 		CATEGORY
 	);
+	public final KeyMapping openClaimMenu = new KeyMapping(
+		"key." + Capitol.MOD_ID + ".open_claim_menu",
+		KeyConflictContext.IN_GAME,
+		InputConstants.getKey(
+			InputConstants.KEY_M,
+			-1
+		),
+		CATEGORY
+	);
+
 
 	@SubscribeEvent
 	public static void register(RegisterKeyMappingsEvent event) {

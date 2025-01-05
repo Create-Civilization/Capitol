@@ -2,7 +2,9 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.KeyBindings;
-import com.createcivilization.capitol.screen.TeamStatisticsScreen;
+import com.createcivilization.capitol.screen.CreateRequestScreenTeam;
+import com.createcivilization.capitol.screen.TeamClaimManager;
+import com.createcivilization.capitol.screen.TeamStatistics;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.client.Minecraft;
@@ -26,6 +28,7 @@ public class ClientEvents {
 	private static final Component NOT_IN_TEAM = Component.literal("You are not in a team");
 	private static final Minecraft instance = Minecraft.getInstance();
 	private static boolean viewChunks;
+	private static ObjectHolder<Team> playerTeam;
 
 
 	@SubscribeEvent
@@ -34,17 +37,24 @@ public class ClientEvents {
 		if (player == null) return;
 		final long timeStamp = System.currentTimeMillis() / 100L;
 
-		if (KeyBindings.INSTANCE.openStatistics.consumeClick()) {
-			ObjectHolder<Team> team = TeamUtils.getTeam(player);
-			if (team.isEmpty()) {
-				player.displayClientMessage(NOT_IN_TEAM, true);
-				return;
-			}
-			instance.setScreen(new TeamStatisticsScreen(team.getOrThrow()));
+		if (
+			KeyBindings.INSTANCE.openStatistics.consumeClick()
+			&& getTeamOrDisplayClientMessage(player).isPresent()
+		) {
+			instance.setScreen(new TeamStatistics(playerTeam.getOrThrow()));
 		}
 		if (KeyBindings.INSTANCE.viewChunks.consumeClick()) {
 			viewChunks = !viewChunks;
 			player.displayClientMessage(Component.literal("Now " + (viewChunks ? "showing" : "hiding") + " claim borders"), true);
+		}
+
+		if (
+			KeyBindings.INSTANCE.openClaimMenu.consumeClick()
+		) {
+			if(getTeamOrDisplayClientMessage(player).isPresent())
+				instance.setScreen(new TeamClaimManager(playerTeam.getOrThrow()));
+			else
+				instance.setScreen(new CreateRequestScreenTeam());
 		}
 
 		if (viewChunks && timeStamp % 5 == 0) {
@@ -67,6 +77,17 @@ public class ClientEvents {
 					displayClaimBorderVertice(chunkPos, team, 0, 1, clientLevel, dimension, player);
 				}
 			}
+		}
+	}
+
+	private static ObjectHolder<Team> getTeamOrDisplayClientMessage(LocalPlayer player) {
+		ObjectHolder<Team> teamHolder = TeamUtils.getTeam(player);
+		if (teamHolder.isEmpty()) {
+			player.displayClientMessage(NOT_IN_TEAM, true);
+			return teamHolder;
+		}else {
+			playerTeam = teamHolder;
+			return playerTeam;
 		}
 	}
 

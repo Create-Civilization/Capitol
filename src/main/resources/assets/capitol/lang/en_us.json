@@ -3,5 +3,8 @@
 	"container.capitol.capitol_block": "Capitol",
 	"key.categories.capitol": "Capitol",
 	"key.capitol.stats": "Open claim statistics",
-	"key.capitol.viewChunks": "Toggle claim visibility"
+	"key.capitol.view_chunks": "Toggle claim visibility",
+	"key.capitol.open_claim_menu": "Open claim menu",
+	"gui.capitol.claim_block_menu": "Claim statistics",
+	"gui.capitol.create_team": "Create Team"
 }
