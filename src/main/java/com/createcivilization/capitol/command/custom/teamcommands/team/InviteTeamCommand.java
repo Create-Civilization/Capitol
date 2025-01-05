@@ -3,22 +3,23 @@ package com.createcivilization.capitol.command.custom.teamcommands.team;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+
+import net.minecraft.commands.*;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.*;
 import net.minecraft.world.entity.player.Player;
 
 public class InviteTeamCommand extends AbstractTeamCommand {
+
 	public InviteTeamCommand() {
 		super("invitePlayer");
-		command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).then(
-			Commands.argument("player", EntityArgument.players()).executes(this::executeAllParams)
+		command.set(
+			Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).then(
+				Commands.argument("player", EntityArgument.players()).executes(this::executeAllParams)
+			)
 		);
 	}
 

@@ -17,7 +17,8 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 
     public CreateTeamCommand() {
         super("createTeam");
-        command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).executes((c) -> 1)
+        command.set(
+			Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).executes((c) -> 1)
                 .then(Commands.argument("name", StringArgumentType.string())
                         .then(Commands.argument("color", StringArgumentType.word())
                                 .executes((command) -> {
@@ -46,7 +47,8 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                                     });
                                 })
                         )
-                );
+                )
+		);
     }
 
 	@Override

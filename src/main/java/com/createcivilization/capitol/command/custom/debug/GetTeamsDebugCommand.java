@@ -17,10 +17,12 @@ public class GetTeamsDebugCommand extends AbstractTeamCommand {
 
 	public GetTeamsDebugCommand() {
 		super("getTeams");
-		command = Commands.literal("debug")
-			.then(Commands.literal(subCommandName)
+		command.set(
+			Commands.literal("debug")
+			.then(Commands.literal(subCommandName.getOrThrow())
 			.requires(this::canExecuteAllParams)
-			.executes(this::executeAllParams));
+			.executes(this::executeAllParams))
+		);
 	}
 
 	@Override

@@ -11,10 +11,12 @@ public class ReloadTeamsFromFileCommand extends AbstractTeamCommand {
 
 	public ReloadTeamsFromFileCommand() {
 		super("reloadTeamsFromFile");
-		command = Commands.literal("debug")
-			.then(Commands.literal(subCommandName)
+		command.set(
+			Commands.literal("debug")
+			.then(Commands.literal(subCommandName.getOrThrow())
 			.requires(this::canExecuteAllParams)
-			.executes(this::executeAllParams));
+			.executes(this::executeAllParams))
+		);
 	}
 
 	@Override

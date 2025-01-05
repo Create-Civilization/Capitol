@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.command.custom.debug;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 
@@ -12,13 +13,16 @@ import java.util.Objects;
 import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
 
 public class RemoveTeamDebugCommand extends AbstractTeamCommand {
+
 	public RemoveTeamDebugCommand() {
 		super("removeTeam");
-		command = Commands.literal("debug")
-			.then(Commands.literal(subCommandName)
+		command.set(
+			Commands.literal("debug")
+			.then(Commands.literal(subCommandName.getOrThrow())
 			.then(Commands.argument("teamName", StringArgumentType.string())
 			.requires(this::canExecuteAllParams)
-			.executes(this::executeAllParams)));
+			.executes(this::executeAllParams)))
+		);
 	}
 
 	@Override

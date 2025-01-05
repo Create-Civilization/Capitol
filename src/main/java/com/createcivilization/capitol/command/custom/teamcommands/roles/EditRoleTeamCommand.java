@@ -19,7 +19,8 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 
 	public EditRoleTeamCommand() {
 		super("editRole");
-		command = Commands.literal(subCommandName)
+		command.set(
+			Commands.literal(subCommandName.getOrThrow())
 			.requires(this::canExecuteAllParams)
 			.then(Commands.argument("roleName", StringArgumentType.string())
 				.suggests(SUGGESTION_PROVIDER_ROLES).then(
@@ -28,7 +29,7 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 			Commands.argument("value", BoolArgumentType.bool())
 				.executes(this::executeAllParams)
 				)
-			)
+			))
 		);
 	}
 
@@ -70,6 +71,7 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 		PermissionUtil.permissions.forEach(builder::suggest);
 		return builder.buildFuture();
 	};
+
 	private static final SuggestionProvider<CommandSourceStack> SUGGESTION_PROVIDER_ROLES = (context, builder) -> {
 		CommandSourceStack source = context.getSource();
 		Team team = TeamUtils.getTeam(source.getPlayer()).getOrThrow();

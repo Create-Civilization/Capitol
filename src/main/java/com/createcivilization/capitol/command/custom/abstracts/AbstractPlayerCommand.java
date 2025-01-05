@@ -14,12 +14,12 @@ import wiiu.mavity.util.ObjectHolder;
 
 public abstract class AbstractPlayerCommand extends AbstractCommand {
 
-	protected @Nullable ArgumentBuilder<CommandSourceStack, ?> command;
-	protected @Nullable String subCommandName;
+	protected ObjectHolder<ArgumentBuilder<CommandSourceStack, ?>> command = new ObjectHolder<>();
+	protected ObjectHolder<String> subCommandName = new ObjectHolder<>();
 
 	protected AbstractPlayerCommand(String commandName, @Nullable String subCommandName) {
 		super(commandName);
-		this.subCommandName = subCommandName;
+		this.subCommandName.set(subCommandName);
 	}
 
 	protected String mustWhat = "be a player";
@@ -36,9 +36,9 @@ public abstract class AbstractPlayerCommand extends AbstractCommand {
 					command.sendFailure(Component.literal("You must be a player to execute this command!"));
 					return false;
 				} else return this.canExecuteBaseCommand(command);
-			}).then(new ObjectHolder<>(this.command).ifPresentOrElse(
+			}).then(this.command.ifPresentOrElse(
 				(command) -> command,
-				() -> Commands.literal(this.subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams))
+				() -> Commands.literal(this.subCommandName.getOrThrow()).requires(this::canExecuteAllParams).executes(this::executeAllParams))
 			)
 		);
 	}

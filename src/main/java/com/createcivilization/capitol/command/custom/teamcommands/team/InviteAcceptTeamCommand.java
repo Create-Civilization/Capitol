@@ -2,24 +2,27 @@ package com.createcivilization.capitol.command.custom.teamcommands.team;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.Config;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.*;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+
+import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+
 import wiiu.mavity.util.ObjectHolder;
 
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class InviteAcceptTeamCommand extends AbstractTeamCommand {
+
 	public InviteAcceptTeamCommand() {
 		super("inviteAccept");
-		command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).then(
+		command.set(
+			Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).then(
 				Commands.argument("teamId", StringArgumentType.string()).executes(this::executeAllParams)
+			)
 		);
 	}
 
@@ -31,18 +34,18 @@ public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 		CommandSourceStack source = context.getSource();
 		Player player = Objects.requireNonNull(source.getPlayer());
 		UUID uuid = player.getUUID();
-		if (TeamUtils.hasTeam(player)){
+		if (TeamUtils.hasTeam(player)) {
 			source.sendFailure(Component.literal("You're already in a team"));
 			return -1;
 		}
 		if (
 			invitingTeam.hasInvitee(uuid)
 			&& (invitingTeam.getInviteeTimestamp(uuid) + Config.inviteTimeout.getOrThrow()) > (System.currentTimeMillis() / 1000L)
-		){
+		) {
 			invitingTeam.addPlayer("member", uuid);
 			source.sendSuccess(() -> Component.literal("Successfully joined team \"" + invitingTeam.getName() + "\""), true);
 			return 1;
-		}else{
+		} else {
 			source.sendFailure(Component.literal("Invite Expired!"));
 			return -1;
 		}

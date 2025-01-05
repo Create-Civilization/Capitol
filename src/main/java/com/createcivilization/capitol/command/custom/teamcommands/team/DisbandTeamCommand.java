@@ -2,6 +2,7 @@ package com.createcivilization.capitol.command.custom.teamcommands.team;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -9,14 +10,14 @@ import net.minecraft.world.entity.player.Player;
 import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
 
 public class DisbandTeamCommand extends AbstractTeamCommand {
+
 	public DisbandTeamCommand() {
 		super("disbandTeam");
-		command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command.set(Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).executes(this::executeAllParams));
 	}
 
 	@Override
-	public int execute(Player player)
-	{
+	public int execute(Player player) {
 		// Only runs if player owns the team (check canExecute)
 		loadedTeams.remove(TeamUtils.getTeam(player).get());
 		player.sendSystemMessage(Component.literal("Team successfully disbanded"));

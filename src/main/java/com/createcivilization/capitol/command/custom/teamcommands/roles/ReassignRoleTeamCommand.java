@@ -9,8 +9,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import net.minecraft.commands.*;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -22,12 +21,15 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 
 	public ReassignRoleTeamCommand() {
 		super("reassignRole");
-		command = Commands.literal(subCommandName)
+		command.set(
+			Commands.literal(subCommandName.getOrThrow())
 			.requires(this::canExecuteAllParams)
 			.then(Commands.argument("player", EntityArgument.players())
 			.then(Commands.argument("roleName", StringArgumentType.string())
 				.suggests(SUGGESTION_PROVIDER)
-				.executes(this::executeAllParams)));
+				.executes(this::executeAllParams)
+			))
+		);
 	}
 
 	@Override
@@ -48,7 +50,7 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 		Team team = TeamUtils.getTeam(player).getOrThrow();
 		String role = StringArgumentType.getString(context,"roleName");
 
-		if (!Objects.equals(TeamUtils.getTeam(player).get().getTeamId(), TeamUtils.getTeam(toPromote).get().getTeamId())){
+		if (!Objects.equals(TeamUtils.getTeam(player).getOrThrow().getTeamId(), TeamUtils.getTeam(toPromote).getOrThrow().getTeamId())){
 			source.sendFailure(Component.literal("Player is not from the same team as you"));
 			return -1;
 		}

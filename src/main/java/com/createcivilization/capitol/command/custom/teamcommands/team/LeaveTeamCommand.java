@@ -3,22 +3,24 @@ package com.createcivilization.capitol.command.custom.teamcommands.team;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class LeaveTeamCommand extends AbstractTeamCommand {
+
 	public LeaveTeamCommand() {
 		super("leaveTeam");
-		command = Commands.literal(subCommandName).requires(this::canExecuteAllParams).executes(this::executeAllParams);
+		command.set(
+			Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).executes(this::executeAllParams)
+		);
 	}
 
 	@Override
-	public int execute(Player player)
-	{
+	public int execute(Player player) {
 		Team playerTeam = TeamUtils.getTeam(player).getOrThrow();
 		List<UUID> owners = playerTeam.getPlayersWithRole("owner");
 		if (owners.contains(player.getUUID()) && owners.size() == 1){

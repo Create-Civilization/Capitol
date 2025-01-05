@@ -33,7 +33,11 @@ public class ObjectHolder<V> {
     }
 
 	public @NotNull V getOrThrow() {
-		return Objects.requireNonNull(this.get(), "Value was null!");
+		return this.getOrThrow("Value was null!");
+	}
+
+	public @NotNull V getOrThrow(String message) {
+		return Objects.requireNonNull(this.get(), message);
 	}
 
     public String getAsString() {

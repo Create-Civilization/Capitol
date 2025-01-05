@@ -2,20 +2,23 @@ package com.createcivilization.capitol.command.custom.teamcommands.roles;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.util.TeamUtils;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+
+import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 // WIP
 public class AddRoleTeamCommand extends AbstractTeamCommand {
+
 	public AddRoleTeamCommand() {
 		super("addRole");
-		command = Commands.literal(subCommandName)
+		command.set(
+			Commands.literal(subCommandName.getOrThrow())
 			.requires(this::canExecuteAllParams)
-			.then(Commands.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams)
+			.then(Commands.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams))
 		);
 	}
 
