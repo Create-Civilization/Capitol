@@ -3,6 +3,7 @@ package com.createcivilization.capitol.screen;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
 
+import com.createcivilization.capitol.util.Config;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -47,7 +48,7 @@ public class TeamClaimManagerScreen extends Screen {
 		this.leftPos = (this.width - this.imageWidth) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
 
-		if (minecraft==null) return;
+		if (minecraft == null) return;
 
 		addWidget(
 			Button.builder(
@@ -75,7 +76,7 @@ public class TeamClaimManagerScreen extends Screen {
 
 		guiGraphics.drawString(
 			this.font,
-			Component.literal("Amount of claimed chunks: " + chunkAmount + " / CONFIG_MAX"),
+			Component.literal("Amount of claimed chunks: " + chunkAmount + " / " + Config.maxChunks),
 			this.leftPos + 6,
 			this.topPos + 16,
 			0xf2f2f2,
@@ -84,7 +85,7 @@ public class TeamClaimManagerScreen extends Screen {
 
 		guiGraphics.drawString(
 			this.font,
-			Component.literal("Member count: " + playerAmount + " / CONFIG_MAX"),
+			Component.literal("Member count: " + playerAmount + " / " + Config.maxMembers),
 			this.leftPos + 4,
 			this.topPos + 33,
 			0xf2f2f2,

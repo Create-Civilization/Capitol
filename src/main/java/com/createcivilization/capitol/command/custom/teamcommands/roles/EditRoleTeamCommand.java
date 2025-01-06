@@ -59,7 +59,7 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 		Boolean value = BoolArgumentType.getBool(context, "value");
 
 		team.setPermission(roleName, permission, value);
-		source.sendSuccess(() -> Component.literal("Successfully changed \"" + permission + "\" to " + value + "for \"" + roleName + "\""), true);
+		source.sendSuccess(() -> Component.literal("Successfully changed \"" + permission + "\" to " + value + " for \"" + roleName + "\""), true);
 
 		return 1;
 	}

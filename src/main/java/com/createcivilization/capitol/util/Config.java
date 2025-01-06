@@ -19,6 +19,9 @@ public class Config {
 	public static final ObjectHolder<Boolean> nonMemberInteractEntities = new ObjectHolder<>(true);
 	public static final ObjectHolder<Boolean> nonMemberInteractBlocks = new ObjectHolder<>(true);
 
+	public static final ObjectHolder<Integer> maxChunks = new ObjectHolder<>(1000);
+	public static final ObjectHolder<Integer> maxMembers = new ObjectHolder<>(50);
+
 	public static void loadConfig() throws IOException {
 		System.out.println("Loading config...");
 		File file = FileUtils.forceFileExistence(FileUtils.getLocalFile("config", "capitol_server.json"));
