@@ -2,16 +2,11 @@ package com.createcivilization.capitol.command.custom.debug;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.*;
+import com.createcivilization.capitol.util.TeamUtils;
 
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-
-import java.io.IOException;
-import java.util.List;
-
-import static com.createcivilization.capitol.util.TeamUtils.parseTeams;
 
 public class GetTeamsDebugCommand extends AbstractTeamCommand {
 
@@ -27,13 +22,8 @@ public class GetTeamsDebugCommand extends AbstractTeamCommand {
 
 	@Override
 	public int execute(Player player) {
-		List<Team> teams;
-		try {
-			teams = parseTeams(FileUtils.getFileContents(TeamUtils.getTeamDataFile()));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		for (Team team : teams) player.sendSystemMessage(Component.literal(team.toString()));
+		if (TeamUtils.loadedTeams.isEmpty()) player.sendSystemMessage(Component.literal("No teams loaded"));
+		for (Team team : TeamUtils.loadedTeams) player.sendSystemMessage(Component.literal(team.toString()));
 		return 1;
 	}
 

@@ -107,7 +107,7 @@ public class Team {
     }
 
 	public String getPlayerRole(UUID uuid) {
-		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if(entry.getValue().contains(uuid)) return entry.getKey();
+		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if (entry.getValue().contains(uuid)) return entry.getKey();
 		return "non-member";
 	}
 

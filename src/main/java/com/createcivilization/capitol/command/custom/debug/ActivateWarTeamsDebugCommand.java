@@ -1,8 +1,9 @@
 package com.createcivilization.capitol.command.custom.debug;
 
+import com.createcivilization.capitol.command.Suggestions;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.*;
-import com.createcivilization.capitol.util.*;
+import com.createcivilization.capitol.util.TeamUtils;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -16,11 +17,13 @@ public class ActivateWarTeamsDebugCommand extends AbstractTeamCommand {
 		super("startWar");
 		command.set(
 			Commands.literal("debug")
-			.then(Commands.literal(subCommandName.getOrThrow())
-			.then(Commands.argument("attackerTeamName", StringArgumentType.string()))
-			.then(Commands.argument("defenderTeamName", StringArgumentType.string()))
-			.requires(this::canExecuteAllParams)
-			.executes(this::executeAllParams))
+				.then(Commands.literal(subCommandName.getOrThrow())
+					.then(Commands.argument("attackerTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAME)
+						.then(Commands.argument("defenderTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAME))
+					)
+					.requires(this::canExecuteAllParams)
+					.executes(this::executeAllParams)
+				)
 		);
 	}
 
@@ -40,7 +43,8 @@ public class ActivateWarTeamsDebugCommand extends AbstractTeamCommand {
 
 		context.getSource().sendSuccess(() -> Component.literal(
 			"Successfully intiated a war between \"" + attackerTeamName + "\" and \"" + defenderTeamName + "\""
-			), true);
+			), true
+		);
 
 		return 1;
 	}
