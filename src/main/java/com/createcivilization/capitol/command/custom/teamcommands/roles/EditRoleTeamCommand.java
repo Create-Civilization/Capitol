@@ -21,16 +21,18 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 		super("editRole");
 		command.set(
 			Commands.literal(subCommandName.getOrThrow())
-			.requires(this::canExecuteAllParams)
-			.then(Commands.argument("roleName", StringArgumentType.string())
-				.suggests(Suggestions.ROLES).then(
-					Commands.argument("permission", StringArgumentType.string())
-						.suggests(Suggestions.PERMISSIONS).then(
-							Commands.argument("value", BoolArgumentType.bool())
-								.executes(this::executeAllParams)
-						)
+				.requires(this::canExecuteAllParams)
+				.then(Commands.argument("roleName", StringArgumentType.string())
+					.suggests(Suggestions.ROLES)
+					.then(
+						Commands.argument("permission", StringArgumentType.string())
+							.suggests(Suggestions.PERMISSIONS)
+							.then(
+								Commands.argument("value", BoolArgumentType.bool())
+									.executes(this::executeAllParams)
+							)
+					)
 				)
-			)
 		);
 	}
 

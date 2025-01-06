@@ -15,7 +15,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
@@ -24,28 +23,22 @@ import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.*;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+
 import org.jetbrains.annotations.Nullable;
+
 import wiiu.mavity.util.ObjectHolder;
 
 @SuppressWarnings({"deprecation", "NullableProblems"})
 public class CapitolBlock extends BaseEntityBlock {
-
-    public static final VoxelShape SHAPE = Block.box(0,0,0, 16,16,16);
 
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public CapitolBlock(Properties properties) {
         super(properties);
 		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
     }
 
     @Override
