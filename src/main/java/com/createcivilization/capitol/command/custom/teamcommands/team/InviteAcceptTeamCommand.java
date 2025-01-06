@@ -20,9 +20,12 @@ public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 	public InviteAcceptTeamCommand() {
 		super("inviteAccept");
 		command.set(
-			Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).then(
-				Commands.argument("teamId", StringArgumentType.string()).executes(this::executeAllParams)
-			)
+			Commands.literal(subCommandName.getOrThrow())
+				.requires(this::canExecuteAllParams)
+				.then(
+					Commands.argument("teamId", StringArgumentType.string())
+						.executes(this::executeAllParams)
+				)
 		);
 	}
 

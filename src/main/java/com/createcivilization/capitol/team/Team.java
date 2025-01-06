@@ -106,6 +106,10 @@ public class Team {
         return name;
     }
 
+	public String getQuotedName() {
+		return "\"" + name + "\"";
+	}
+
 	public String getPlayerRole(UUID uuid) {
 		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if (entry.getValue().contains(uuid)) return entry.getKey();
 		return "non-member";
@@ -122,7 +126,7 @@ public class Team {
 	}
 
 	public List<ChunkPos> getClaimedChunksOfDimension(ResourceLocation dimension) {
-		return claimedChunks.get(dimension);
+		return claimedChunks.getOrDefault(dimension, new ArrayList<>()); // This can return null if the dimension doesn't have chunks already.
 	}
 
 	public List<String> getAllies() {

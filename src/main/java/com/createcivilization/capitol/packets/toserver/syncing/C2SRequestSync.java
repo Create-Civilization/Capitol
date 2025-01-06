@@ -24,7 +24,7 @@ public class C2SRequestSync {
 			() -> DistExecutor.unsafeRunWhenOn(
 				Dist.DEDICATED_SERVER,
 				() -> () -> ServerPacketHandler.syncDataWithPlayer(ctx.getSender())
-				)
+			)
 		);
 	}
 }

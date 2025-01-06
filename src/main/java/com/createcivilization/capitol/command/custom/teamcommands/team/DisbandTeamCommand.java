@@ -7,8 +7,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
-
 public class DisbandTeamCommand extends AbstractTeamCommand {
 
 	public DisbandTeamCommand() {

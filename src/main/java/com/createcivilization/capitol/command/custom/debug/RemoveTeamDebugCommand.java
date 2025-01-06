@@ -23,7 +23,7 @@ public class RemoveTeamDebugCommand extends AbstractTeamCommand {
 				.requires(this::canExecuteAllParams)
 				.then(
 					Commands.argument("teamName", StringArgumentType.string())
-						.suggests(Suggestions.TEAM_NAME)
+						.suggests(Suggestions.TEAM_NAMES)
 						.requires(this::canExecuteAllParams)
 						.executes(this::executeAllParams)
 				)

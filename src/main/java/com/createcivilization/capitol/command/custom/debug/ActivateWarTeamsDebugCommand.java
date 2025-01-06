@@ -18,8 +18,8 @@ public class ActivateWarTeamsDebugCommand extends AbstractTeamCommand {
 		command.set(
 			Commands.literal("debug")
 				.then(Commands.literal(subCommandName.getOrThrow())
-					.then(Commands.argument("attackerTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAME)
-						.then(Commands.argument("defenderTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAME))
+					.then(Commands.argument("attackerTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES)
+						.then(Commands.argument("defenderTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES))
 					)
 					.requires(this::canExecuteAllParams)
 					.executes(this::executeAllParams)

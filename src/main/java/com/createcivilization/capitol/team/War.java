@@ -30,4 +30,9 @@ public class War {
 	public List<Team> getReceivingTeamAndAllies() {
 		return TeamUtils.getTeamAndAllies(this.receive);
 	}
+
+	@Override
+	public String toString() {
+		return declare.getQuotedName() + " vs " + receive.getQuotedName();
+	}
 }

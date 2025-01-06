@@ -17,8 +17,9 @@ public class AddRoleTeamCommand extends AbstractTeamCommand {
 		super("addRole");
 		command.set(
 			Commands.literal(subCommandName.getOrThrow())
-			.requires(this::canExecuteAllParams)
-			.then(Commands.argument("roleName", StringArgumentType.string()).executes(this::executeAllParams))
+				.requires(this::canExecuteAllParams)
+				.then(Commands.argument("roleName", StringArgumentType.string())
+					.executes(this::executeAllParams))
 		);
 	}
 

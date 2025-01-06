@@ -1,12 +1,12 @@
 package com.createcivilization.capitol.command.custom.teamcommands.roles;
 
+import com.createcivilization.capitol.command.Suggestions;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
@@ -23,13 +23,14 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 			Commands.literal(subCommandName.getOrThrow())
 			.requires(this::canExecuteAllParams)
 			.then(Commands.argument("roleName", StringArgumentType.string())
-				.suggests(SUGGESTION_PROVIDER_ROLES).then(
-			Commands.argument("permission", StringArgumentType.string())
-				.suggests(SUGGESTION_PROVIDER_PERMISSIONS).then(
-			Commands.argument("value", BoolArgumentType.bool())
-				.executes(this::executeAllParams)
+				.suggests(Suggestions.ROLES).then(
+					Commands.argument("permission", StringArgumentType.string())
+						.suggests(Suggestions.PERMISSIONS).then(
+							Commands.argument("value", BoolArgumentType.bool())
+								.executes(this::executeAllParams)
+						)
 				)
-			))
+			)
 		);
 	}
 
@@ -66,19 +67,4 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 		setMustWhat("be a player, be in a team and have role making permissions");
 		return TeamUtils.hasTeam(player) && TeamUtils.getPlayerPermission(TeamUtils.getTeam(player).getOrThrow(), player).get("editPermissions");
 	}
-
-	private static final SuggestionProvider<CommandSourceStack> SUGGESTION_PROVIDER_PERMISSIONS = (context, builder) -> {
-		PermissionUtil.permissions.forEach(builder::suggest);
-		return builder.buildFuture();
-	};
-
-	private static final SuggestionProvider<CommandSourceStack> SUGGESTION_PROVIDER_ROLES = (context, builder) -> {
-		CommandSourceStack source = context.getSource();
-		Team team = TeamUtils.getTeam(source.getPlayer()).getOrThrow();
-		String playerRole = team.getPlayerRole(Objects.requireNonNull(source.getPlayer()).getUUID());
-		Arrays.stream(team.getRoles())
-			.filter(role -> !TeamUtils.isRoleHigher(team, playerRole, role))
-			.forEach(builder::suggest);
-		return builder.buildFuture();
-	};
 }

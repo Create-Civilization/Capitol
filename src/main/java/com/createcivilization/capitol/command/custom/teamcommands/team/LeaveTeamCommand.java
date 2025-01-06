@@ -15,7 +15,9 @@ public class LeaveTeamCommand extends AbstractTeamCommand {
 	public LeaveTeamCommand() {
 		super("leaveTeam");
 		command.set(
-			Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).executes(this::executeAllParams)
+			Commands.literal(subCommandName.getOrThrow())
+				.requires(this::canExecuteAllParams)
+				.executes(this::executeAllParams)
 		);
 	}
 
