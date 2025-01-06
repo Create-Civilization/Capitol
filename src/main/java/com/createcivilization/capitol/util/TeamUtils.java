@@ -583,9 +583,9 @@ public class TeamUtils {
 			team.getClaimedChunks().put(dimension, list);
 		} else claimedChunks.add(pos);
 
-		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-			PacketHandler.sendToAllClients(new S2CAddChunk(team.getTeamId(), pos, dimension));
-		});
+		DistExecutor.unsafeRunWhenOn(
+			Dist.DEDICATED_SERVER, () -> () -> PacketHandler.sendToAllClients(new S2CAddChunk(team.getTeamId(), pos, dimension))
+		);
 
 		return 1;
 	}
@@ -604,9 +604,9 @@ public class TeamUtils {
 		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension);
 		claimedChunks.remove(chunkPos);
 
-		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-			PacketHandler.sendToAllClients(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension));
-		});
+		DistExecutor.unsafeRunWhenOn(
+			Dist.DEDICATED_SERVER, () -> () -> PacketHandler.sendToAllClients(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension))
+		);
 
 		return 1;
 	}
