@@ -3,9 +3,9 @@ package com.createcivilization.capitol.event;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.KeyBindings;
 import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
-import com.createcivilization.capitol.screen.CreateTeam;
-import com.createcivilization.capitol.screen.TeamClaimManager;
-import com.createcivilization.capitol.screen.TeamStatistics;
+import com.createcivilization.capitol.screen.CreateTeamScreen;
+import com.createcivilization.capitol.screen.TeamClaimManagerScreen;
+import com.createcivilization.capitol.screen.TeamStatisticsScreen;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.PacketHandler;
 import com.createcivilization.capitol.util.TeamUtils;
@@ -54,7 +54,7 @@ public class ClientEvents {
 			KeyBindings.openStatistics.consumeClick()
 			&& getTeamOrDisplayClientMessage(player).isPresent()
 		) {
-			instance.setScreen(new TeamStatistics(playerTeam.getOrThrow()));
+			instance.setScreen(new TeamStatisticsScreen(playerTeam.getOrThrow()));
 		}
 		if (KeyBindings.viewChunks.consumeClick()) {
 			viewChunks = !viewChunks;
@@ -65,9 +65,9 @@ public class ClientEvents {
 			KeyBindings.openClaimMenu.consumeClick()
 		) {
 			if(getTeamOrDisplayClientMessage(player).isPresent())
-				instance.setScreen(new TeamClaimManager(playerTeam.getOrThrow()));
+				instance.setScreen(new TeamClaimManagerScreen(playerTeam.getOrThrow()));
 			else
-				instance.setScreen(new CreateTeam());
+				instance.setScreen(new CreateTeamScreen());
 		}
 
 		if (

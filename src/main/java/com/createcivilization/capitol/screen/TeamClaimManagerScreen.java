@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class TeamClaimManager extends Screen {
+public class TeamClaimManagerScreen extends Screen {
 
 	private static final Component TITLE = Component.translatable("gui.capitol.claim_block_menu");
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
@@ -51,7 +51,7 @@ public class TeamClaimManager extends Screen {
 		toggleWidgetList(to, true);
 	}
 
-	public TeamClaimManager(@NotNull Team team) {
+	public TeamClaimManagerScreen(@NotNull Team team) {
 		super(TITLE);
 		this.menuTeam = team;
 		this.imageWidth = 176;

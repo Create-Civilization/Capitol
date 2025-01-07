@@ -2,21 +2,17 @@ package com.createcivilization.capitol.packets;
 
 import com.createcivilization.capitol.event.ClientEvents;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
-import com.createcivilization.capitol.screen.TeamStatistics;
+import com.createcivilization.capitol.screen.TeamStatisticsScreen;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.PacketHandler;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.*;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import net.minecraftforge.api.distmarker.*;
+
+import java.util.*;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientPacketHandler {
@@ -59,7 +55,7 @@ public class ClientPacketHandler {
 			// This SHOULD throw if team is not loaded due to the server already checking for team existance
 			// If it throws, client is out of sync, thus needs to be synced
 			Team team = TeamUtils.getTeam(teamId).getOrThrow();
-			instance.setScreen(new TeamStatistics(team));
+			instance.setScreen(new TeamStatisticsScreen(team));
 		});
 	}
 

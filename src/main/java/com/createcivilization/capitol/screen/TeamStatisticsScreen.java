@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class TeamStatistics extends Screen {
+public class TeamStatisticsScreen extends Screen {
 
 	private static final Component TITLE = Component.translatable("gui." + Capitol.MOD_ID + ".claim_block_menu");
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
@@ -28,7 +28,7 @@ public class TeamStatistics extends Screen {
 	private int playerAmount;
 	private final Component EXIT = Component.literal("X");
 
-	public TeamStatistics(@NotNull Team team) {
+	public TeamStatisticsScreen(@NotNull Team team) {
 		super(TITLE);
 		this.menuTeam = team;
 		this.imageWidth = 176;
