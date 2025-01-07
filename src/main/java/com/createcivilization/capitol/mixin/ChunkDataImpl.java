@@ -16,8 +16,6 @@ import javax.annotation.Nullable;
 @SuppressWarnings("AddedMixinMembersNamePattern")
 public abstract class ChunkDataImpl implements IChunkData {
 
-	// Inject information into relevant chunks
-
 	@Shadow
 	@Nullable
 	public abstract LevelAccessor getWorldForge();
@@ -25,7 +23,6 @@ public abstract class ChunkDataImpl implements IChunkData {
 	@Shadow
 	public abstract ChunkPos getPos();
 
-	// Represents a % of taken over progress
 	@Unique
 	private float takeOverProgress = 0;
 
@@ -51,7 +48,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 			if (TeamUtils.isChunkEdgeOfClaims((ChunkAccess) (Object) this)) {
 
 				var players = server.getPlayerList().getPlayers();
-				var isThisChunkClaimedByDeclaringTeam =
+				boolean isThisChunkClaimedByDeclaringTeam =
 					TeamUtils.getTeam(this.getPos(), this.getThisLevel().dimension().location()).getOrThrow().equals(war.getDeclaringTeam());
 
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {

@@ -172,7 +172,7 @@ public class Team {
 			writer.name("name").value(name);
 			writer.name("teamId").value(teamId);
 			writer.name("color").value(color.getRGB());
-			PermissionUtil.savePermission(writer, rolePermissions);
+			JsonUtils.saveJsonMap(writer, "rolePermissions", rolePermissions, false);
 			JsonUtils.saveJsonMap(writer, "players", players, false);
 			JsonUtils.saveJsonList(writer, "allies", allies, false);
 			writer.endObject();
@@ -202,7 +202,7 @@ public class Team {
 		this.rolePermissions = rolePermissions;
 	}
 
-	@SuppressWarnings("UnusedReturnValue")
+	@SuppressWarnings({"UnusedReturnValue", "TypeMayBeWeakened"})
 	public static class TeamBuilder {
 
 		private String name, teamId;
@@ -213,11 +213,9 @@ public class Team {
 
 		private Color color;
 
-		@SuppressWarnings("TypeMayBeWeakened")
 		private List<String> allies = new ArrayList<>();
 
-		private TeamBuilder() {
-		}
+		private TeamBuilder() {}
 
 		public static TeamBuilder create() {
 			return new TeamBuilder();

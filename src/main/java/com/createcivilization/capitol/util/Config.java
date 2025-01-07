@@ -23,7 +23,7 @@ public class Config {
 	public static final ObjectHolder<Integer> maxMembers = new ObjectHolder<>(50);
 
 	public static final ObjectHolder<Integer> warTakeoverIncrement = new ObjectHolder<>(1); // TODO: Ask Arctic for the best value
-	public static final ObjectHolder<Integer> maxWarTakeoverAmount = new ObjectHolder<>(1); // TODO: Ask Arctic for the best value
+	public static final ObjectHolder<Integer> maxWarTakeoverAmount = new ObjectHolder<>(1000); // TODO: Ask Arctic for the best value
 
 	public static void loadConfig() throws IOException {
 		System.out.println("Loading config...");
