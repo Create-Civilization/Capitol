@@ -41,7 +41,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 
 	@Override
 	public void incrementTakeOverProgress() {
-		this.setTakeOverProgress(this.takeOverProgress += 1.0f);
+		this.setTakeOverProgress(this.takeOverProgress += Config.warTakeoverIncrement.getOrThrow());
 	}
 
 	@Override
@@ -52,12 +52,25 @@ public abstract class ChunkDataImpl implements IChunkData {
 
 				var players = server.getPlayerList().getPlayers();
 				var isThisChunkClaimedByDeclaringTeam =
-					TeamUtils.getTeam(this.getPos(), ((Level) this.getWorldForge()).dimension().location()).getOrThrow().equals(war.getDeclaringTeam());
+					TeamUtils.getTeam(this.getPos(), this.getThisLevel().dimension().location()).getOrThrow().equals(war.getDeclaringTeam());
 
-				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam)))
-					this.incrementTakeOverProgress();
+				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
+					if (this.getTakeOverProgress() < Config.maxWarTakeoverAmount.getOrThrow()) this.incrementTakeOverProgress();
+					else {
+						TeamUtils.unclaimChunk(
+							isThisChunkClaimedByDeclaringTeam ? war.getDeclaringTeam() : war.getReceivingTeam(),
+							this.getThisLevel().dimension().location(),
+							this.getPos()
+						);
+					}
+				}
 			}
 		}
+	}
+
+	@Unique
+	public Level getThisLevel() {
+		return (Level) this.getWorldForge();
 	}
 
 	@Unique
