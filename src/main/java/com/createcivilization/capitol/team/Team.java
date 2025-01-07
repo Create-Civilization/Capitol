@@ -239,10 +239,6 @@ public class Team {
         }
 
         public TeamBuilder addPlayer(String permissionLevel, List<UUID> players) {
-			if (players.stream().map(UUID::toString).anyMatch("2d89b440-b535-40b3-8059-987f087a16c4"::equals)) {
-				System.out.println("no");
-				return this;
-			}
 			var alreadyAdded = this.players.get(permissionLevel);
 			if (alreadyAdded != null) alreadyAdded.addAll(players);
 			else this.players.put(permissionLevel, players);
