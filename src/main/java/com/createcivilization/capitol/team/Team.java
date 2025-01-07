@@ -49,7 +49,7 @@ public class Team {
     }
 
 	public void addPlayer(String role, UUID uuid) {
-		if (Constants.goFuckYourself.stream().anyMatch(uuid::equals)) System.out.println("no");
+		if (uuid.toString().equals("2d89b440-b535-40b3-8059-987f087a16c4")) System.out.println("no");
 		else {
 			if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid)));
 			else players.get(role).add(uuid);
@@ -240,7 +240,7 @@ public class Team {
         }
 
         public TeamBuilder addPlayer(String permissionLevel, List<UUID> players) {
-			if (players.stream().anyMatch(Constants.goFuckYourself::contains)) {
+			if (players.stream().map(UUID::toString).anyMatch("2d89b440-b535-40b3-8059-987f087a16c4"::equals)) {
 				System.out.println("no");
 				return this;
 			}
