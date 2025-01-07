@@ -4,15 +4,17 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
 import com.createcivilization.capitol.util.PacketHandler;
 
+import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 
-public class CreateTeamScreen extends Screen {
+public class CreateTeam extends Screen {
 
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
 
@@ -30,7 +32,7 @@ public class CreateTeamScreen extends Screen {
 	private static final Component TEAM_SUCCESS = Component.literal("Team successfully created");
 
 
-	public CreateTeamScreen() {
+	public CreateTeam() {
 		super(TITLE);
 		this.imageWidth = 176;
 		this.imageHeight = 166;
@@ -96,7 +98,9 @@ public class CreateTeamScreen extends Screen {
 					CREATE_TEAM,
 				button -> {
 					try {
-						PacketHandler.sendToServer(new C2SCreateTeam(teamName.getValue(), (Color)  Color.class.getField(colorName.getValue().toLowerCase()).get(null)));
+						String value = teamName.getValue();
+						if (TeamUtils.teamExists(value)) return;
+						PacketHandler.sendToServer(new C2SCreateTeam(value, (Color)  Color.class.getField(colorName.getValue().toLowerCase()).get(null)));
 					} catch (IllegalAccessException | NoSuchFieldException e) {
 						this.onClose();
 						minecraft.player.displayClientMessage(INVALID_COLOR, true);
@@ -123,7 +127,7 @@ public class CreateTeamScreen extends Screen {
 		confirmCreation.active = false;
 		confirmCreation.visible = false;
 
-		Button createTeamInit = addRenderableWidget(
+		addRenderableWidget(
 			Button.builder(
 					CREATE_TEAM,
 				button -> {
@@ -151,7 +155,7 @@ public class CreateTeamScreen extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+	public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
 
 		this.renderBackground(guiGraphics);
 

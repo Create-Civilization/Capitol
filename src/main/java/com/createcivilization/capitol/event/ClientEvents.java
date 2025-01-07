@@ -1,18 +1,23 @@
 package com.createcivilization.capitol.event;
 
-import com.createcivilization.capitol.*;
-import com.createcivilization.capitol.screen.*;
+import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.KeyBindings;
+import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
+import com.createcivilization.capitol.screen.CreateTeam;
+import com.createcivilization.capitol.screen.TeamClaimManager;
+import com.createcivilization.capitol.screen.TeamStatistics;
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.PacketHandler;
 import com.createcivilization.capitol.util.TeamUtils;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.*;
-
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -24,9 +29,20 @@ import java.util.*;
 public class ClientEvents {
 
 	private static final Component NOT_IN_TEAM = Component.literal("You are not in a team");
+	private static final Component NOT_NEAR_CHUNK = Component.literal("You must be next to a claimed chunk to do this");
+	private static final Component CLAIMED_CHUNK = Component.literal("Chunk already claimed");
+	private static final Component SUCCESS_CHUNK = Component.literal("Chunk successfully claimed");
+
 	private static final Minecraft instance = Minecraft.getInstance();
 	private static boolean viewChunks;
+	public static Map<UUID, String> playerMap = new HashMap<>();
 	private static ObjectHolder<Team> playerTeam;
+
+	@SubscribeEvent
+	public static void onLeave(ClientPlayerNetworkEvent.LoggingOut event) {
+		TeamUtils.loadedTeams.clear();
+		ClientEvents.playerMap.clear();
+	}
 
 	@SubscribeEvent
 	public static void clientTick(TickEvent.ClientTickEvent event) {
@@ -35,23 +51,46 @@ public class ClientEvents {
 		final long timeStamp = System.currentTimeMillis() / 100L;
 
 		if (
-			KeyBindings.INSTANCE.openStatistics.consumeClick()
+			KeyBindings.openStatistics.consumeClick()
 			&& getTeamOrDisplayClientMessage(player).isPresent()
 		) {
-			instance.setScreen(new TeamStatisticsScreen(playerTeam.getOrThrow()));
+			instance.setScreen(new TeamStatistics(playerTeam.getOrThrow()));
 		}
-		if (KeyBindings.INSTANCE.viewChunks.consumeClick()) {
+		if (KeyBindings.viewChunks.consumeClick()) {
 			viewChunks = !viewChunks;
 			player.displayClientMessage(Component.literal("Now " + (viewChunks ? "showing" : "hiding") + " claim borders"), true);
 		}
 
 		if (
-			KeyBindings.INSTANCE.openClaimMenu.consumeClick()
+			KeyBindings.openClaimMenu.consumeClick()
 		) {
 			if(getTeamOrDisplayClientMessage(player).isPresent())
-				instance.setScreen(new TeamClaimManagerScreen(playerTeam.getOrThrow()));
+				instance.setScreen(new TeamClaimManager(playerTeam.getOrThrow()));
 			else
-				instance.setScreen(new CreateTeamScreen());
+				instance.setScreen(new CreateTeam());
+		}
+
+		if (
+			KeyBindings.claim_chunk.consumeClick()
+			&& getTeamOrDisplayClientMessage(player).isPresent()
+		) {
+			if (!TeamUtils.nearClaimedChunk(player.chunkPosition(), 1, player))
+				player.displayClientMessage(
+					NOT_NEAR_CHUNK,
+					true
+					);
+			else if (TeamUtils.isInClaimedChunk(player))
+				player.displayClientMessage(
+					CLAIMED_CHUNK,
+					true
+				);
+			else {
+				player.displayClientMessage(
+					SUCCESS_CHUNK,
+					true
+				);
+				PacketHandler.sendToServer(new C2SClaimChunk());
+			}
 		}
 
 		if (viewChunks && timeStamp % 5 == 0) {
@@ -82,13 +121,13 @@ public class ClientEvents {
 		if (teamHolder.isEmpty()) {
 			player.displayClientMessage(NOT_IN_TEAM, true);
 			return teamHolder;
-		} else {
+		}else {
 			playerTeam = teamHolder;
 			return playerTeam;
 		}
 	}
 
-	private static void displayClaimBorderVertice(ChunkPos chunkPos, Team team, int xDiff, int zDiff, Level level, ResourceLocation dimension, LocalPlayer player) {
+	private static void displayClaimBorderVertice (ChunkPos chunkPos, Team team, int xDiff, int zDiff, Level level, ResourceLocation dimension, LocalPlayer player) {
 		// Avoid displaying vertices on which another chunk is at
 		if (chunkIsOfTheSameTeam(team, new ChunkPos(chunkPos.x - xDiff, chunkPos.z - zDiff), dimension)) return;
 		for (int i = -8; i < 8; i++) {
@@ -101,7 +140,7 @@ public class ClientEvents {
 		}
 	}
 
-	private static boolean chunkIsOfTheSameTeam(Team baseTeam, ChunkPos chunkToCheck, ResourceLocation dimension) {
+	private static boolean chunkIsOfTheSameTeam (Team baseTeam, ChunkPos chunkToCheck, ResourceLocation dimension) {
 		ObjectHolder<Team> holder = TeamUtils.getTeam(chunkToCheck, dimension);
 		if (holder.isEmpty()) return false;
 		return Objects.equals(baseTeam.getTeamId(), holder.getOrThrow().getTeamId());

@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class TeamClaimManagerScreen extends Screen {
+public class TeamStatistics extends Screen {
 
-	private static final Component TITLE = Component.translatable("gui.capitol.claim_block_menu");
+	private static final Component TITLE = Component.translatable("gui." + Capitol.MOD_ID + ".claim_block_menu");
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
 
 	private final Team menuTeam;
@@ -26,9 +26,9 @@ public class TeamClaimManagerScreen extends Screen {
 	private int leftPos, topPos;
 	private int chunkAmount;
 	private int playerAmount;
-	private final Component EXITBUTTON_COMPONENT = Component.literal("X");
+	private final Component EXIT = Component.literal("X");
 
-	public TeamClaimManagerScreen(@NotNull Team team) {
+	public TeamStatistics(@NotNull Team team) {
 		super(TITLE);
 		this.menuTeam = team;
 		this.imageWidth = 176;
@@ -48,14 +48,14 @@ public class TeamClaimManagerScreen extends Screen {
 		this.leftPos = (this.width - this.imageWidth) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
 
-		if (minecraft == null) return;
+		if (minecraft==null) return;
 
 		addWidget(
 			Button.builder(
 					Component.empty(),
 					button -> this.onClose()
 				)
-				.bounds((this.width + this.imageWidth) / 2 - this.font.width(EXITBUTTON_COMPONENT.getVisualOrderText()) - 4,
+				.bounds((this.width + this.imageWidth) / 2 - this.font.width(EXIT.getVisualOrderText()) - 4,
 					this.topPos + 4,
 					9,
 					9)
@@ -76,7 +76,7 @@ public class TeamClaimManagerScreen extends Screen {
 
 		guiGraphics.drawString(
 			this.font,
-			Component.literal("Amount of claimed chunks: " + chunkAmount + " / " + Config.maxChunks),
+			Component.literal("Amount of claimed chunks: " + chunkAmount + " / " + Config.maxChunks.getOrThrow()),
 			this.leftPos + 6,
 			this.topPos + 16,
 			0xf2f2f2,
@@ -85,7 +85,7 @@ public class TeamClaimManagerScreen extends Screen {
 
 		guiGraphics.drawString(
 			this.font,
-			Component.literal("Member count: " + playerAmount + " / " + Config.maxMembers),
+			Component.literal("Member count: " + playerAmount + " / " + Config.maxMembers.getOrThrow()),
 			this.leftPos + 4,
 			this.topPos + 33,
 			0xf2f2f2,
@@ -94,8 +94,8 @@ public class TeamClaimManagerScreen extends Screen {
 
 		guiGraphics.drawString(
 			this.font,
-			EXITBUTTON_COMPONENT,
-			(this.width + this.imageWidth) / 2 - this.font.width(EXITBUTTON_COMPONENT.getVisualOrderText()) - 4,
+			EXIT,
+			(this.width + this.imageWidth) / 2 - this.font.width(EXIT.getVisualOrderText()) - 4,
 			this.topPos + 4,
 			0x787878,
 			false

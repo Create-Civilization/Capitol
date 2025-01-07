@@ -61,13 +61,24 @@ public class TeamUtils {
 	 * @return If the {@link Player} is in a team or not.
 	 */
     public static boolean hasTeam(Player player) {
-        boolean hasTeam = false;
-        for (Team team : loadedTeams) {
-            for (var uuid : team.getAllPlayers()) if (uuid.equals(player.getUUID())) hasTeam = true;
-            if (hasTeam) break;
-        }
-        return hasTeam;
+        return hasTeam(player.getUUID());
     }
+
+	/**
+	 * @return If the {@link UUID} is in a team or not
+	 */
+	public static boolean hasTeam(UUID playerUUID) {
+		boolean hasTeam = false;
+		for (Team team : loadedTeams) {
+			for (var uuid : team.getAllPlayers())
+				if (uuid.equals(playerUUID)) {
+					hasTeam = true;
+					break;
+				}
+			if (hasTeam) break;
+		}
+		return hasTeam;
+	}
 
 	/**
 	 * Checks if player owns the team that they're in
@@ -521,6 +532,13 @@ public class TeamUtils {
 		return false;
 	}
 
+	/**
+	 * Returns wether player can do X action based on their permission
+	 */
+	public static boolean canPlayerDo(Team team, Player player, String action) {
+		return team.getPermission(team.getPlayerRole(player.getUUID())).get(action);
+	}
+
 	public static Map<String, Boolean> getPlayerPermission(Team team, Player player) {
 		return team.getPermission(team.getPlayerRole(player.getUUID()));
 	}
@@ -569,6 +587,17 @@ public class TeamUtils {
 	public static void unclaimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
 		radius++;
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.unclaimChunkIfFromTeam(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
+	}
+
+	public static void unclaimSpread(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
+		// warning recursive
+		TeamUtils.unclaimChunk(team, dimension, chunkPos);
+		for (int x = -1; x < 2; x++) {
+			for (int z = -1; z < 2; z++) {
+				ChunkPos currentChunk = new ChunkPos(chunkPos.x + x, chunkPos.z + z);
+				if (TeamUtils.isClaimedChunk(dimension, currentChunk)) unclaimSpread(team, dimension, currentChunk);
+			}
+		}
 	}
 
 	/**

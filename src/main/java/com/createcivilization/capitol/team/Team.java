@@ -61,7 +61,8 @@ public class Team {
 	}
 
 	public void addRole(String roleName) {
-		players.put(roleName, new ArrayList<>());
+		this.players.put(roleName, new ArrayList<>());
+		this.rolePermissions.put(roleName, PermissionUtil.newPermission("all_false"));
 	}
 
 	public void removeRole(String roleName) {

@@ -4,6 +4,8 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
+import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
+import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 
 import net.minecraft.resources.ResourceLocation;
@@ -57,6 +59,12 @@ public class PacketHandler {
 			.consumerMainThread(S2COpenTeamStatistics::handle)
 			.add();
 
+		INSTANCE.messageBuilder(S2CAddPlayerName.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+			.encoder(S2CAddPlayerName::encode)
+			.decoder(S2CAddPlayerName::new)
+			.consumerMainThread(S2CAddPlayerName::handle)
+			.add();
+
 		// C2S packets
 		INSTANCE.messageBuilder(C2SRequestSync.class, id++, NetworkDirection.PLAY_TO_SERVER)
 			.encoder(C2SRequestSync::encode)
@@ -68,6 +76,18 @@ public class PacketHandler {
 			.encoder(C2SCreateTeam::encode)
 			.decoder(C2SCreateTeam::new)
 			.consumerMainThread(C2SCreateTeam::handle)
+			.add();
+
+		INSTANCE.messageBuilder(C2SClaimChunk.class, id++, NetworkDirection.PLAY_TO_SERVER)
+			.encoder(C2SClaimChunk::encode)
+			.decoder(C2SClaimChunk::new)
+			.consumerMainThread(C2SClaimChunk::handle)
+			.add();
+
+		INSTANCE.messageBuilder(C2SInvitePlayer.class, id++, NetworkDirection.PLAY_TO_SERVER)
+			.encoder(C2SInvitePlayer::encode)
+			.decoder(C2SInvitePlayer::new)
+			.consumerMainThread(C2SInvitePlayer::handle)
 			.add();
 	}
 

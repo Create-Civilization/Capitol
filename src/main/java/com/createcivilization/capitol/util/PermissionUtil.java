@@ -14,7 +14,8 @@ public class PermissionUtil {
 		"interactEntities",
 		"interactBlocks",
 		"addRole",
-		"editPermissions"
+		"editPermissions",
+		"removeMember"
 	));
 
 	public static Map<String, Boolean> newPermission(String keyword) {
@@ -35,6 +36,7 @@ public class PermissionUtil {
 				true,
 				true,
 				true,
+				true,
 				true
 			);
 			case "member" -> PermissionUtil.newPermission(
@@ -44,6 +46,7 @@ public class PermissionUtil {
 				true,
 				true,
 				false,
+				false,
 				false
 			);
 			case "non-member" -> PermissionUtil.newPermission(
@@ -52,6 +55,7 @@ public class PermissionUtil {
 				Config.nonMemberUseItems.getOrThrow(),
 				Config.nonMemberInteractEntities.getOrThrow(),
 				Config.nonMemberInteractBlocks.getOrThrow(),
+				false,
 				false,
 				false
 			);

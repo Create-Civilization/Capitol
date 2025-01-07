@@ -4,6 +4,7 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -104,8 +105,8 @@ public class PlayerInteractionEvents {
 	 * Utility method to cancel the event if the player has insufficient permissions in the chunk.
 	 */
 	public static void cancelIfHasInsufficientPermission(PlayerInteractEvent event, boolean cancelIfTrue, String details) {
-		if (cancelIfTrue) {
-			event.getEntity().sendSystemMessage(Component.literal("You do not have permission to " + details + " in this chunk!"));
+		if (cancelIfTrue && event.getEntity() instanceof ServerPlayer player) {
+			player.displayClientMessage(Component.literal("You do not have permission to " + details + " in this chunk!"), true);
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 		}

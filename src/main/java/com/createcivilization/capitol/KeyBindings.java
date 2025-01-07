@@ -10,16 +10,17 @@ import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.lang.reflect.Field;
+import java.util.Objects;
+
 @Mod.EventBusSubscriber(modid = Capitol.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class KeyBindings {
-
-	public static final KeyBindings INSTANCE = new KeyBindings();
 
 	private KeyBindings() {}
 
 	private static final String CATEGORY = "key.categories." + Capitol.MOD_ID;
 
-	public final KeyMapping openStatistics = new KeyMapping(
+	public static final KeyMapping openStatistics = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".stats",
 		KeyConflictContext.IN_GAME,
 		InputConstants.getKey(
@@ -29,7 +30,7 @@ public class KeyBindings {
 		CATEGORY
 	);
 
-	public final KeyMapping viewChunks = new KeyMapping(
+	public static final KeyMapping viewChunks = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".view_chunks",
 		KeyConflictContext.IN_GAME,
 		InputConstants.getKey(
@@ -39,7 +40,7 @@ public class KeyBindings {
 		CATEGORY
 	);
 
-	public final KeyMapping openClaimMenu = new KeyMapping(
+	public static final KeyMapping openClaimMenu = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".open_claim_menu",
 		KeyConflictContext.IN_GAME,
 		InputConstants.getKey(
@@ -48,9 +49,22 @@ public class KeyBindings {
 		),
 		CATEGORY
 	);
+	public static final KeyMapping claim_chunk = new KeyMapping(
+		"key." + Capitol.MOD_ID + ".claim_chunk",
+		KeyConflictContext.IN_GAME,
+		InputConstants.UNKNOWN,
+		CATEGORY
+	);
 
 	@SubscribeEvent
 	public static void register(RegisterKeyMappingsEvent event) {
-		event.register(KeyBindings.INSTANCE.openStatistics);
+		for (Field field : KeyBindings.class.getDeclaredFields()) {
+			if (Objects.equals(field.getType(), KeyMapping.class))
+				try {
+					event.register((KeyMapping) field.get(null));
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+		}
 	}
 }
