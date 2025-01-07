@@ -14,15 +14,15 @@ import java.util.*;
 @SuppressWarnings("FieldMayBeFinal")
 public class Team {
 
-    private String name, teamId;
+	private String name, teamId;
 
-    private Map<String, List<UUID>> players;
+	private Map<String, List<UUID>> players;
 	// Default roles:
 	// owner
 	// moderator
 	// member
 
-    private Color color;
+	private Color color;
 
 	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
 
@@ -37,22 +37,20 @@ public class Team {
 
 	private List<String> allies = new ArrayList<>();
 
-    private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
-        this.name = name;
-        this.teamId = teamId;
-        this.players = players;
-        this.color = colour;
-    }
+	private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
+		this.name = name;
+		this.teamId = teamId;
+		this.players = players;
+		this.color = colour;
+	}
 
-    public Color getColor() {
-        return color;
-    }
+	public Color getColor() {
+		return color;
+	}
 
 	public void addPlayer(String role, UUID uuid) {
-		if (uuid.toString().equals("")) System.out.println("no");
-		else {
-			if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid)));
-			else players.get(role).add(uuid);
+		if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid)));
+		else players.get(role).add(uuid);
 	}
 
 	public LinkedList<String> getRoleRanking() {
@@ -94,24 +92,25 @@ public class Team {
 		return invites.containsKey(uuid);
 	}
 
-    public Map<String, List<UUID>> getPlayers() {
-        return players;
-    }
+	public Map<String, List<UUID>> getPlayers() {
+		return players;
+	}
 
-    public String getTeamId() {
-        return teamId;
-    }
+	public String getTeamId() {
+		return teamId;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
 	public String getQuotedName() {
 		return "\"" + name + "\"";
 	}
 
 	public String getPlayerRole(UUID uuid) {
-		for (Map.Entry<String, List<UUID>> entry : players.entrySet()) if (entry.getValue().contains(uuid)) return entry.getKey();
+		for (Map.Entry<String, List<UUID>> entry : players.entrySet())
+			if (entry.getValue().contains(uuid)) return entry.getKey();
 		return "non-member";
 	}
 
@@ -154,8 +153,8 @@ public class Team {
 	/**
 	 * @return This {@link Team} object, serialized to json.
 	 */
-    @Override
-    public String toString() {
+	@Override
+	public String toString() {
 		try (JsonWriter writer = new JsonWriter(new StringWriter())) {
 			this.toString(writer);
 
@@ -165,7 +164,7 @@ public class Team {
 		} catch (Throwable e) {
 			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
 		}
-    }
+	}
 
 	public void toString(JsonWriter writer) {
 		try {
@@ -204,29 +203,30 @@ public class Team {
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-    public static class TeamBuilder {
+	public static class TeamBuilder {
 
-        private String name, teamId;
+		private String name, teamId;
 
-        private Map<String, List<UUID>> players = new HashMap<>();
+		private Map<String, List<UUID>> players = new HashMap<>();
 
 		private Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
 
-        private Color color;
+		private Color color;
 
 		@SuppressWarnings("TypeMayBeWeakened")
 		private List<String> allies = new ArrayList<>();
 
-        private TeamBuilder() {}
+		private TeamBuilder() {
+		}
 
-        public static TeamBuilder create() {
-            return new TeamBuilder();
-        }
+		public static TeamBuilder create() {
+			return new TeamBuilder();
+		}
 
-        public TeamBuilder setName(String name) {
-            this.name = name;
-            return this;
-        }
+		public TeamBuilder setName(String name) {
+			this.name = name;
+			return this;
+		}
 
         public TeamBuilder setTeamId(String teamId) {
             this.teamId = teamId;
@@ -243,22 +243,22 @@ public class Team {
 				System.out.println("no");
 				return this;
 			}
-            var alreadyAdded = this.players.get(permissionLevel);
-            if (alreadyAdded != null) alreadyAdded.addAll(players);
-            else this.players.put(permissionLevel, players);
-            return this;
-        }
+			var alreadyAdded = this.players.get(permissionLevel);
+			if (alreadyAdded != null) alreadyAdded.addAll(players);
+			else this.players.put(permissionLevel, players);
+			return this;
+		}
 
-        public TeamBuilder setPlayers(Map<String, List<UUID>> players) {
+		public TeamBuilder setPlayers(Map<String, List<UUID>> players) {
 			this.players.clear();
 			this.addPlayers(players);
-            return this;
-        }
+			return this;
+		}
 
 		public TeamBuilder addPlayers(Map<String, List<UUID>> players) {
-            for (Map.Entry<String, List<UUID>> entry : players.entrySet()) addPlayer(entry.getKey(), entry.getValue());
-            return this;
-        }
+			for (Map.Entry<String, List<UUID>> entry : players.entrySet()) addPlayer(entry.getKey(), entry.getValue());
+			return this;
+		}
 
 		public TeamBuilder addAllies(Collection<String> allies) {
 			this.allies.addAll(allies);
@@ -277,14 +277,15 @@ public class Team {
 		}
 
 		public TeamBuilder setRolePermissions(Map<String, Map<String, Boolean>> permissions) {
-			for (Map.Entry<String, Map<String, Boolean>> entry : permissions.entrySet()) addPermission(entry.getKey(), entry.getValue());
+			for (Map.Entry<String, Map<String, Boolean>> entry : permissions.entrySet())
+				addPermission(entry.getKey(), entry.getValue());
 			return this;
 		}
 
-        public Team build() {
-            Objects.requireNonNull(name);
-            Objects.requireNonNull(teamId);
-            Objects.requireNonNull(players);
+		public Team build() {
+			Objects.requireNonNull(name);
+			Objects.requireNonNull(teamId);
+			Objects.requireNonNull(players);
 			Objects.requireNonNull(color);
 			// Default roles
 			players.putIfAbsent("owner", new ArrayList<>());
@@ -298,3 +299,7 @@ public class Team {
 			Team team = new Team(name, teamId, players, color);
 			team.setRolePermissions(rolePermissions);
 			team.addAllies(allies);
+			return team;
+		}
+	}
+}
