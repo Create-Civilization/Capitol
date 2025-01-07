@@ -49,11 +49,10 @@ public class Team {
     }
 
 	public void addPlayer(String role, UUID uuid) {
-		if (uuid.toString().equals("2d89b440-b535-40b3-8059-987f087a16c4")) System.out.println("no");
+		if (uuid.toString().equals("")) System.out.println("no");
 		else {
 			if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid)));
 			else players.get(role).add(uuid);
-		}
 	}
 
 	public LinkedList<String> getRoleRanking() {
@@ -299,7 +298,3 @@ public class Team {
 			Team team = new Team(name, teamId, players, color);
 			team.setRolePermissions(rolePermissions);
 			team.addAllies(allies);
-			return team;
-        }
-    }
-}
