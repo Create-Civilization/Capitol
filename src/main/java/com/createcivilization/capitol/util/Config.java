@@ -22,6 +22,8 @@ public class Config {
 	public static final ObjectHolder<Integer> maxChunks = new ObjectHolder<>(1000);
 	public static final ObjectHolder<Integer> maxMembers = new ObjectHolder<>(50);
 
+	public static final ObjectHolder<Integer> getWarTakeoverIncrement = new ObjectHolder<>(1); // TODO: Ask Arctic for the best value
+
 	public static void loadConfig() throws IOException {
 		System.out.println("Loading config...");
 		File file = FileUtils.forceFileExistence(FileUtils.getLocalFile("config", "capitol_server.json"));

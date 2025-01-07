@@ -83,10 +83,10 @@ public final class DataHandler {
 		private void updateTakeOverProgress(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
 			for (Team team : TeamUtils.loadedTeams) {
 				for (var recLoc : team.getClaimedChunks().keySet()) {
-					for (ServerLevel level : getAllLevels()) {
+					for (ServerLevel level : this.getAllLevels()) {
 						if (level.dimension().location().equals(recLoc)) {
 							for (var chunkPos : team.getClaimedChunks().get(recLoc)) {
-								((IChunkData) level.getChunk(chunkPos.getWorldPosition())).updateTakeOverProgress();
+								((IChunkData) level.getChunk(chunkPos.getWorldPosition())).updateTakeOverProgress((MinecraftServer) (Object) this);
 							}
 						}
 					}

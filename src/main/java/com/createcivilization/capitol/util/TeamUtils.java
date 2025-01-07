@@ -12,9 +12,11 @@ import net.minecraft.resources.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
+import net.minecraft.world.level.chunk.ChunkAccess;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+
 import wiiu.mavity.util.*;
 
 import java.awt.Color;
@@ -635,5 +637,17 @@ public class TeamUtils {
 				}
 			}
 		}
+	}
+
+	public static boolean isChunkEdgeOfClaims(ChunkAccess chunk) {
+		var world = (Level) chunk.getWorldForge();
+		assert world != null;
+		var pos = chunk.getPos();
+		int radius = 1;
+		radius++;
+		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++)
+			if (!TeamUtils.isClaimedChunk(world.dimension().location(), new ChunkPos(pos.x - x, pos.z - z)))
+				return true;
+		return false;
 	}
 }

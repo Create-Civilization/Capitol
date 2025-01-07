@@ -2,7 +2,7 @@ package com.createcivilization.capitol.team;
 
 import com.createcivilization.capitol.util.TeamUtils;
 
-import java.util.List;
+import java.util.*;
 
 public class War {
 
@@ -29,6 +29,18 @@ public class War {
 
 	public List<Team> getReceivingTeamAndAllies() {
 		return TeamUtils.getTeamAndAllies(this.receive);
+	}
+
+	public List<UUID> getDeclaringTeamAndAlliesUUIDs() {
+		List<UUID> UUIDs = new ArrayList<>();
+		this.getDeclaringTeamAndAllies().forEach((team) -> UUIDs.addAll(team.getAllPlayers()));
+		return UUIDs;
+	}
+
+	public List<UUID> getReceivingTeamAndAlliesUUIDs() {
+		List<UUID> UUIDs = new ArrayList<>();
+		this.getReceivingTeamAndAllies().forEach((team) -> UUIDs.addAll(team.getAllPlayers()));
+		return UUIDs;
 	}
 
 	@Override

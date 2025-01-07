@@ -117,7 +117,7 @@ public class Team {
 
 	public List<UUID> getAllPlayers() {
 		List<UUID> allPlayers = new ArrayList<>();
-		for (List<UUID> uuids : players.values()) allPlayers.addAll(uuids);
+		players.values().forEach(allPlayers::addAll);
 		return allPlayers;
 	}
 

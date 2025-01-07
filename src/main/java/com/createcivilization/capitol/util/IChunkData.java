@@ -1,10 +1,14 @@
 package com.createcivilization.capitol.util;
 
+import net.minecraft.server.MinecraftServer;
+
 public interface IChunkData {
 
-	int getTakeOverProgress();
+	float getTakeOverProgress();
 
-	void setTakeOverProgress(int i);
+	void setTakeOverProgress(float i);
 
-	void updateTakeOverProgress();
+	void incrementTakeOverProgress();
+
+	void updateTakeOverProgress(MinecraftServer server);
 }
