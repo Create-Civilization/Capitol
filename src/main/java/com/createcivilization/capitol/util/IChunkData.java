@@ -10,5 +10,7 @@ public interface IChunkData {
 
 	void incrementTakeOverProgress();
 
+	void decrementTakeOverProgress();
+
 	void updateTakeOverProgress(MinecraftServer server);
 }

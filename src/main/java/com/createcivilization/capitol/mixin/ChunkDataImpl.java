@@ -26,6 +26,11 @@ public abstract class ChunkDataImpl implements IChunkData {
 	@Unique
 	private float takeOverProgress = 0;
 
+	@Unique
+	private boolean
+		wasJustIncremented = false,
+		isDecrementing = false;
+
 	@Override
 	public float getTakeOverProgress() {
 		return this.takeOverProgress;
@@ -38,11 +43,19 @@ public abstract class ChunkDataImpl implements IChunkData {
 
 	@Override
 	public void incrementTakeOverProgress() {
-		this.setTakeOverProgress(this.takeOverProgress += Config.warTakeoverIncrement.getOrThrow());
+		this.setTakeOverProgress(this.getTakeOverProgress() + Config.warTakeoverIncrement.getOrThrow());
+		this.wasJustIncremented = true;
+		this.isDecrementing = false;
 	}
 
 	@Override
-	@SuppressWarnings("DataFlowIssue")
+	public void decrementTakeOverProgress() {
+		this.setTakeOverProgress(this.getTakeOverProgress() - Config.warTakeoverDecrement.getOrThrow());
+		this.wasJustIncremented = false;
+		this.isDecrementing = this.getTakeOverProgress() != 0;
+	}
+
+	@Override
 	public void updateTakeOverProgress(MinecraftServer server) {
 		for (War war : TeamUtils.wars) {
 			if (TeamUtils.isChunkEdgeOfClaims((ChunkAccess) (Object) this)) {
@@ -52,15 +65,16 @@ public abstract class ChunkDataImpl implements IChunkData {
 					TeamUtils.getTeam(this.getPos(), this.getThisLevel().dimension().location()).getOrThrow().equals(war.getDeclaringTeam());
 
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
-					if (this.getTakeOverProgress() < Config.maxWarTakeoverAmount.getOrThrow()) this.incrementTakeOverProgress();
+					if (this.getTakeOverProgress() <= Config.maxWarTakeoverAmount.getOrThrow()) this.incrementTakeOverProgress();
 					else {
 						TeamUtils.unclaimChunk(
 							isThisChunkClaimedByDeclaringTeam ? war.getDeclaringTeam() : war.getReceivingTeam(),
 							this.getThisLevel().dimension().location(),
 							this.getPos()
 						);
+						this.setTakeOverProgress(0);
 					}
-				}
+				} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
 			}
 		}
 	}
