@@ -4,18 +4,14 @@ import com.createcivilization.capitol.event.ServerEvents;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraftforge.api.distmarker.*;
 import wiiu.mavity.util.ObjectHolder;
 
-import java.awt.*;
-import java.util.Objects;
-import java.util.UUID;
+import java.awt.Color;
+import java.util.*;
 
 @OnlyIn(Dist.DEDICATED_SERVER)
 public class ServerPacketHandler {

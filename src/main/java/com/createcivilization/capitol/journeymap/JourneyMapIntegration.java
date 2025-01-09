@@ -4,6 +4,7 @@ import journeymap.client.api.*;
 import journeymap.client.api.event.ClientEvent;
 
 // See MapPolygon.class
+// TODO: Take chunk data from client and use PolygonHelper to create the list for it, and then wrap it in a PolygonOverlay, and do stuff with IClientAPI.show() and IClientAPI.remove()
 @ClientPlugin
 @SuppressWarnings("NullableProblems")
 public class JourneyMapIntegration implements IClientPlugin {

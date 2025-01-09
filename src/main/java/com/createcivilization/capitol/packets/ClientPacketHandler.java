@@ -20,7 +20,7 @@ public class ClientPacketHandler {
 	private static final Minecraft instance = Minecraft.getInstance();
 	public static Map<UUID, String> playerMap = new HashMap<>();
 
-	public static void handleSyncedPacket (Runnable toRun) {
+	public static void handleSyncedPacket(Runnable toRun) {
 		try {
 			toRun.run();
 		} catch (Exception e) {
