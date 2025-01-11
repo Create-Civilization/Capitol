@@ -15,7 +15,6 @@ public class JsonUtils {
 				String key = String.valueOf(entrySet.getKey());
 				V value = entrySet.getValue();
 				if (value instanceof Collection<?> valuesList) JsonUtils.saveJsonList(writer, key, valuesList, false);
-				else if (value instanceof Map<?,?> valuesMap) JsonUtils.saveJsonMap(writer, key, valuesMap, false);
 				else {
 					writer.name(key);
 					writer.beginObject();

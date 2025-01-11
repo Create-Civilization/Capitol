@@ -314,7 +314,7 @@ public class TeamUtils {
 	 * @return A new {@link Team} with the given parameters.
 	 */
     public static Team createTeam(String name, Player player, Color color) {
-        Team created =  Team.TeamBuilder.create()
+        Team created = Team.TeamBuilder.create()
                 .setName(name)
                 .setTeamId(TeamUtils.createRandomTeamId())
                 .addPlayer("owner", new ArrayList<>(List.of(player.getUUID())))

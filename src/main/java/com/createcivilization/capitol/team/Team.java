@@ -172,7 +172,7 @@ public class Team {
 			writer.name("name").value(name);
 			writer.name("teamId").value(teamId);
 			writer.name("color").value(color.getRGB());
-			JsonUtils.saveJsonMap(writer, "rolePermissions", rolePermissions, false);
+			PermissionUtil.savePermission(writer, rolePermissions);
 			JsonUtils.saveJsonMap(writer, "players", players, false);
 			JsonUtils.saveJsonList(writer, "allies", allies, false);
 			writer.endObject();
