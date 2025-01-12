@@ -29,7 +29,7 @@ public final class DataHandler {
 
 		/**
 		 * Loads the teams when the server starts.<br>
-		 * This mixin also sets {@link Capitol#server} to be the server instance.
+		 * This mixin also sets {@link ServerConstants#server} to be the server instance.
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) {

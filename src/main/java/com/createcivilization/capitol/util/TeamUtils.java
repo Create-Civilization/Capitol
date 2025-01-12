@@ -1,6 +1,5 @@
 package com.createcivilization.capitol.util;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
