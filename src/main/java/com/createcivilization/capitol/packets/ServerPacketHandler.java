@@ -1,6 +1,6 @@
 package com.createcivilization.capitol.packets;
 
-import com.createcivilization.capitol.event.ServerEvents;
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 
@@ -8,6 +8,7 @@ import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraftforge.api.distmarker.*;
+
 import wiiu.mavity.util.ObjectHolder;
 
 import java.awt.Color;
@@ -39,7 +40,7 @@ public class ServerPacketHandler {
 		Team team = invitingTeam.getOrThrow();
 
 		team.addInvitee(playerToInviteUUID);
-		Objects.requireNonNull(ServerEvents.server.getPlayerList().getPlayer(playerToInviteUUID)).sendSystemMessage(Component.literal(team.getName() + " has invited you to join, click here to accept")
+		Objects.requireNonNull(Capitol.server.getOrThrow().getPlayerList().getPlayer(playerToInviteUUID)).sendSystemMessage(Component.literal(team.getName() + " has invited you to join, click here to accept")
 			.setStyle(Style.EMPTY
 				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + team.getTeamId()))
 				.withColor(TextColor.fromRgb(0x00FF00))));
