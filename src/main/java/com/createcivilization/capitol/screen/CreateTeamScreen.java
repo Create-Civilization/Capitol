@@ -2,25 +2,17 @@ package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
+import com.createcivilization.capitol.util.GuiMenu;
 import com.createcivilization.capitol.util.PacketHandler;
 
 import com.createcivilization.capitol.util.TeamUtils;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 
-public class CreateTeamScreen extends Screen {
-
-	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
-
-	private int teamTitleComponentWidth;
-	private final int imageWidth, imageHeight;
-	private int leftPos, topPos;
+public class CreateTeamScreen extends GuiMenu {
 
 	private static final Component TITLE = Component.translatable("gui." + Capitol.MOD_ID + ".create_team");
 	private static final Component EXIT = Component.literal("X");
@@ -31,17 +23,16 @@ public class CreateTeamScreen extends Screen {
 	private static final Component INVALID_COLOR = Component.literal("Invalid color");
 	private static final Component TEAM_SUCCESS = Component.literal("Team successfully created");
 
-
 	public CreateTeamScreen() {
 		super(TITLE);
 		this.imageWidth = 176;
 		this.imageHeight = 166;
+		this.backgroundTexture = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
 	}
 
 	@Override
 	protected void init() {
 		super.init();
-		teamTitleComponentWidth = this.font.width(TITLE.getVisualOrderText());
 		if (minecraft == null || minecraft.player == null) return;
 
 		this.leftPos = (this.width - this.imageWidth) / 2;
@@ -152,31 +143,5 @@ public class CreateTeamScreen extends Screen {
 				.build()
 		);
 
-	}
-
-	@Override
-	public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-
-		this.renderBackground(guiGraphics);
-
-		guiGraphics.blit(BACKGROUND_TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-
-		super.render(guiGraphics, mouseX, mouseY, pPartialTick);
-
-		guiGraphics.drawString(this.font, TITLE, (this.width - teamTitleComponentWidth) / 2, this.topPos + 2, 0x404040, false);
-
-		guiGraphics.drawString(
-			this.font,
-			EXIT,
-			(this.width + this.imageWidth) / 2 - this.font.width(EXIT.getVisualOrderText()) - 4,
-			this.topPos + 4,
-			0x787878,
-			false
-		);
-	}
-
-	@Override
-	public boolean isPauseScreen() {
-		return false;
 	}
 }
