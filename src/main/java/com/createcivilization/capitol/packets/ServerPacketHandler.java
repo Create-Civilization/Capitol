@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.packets;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 
@@ -42,7 +43,7 @@ public class ServerPacketHandler {
 		Team team = invitingTeam.getOrThrow();
 
 		team.addInvitee(playerToInviteUUID);
-		Objects.requireNonNull(Capitol.server.getOrThrow().getPlayerList().getPlayer(playerToInviteUUID)).sendSystemMessage(Component.literal(team.getName() + " has invited you to join, click here to accept")
+		Objects.requireNonNull(ServerConstants.server.getOrThrow().getPlayerList().getPlayer(playerToInviteUUID)).sendSystemMessage(Component.literal(team.getName() + " has invited you to join, click here to accept")
 			.setStyle(Style.EMPTY
 				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + team.getTeamId()))
 				.withColor(TextColor.fromRgb(0x00FF00))));

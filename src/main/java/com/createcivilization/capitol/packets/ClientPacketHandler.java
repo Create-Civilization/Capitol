@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.packets;
 
+import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.event.ClientEvents;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 import com.createcivilization.capitol.screen.TeamStatisticsScreen;
@@ -46,7 +47,7 @@ public class ClientPacketHandler {
 	}
 
 	public static void addPlayerInfo(String playerName, UUID playerUUID) {
-		ClientEvents.playerMap.put(playerUUID, playerName);
+		ClientConstants.playerMap.put(playerUUID, playerName);
 	}
 
 	public static void handlePacket(Runnable run, NetworkEvent.Context ctx) {

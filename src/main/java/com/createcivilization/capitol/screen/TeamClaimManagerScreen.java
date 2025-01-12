@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.event.ClientEvents;
 import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
 import com.createcivilization.capitol.team.Team;
@@ -95,7 +96,7 @@ public class TeamClaimManagerScreen extends Screen {
 						if (inviteBox.isActive()) {
 							// They clicked to confirm
 							String inviteName = inviteBox.getValue();
-							for (Map.Entry<UUID, String> entry : ClientEvents.playerMap.entrySet())
+							for (Map.Entry<UUID, String> entry : ClientConstants.playerMap.entrySet())
 								if (entry.getValue().equalsIgnoreCase(inviteName)) {
 									PacketHandler.sendToServer(new C2SInvitePlayer(entry.getKey()));
 									break;

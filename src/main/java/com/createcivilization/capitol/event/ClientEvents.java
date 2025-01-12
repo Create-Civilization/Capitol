@@ -2,12 +2,12 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.KeyBindings;
+import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
 import com.createcivilization.capitol.screen.*;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -24,6 +24,8 @@ import wiiu.mavity.util.ObjectHolder;
 
 import java.util.*;
 
+import static com.createcivilization.capitol.constants.ClientConstants.playerTeam;
+
 @Mod.EventBusSubscriber(modid = Capitol.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientEvents {
 
@@ -32,35 +34,30 @@ public class ClientEvents {
 	private static final Component CLAIMED_CHUNK = Component.literal("Chunk already claimed");
 	private static final Component SUCCESS_CHUNK = Component.literal("Chunk successfully claimed");
 
-	private static final Minecraft INSTANCE = Minecraft.getInstance();
-	private static boolean viewChunks;
-	public static Map<UUID, String> playerMap = new HashMap<>();
-	private static ObjectHolder<Team> playerTeam;
-
 	@SubscribeEvent
 	public static void onLeave(ClientPlayerNetworkEvent.LoggingOut event) {
 		TeamUtils.loadedTeams.clear();
-		ClientEvents.playerMap.clear();
+		ClientConstants.playerMap.clear();
 	}
 
 	@SubscribeEvent
 	public static void clientTick(TickEvent.ClientTickEvent event) {
-		final LocalPlayer player = INSTANCE.player;
+		final LocalPlayer player = ClientConstants.INSTANCE.player;
 		if (player == null) return;
 		final long timeStamp = System.currentTimeMillis() / 1000L;
 
 		if (KeyBindings.openStatistics.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
-			INSTANCE.setScreen(new TeamStatisticsScreen(playerTeam.getOrThrow()));
+			ClientConstants.INSTANCE.setScreen(new TeamStatisticsScreen(playerTeam.getOrThrow()));
 		}
 
 		if (KeyBindings.viewChunks.consumeClick()) {
-			viewChunks = !viewChunks;
-			player.displayClientMessage(Component.literal("Now " + (viewChunks ? "showing" : "hiding") + " claim borders"), true);
+			ClientConstants.viewChunks = !ClientConstants.viewChunks;
+			player.displayClientMessage(Component.literal("Now " + (ClientConstants.viewChunks ? "showing" : "hiding") + " claim borders"), true);
 		}
 
 		if (KeyBindings.openClaimMenu.consumeClick()) {
-			if (getTeamOrDisplayClientMessage(player).isPresent()) INSTANCE.setScreen(new TeamClaimManagerScreen(playerTeam.getOrThrow()));
-			else INSTANCE.setScreen(new CreateTeamScreen());
+			if (getTeamOrDisplayClientMessage(player).isPresent()) ClientConstants.INSTANCE.setScreen(new TeamClaimManagerScreen(playerTeam.getOrThrow()));
+			else ClientConstants.INSTANCE.setScreen(new CreateTeamScreen());
 		}
 
 		if (KeyBindings.claim_chunk.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
@@ -83,8 +80,8 @@ public class ClientEvents {
 			}
 		}
 
-		if (viewChunks && timeStamp % 2 == 0) {
-			Level clientLevel = INSTANCE.level;
+		if (ClientConstants.viewChunks && timeStamp % 2 == 0) {
+			Level clientLevel = ClientConstants.INSTANCE.level;
 			if (clientLevel == null) return;
 			ResourceLocation dimension = clientLevel.dimension().location();
 

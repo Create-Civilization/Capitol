@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
@@ -407,8 +408,8 @@ public class TeamUtils {
 							final String[] finalCoords = coords;
 							final int x = Integer.parseInt(finalCoords[0]);
 							final int z = Integer.parseInt(finalCoords[1]);
-							if (Config.debugLogs.getOrThrow()) System.out.println(Capitol.server.getAsString());
-							Capitol.server.ifPresent((server) -> team.ifPresent((t) -> {
+							if (Config.debugLogs.getOrThrow()) System.out.println(ServerConstants.server.getAsString());
+							ServerConstants.server.ifPresent((server) -> team.ifPresent((t) -> {
 								for (var entrySet : server.forgeGetWorldMap().entrySet()) {
 									ResourceLocation resourceLoc = new ResourceLocation(dimension);
 									if (entrySet.getKey().equals(ResourceKey.create(Registries.DIMENSION, resourceLoc))) claimChunk(t, resourceLoc, entrySet.getValue().getChunk(x, z).getPos());
@@ -430,7 +431,7 @@ public class TeamUtils {
 							coords = reader.nextString().split(Pattern.quote(","));
 							final int x = Integer.parseInt(coords[0]);
 							final int z = Integer.parseInt(coords[1]);
-							Capitol.server.ifPresent((server) -> team.ifPresent((t) -> {
+							ServerConstants.server.ifPresent((server) -> team.ifPresent((t) -> {
 								for (var entrySet : server.forgeGetWorldMap().entrySet()) {
 									ResourceLocation resourceLoc = new ResourceLocation(dimension);
 									if (entrySet.getKey().equals(ResourceKey.create(Registries.DIMENSION, resourceLoc))) t.addCapitolBlock(resourceLoc, entrySet.getValue().getChunk(x, z).getPos());

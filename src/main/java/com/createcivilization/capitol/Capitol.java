@@ -22,8 +22,6 @@ public class Capitol {
 
     public static final String MOD_ID = "capitol";
 
-    public static ObjectHolder<MinecraftServer> server = new ObjectHolder<>();
-
     @SuppressWarnings("removal") // Forge docs are gaslighting when it says to place FMLJavaModLoadingContext in the constructor
     public Capitol() {
         IEventBus ew = FMLJavaModLoadingContext.get().getModEventBus();

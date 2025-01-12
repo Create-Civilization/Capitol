@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.mixin;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -32,7 +33,7 @@ public final class DataHandler {
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) {
-			Capitol.server.set((MinecraftServer) (Object) this);
+			ServerConstants.server.set((MinecraftServer) (Object) this);
 			try {
 				Config.loadConfig();
 				TeamUtils.loadTeams();
