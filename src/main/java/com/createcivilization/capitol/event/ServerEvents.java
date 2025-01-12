@@ -6,8 +6,6 @@ import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,8 +15,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import wiiu.mavity.util.ObjectHolder;
-
-import java.awt.*;
 
 @Mod.EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class ServerEvents {
@@ -32,7 +28,6 @@ public class ServerEvents {
 		ObjectHolder<Team> holder = TeamUtils.getTeam(player.chunkPosition(), player.level().dimension().location());
 		String teamId;
 		String claimName;
-		int color = Color.GREEN.getRGB();
 		if (holder.isEmpty()) {
 			teamId = "";
 			claimName = "the wild";
@@ -40,18 +35,9 @@ public class ServerEvents {
 			Team team = holder.getOrThrow();
 			teamId = team.getTeamId();
 			claimName = team.getName();
-			color = team.getColor().getRGB();
 		}
 		String lastChunkTeamId = player.getPersistentData().getString(LAST_CHUNK_TEAM_ID);
-		System.out.println("Color: " + color);
-		System.out.println("Expected color rgb setup: " + TextColor.NAMED_COLORS.get("blue").getValue());
-		if (!teamId.equals(lastChunkTeamId)) {
-			player.displayClientMessage(
-				Component.literal("Now entering ")
-					.append(Component.literal(claimName).setStyle(Style.EMPTY.withColor(color).withBold(true))),
-				true
-			);
-		}
+		if (!teamId.equals(lastChunkTeamId)) player.displayClientMessage(Component.literal("Now entering " + claimName), true);
 		player.getPersistentData().putString(LAST_CHUNK_TEAM_ID, teamId);
 	}
 
