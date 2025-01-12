@@ -36,9 +36,9 @@ public class ServerEvents {
 			teamId = team.getTeamId();
 			claimName = team.getName();
 		}
-		String lastChunkTeamId = player.getPersistentData().getString(LAST_CHUNK_TEAM_ID);
-		if (!teamId.equals(lastChunkTeamId)) player.displayClientMessage(Component.literal("Now entering " + claimName), true);
-		player.getPersistentData().putString(LAST_CHUNK_TEAM_ID, teamId);
+		var data = player.getPersistentData();
+		if (!teamId.equals(data.getString(LAST_CHUNK_TEAM_ID))) player.displayClientMessage(Component.literal("Now entering " + claimName), true);
+		data.putString(LAST_CHUNK_TEAM_ID, teamId);
 	}
 
 	@SubscribeEvent

@@ -83,7 +83,7 @@ public class ClientEvents {
 			}
 		}
 
-		if (viewChunks && timeStamp % 5 == 0) {
+		if (viewChunks && timeStamp % 2 == 0) {
 			Level clientLevel = INSTANCE.level;
 			if (clientLevel == null) return;
 			ResourceLocation dimension = clientLevel.dimension().location();
