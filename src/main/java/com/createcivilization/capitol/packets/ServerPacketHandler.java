@@ -9,6 +9,8 @@ import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraftforge.api.distmarker.*;
 
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
 import wiiu.mavity.util.ObjectHolder;
 
 import java.awt.Color;
@@ -35,7 +37,7 @@ public class ServerPacketHandler {
 	public static void invitePlayerToTeam(ServerPlayer sender, UUID playerToInviteUUID) {
 		ObjectHolder<Team> invitingTeam = TeamUtils.getTeam(sender);
 
-//		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
+		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
 
 		Team team = invitingTeam.getOrThrow();
 
@@ -44,5 +46,16 @@ public class ServerPacketHandler {
 			.setStyle(Style.EMPTY
 				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + team.getTeamId()))
 				.withColor(TextColor.fromRgb(0x00FF00))));
+	}
+
+
+	public static void handlePacket(Runnable run, NetworkEvent.Context ctx) {
+		ctx.enqueueWork(
+			() -> DistExecutor.unsafeRunWhenOn(
+				Dist.DEDICATED_SERVER,
+				() -> run
+			)
+		);
+		ctx.setPacketHandled(true);
 	}
 }

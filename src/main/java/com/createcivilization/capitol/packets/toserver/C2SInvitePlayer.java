@@ -26,13 +26,7 @@ public class C2SInvitePlayer {
 		friendlyByteBuf.writeUUID(this.playerToInvite);
 	}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(
-				Dist.DEDICATED_SERVER,
-				() -> () -> ServerPacketHandler.invitePlayerToTeam(ctx.getSender(), this.playerToInvite)
-			)
-		);
+	public void handle(NetworkEvent.Context context) {
+		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.invitePlayerToTeam(context.getSender(), this.playerToInvite), context);
 	}
 }

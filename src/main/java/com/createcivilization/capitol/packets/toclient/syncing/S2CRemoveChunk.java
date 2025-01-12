@@ -37,12 +37,7 @@ public class S2CRemoveChunk {
 		friendlyByteBuf.writeResourceLocation(this.dimension);
 	}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.removeChunk(this.claimingTeamId, this.chunkToAdd, this.dimension))
-		);
-
-		ctx.setPacketHandled(true);
+	public void handle(NetworkEvent.Context context) {
+		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.removeChunk(this.claimingTeamId, this.chunkToAdd, this.dimension), context);
 	}
 }

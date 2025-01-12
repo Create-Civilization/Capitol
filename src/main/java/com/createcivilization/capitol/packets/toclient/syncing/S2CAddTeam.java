@@ -34,12 +34,7 @@ public class S2CAddTeam {
 		friendlyByteBuf.writeUtf(this.toAdd.toString());
 	}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.addTeam(this.toAdd))
-		);
-
-		ctx.setPacketHandled(true);
+	public void handle(NetworkEvent.Context context) {
+		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.addTeam(this.toAdd), context);
 	}
 }

@@ -8,11 +8,16 @@ import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
 import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraftforge.network.*;
 import net.minecraftforge.network.simple.SimpleChannel;
+
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class PacketHandler {
 
@@ -25,70 +30,77 @@ public class PacketHandler {
 		PROTOCOL_VERSION::equals
 	);
 
+	public static <T> void handlePacketWithContext(
+		T packet,
+		Supplier<NetworkEvent.Context> contextSupplier,
+		BiConsumer<T, NetworkEvent.Context> packetHandler
+	) {
+		NetworkEvent.Context ctx = contextSupplier.get();
+		ctx.enqueueWork(() -> packetHandler.accept(packet,ctx));
+		ctx.setPacketHandled(true);
+	}
+
+	public static void handleSyncedPacket (Runnable toRun) {
+		try {
+			toRun.run();
+		} catch (NullPointerException e) {
+			System.out.println("Exception encountered on " + toRun.getClass().getCanonicalName() + " packet handling, dumping data and requesting synchronization.");
+			TeamUtils.loadedTeams.clear();
+			PacketHandler.sendToServer(new C2SRequestSync());
+		}
+	}
+
+	public static <T> void generalAddPacket(
+		Class<T> packet,
+		int id,
+		BiConsumer<T, FriendlyByteBuf> encoder,
+		Function<FriendlyByteBuf, T> decoder,
+		BiConsumer<T,NetworkEvent.Context> handler,
+		NetworkDirection direction
+	) {
+		INSTANCE.messageBuilder(packet, id, direction)
+			.encoder(encoder)
+			.decoder(decoder)
+			.consumerMainThread((packett, supplier) -> handlePacketWithContext(packett, supplier, handler))
+			.add();
+	}
+
+	public static <T> void clientAddPacket(
+		Class<T> packet,
+		int id,
+		BiConsumer<T, FriendlyByteBuf> encoder,
+		Function<FriendlyByteBuf, T> decoder,
+		BiConsumer<T,NetworkEvent.Context> handler
+	){
+		generalAddPacket(packet, id, encoder, decoder, (packett, context) -> handleSyncedPacket(() -> handler.accept(packett, context)), NetworkDirection.PLAY_TO_SERVER);
+	}
+
+	public static <T> void serverAddPacket(
+		Class<T> packet,
+		int id,
+		BiConsumer<T, FriendlyByteBuf> encoder,
+		Function<FriendlyByteBuf, T> decoder,
+		BiConsumer<T,NetworkEvent.Context> handler
+	){
+		generalAddPacket(packet, id, encoder, decoder, handler, NetworkDirection.PLAY_TO_CLIENT);
+	}
+
 	public static void register() {
 		int id = 0;
 
 		// S2C packets
-		INSTANCE.messageBuilder(S2CAddTeam.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CAddTeam::encode)
-			.decoder(S2CAddTeam::new)
-			.consumerMainThread(S2CAddTeam::handle)
-			.add();
-
-		INSTANCE.messageBuilder(S2CRemoveTeam.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CRemoveTeam::encode)
-			.decoder(S2CRemoveTeam::new)
-			.consumerMainThread(S2CRemoveTeam::handle)
-			.add();
-
-		INSTANCE.messageBuilder(S2CAddChunk.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CAddChunk::encode)
-			.decoder(S2CAddChunk::new)
-			.consumerMainThread(S2CAddChunk::handle)
-			.add();
-
-		INSTANCE.messageBuilder(S2CRemoveChunk.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CRemoveChunk::encode)
-			.decoder(S2CRemoveChunk::new)
-			.consumerMainThread(S2CRemoveChunk::handle)
-			.add();
-
-		INSTANCE.messageBuilder(S2COpenTeamStatistics.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2COpenTeamStatistics::encode)
-			.decoder(S2COpenTeamStatistics::new)
-			.consumerMainThread(S2COpenTeamStatistics::handle)
-			.add();
-
-		INSTANCE.messageBuilder(S2CAddPlayerName.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-			.encoder(S2CAddPlayerName::encode)
-			.decoder(S2CAddPlayerName::new)
-			.consumerMainThread(S2CAddPlayerName::handle)
-			.add();
+		serverAddPacket(S2COpenTeamStatistics.class, id++, S2COpenTeamStatistics::encode, S2COpenTeamStatistics::new, S2COpenTeamStatistics::handle);
+		serverAddPacket(S2CAddChunk.class, id++, S2CAddChunk::encode, S2CAddChunk::new, S2CAddChunk::handle);
+		serverAddPacket(S2CAddPlayerName.class, id++, S2CAddPlayerName::encode, S2CAddPlayerName::new, S2CAddPlayerName::handle);
+		serverAddPacket(S2CAddTeam.class, id++, S2CAddTeam::encode, S2CAddTeam::new, S2CAddTeam::handle);
+		serverAddPacket(S2CRemoveChunk.class, id++, S2CRemoveChunk::encode, S2CRemoveChunk::new, S2CRemoveChunk::handle);
+		serverAddPacket(S2CRemoveTeam.class, id++, S2CRemoveTeam::encode, S2CRemoveTeam::new, S2CRemoveTeam::handle);
 
 		// C2S packets
-		INSTANCE.messageBuilder(C2SRequestSync.class, id++, NetworkDirection.PLAY_TO_SERVER)
-			.encoder(C2SRequestSync::encode)
-			.decoder(C2SRequestSync::new)
-			.consumerMainThread(C2SRequestSync::handle)
-			.add();
-
-		INSTANCE.messageBuilder(C2SCreateTeam.class, id++, NetworkDirection.PLAY_TO_SERVER)
-			.encoder(C2SCreateTeam::encode)
-			.decoder(C2SCreateTeam::new)
-			.consumerMainThread(C2SCreateTeam::handle)
-			.add();
-
-		INSTANCE.messageBuilder(C2SClaimChunk.class, id++, NetworkDirection.PLAY_TO_SERVER)
-			.encoder(C2SClaimChunk::encode)
-			.decoder(C2SClaimChunk::new)
-			.consumerMainThread(C2SClaimChunk::handle)
-			.add();
-
-		INSTANCE.messageBuilder(C2SInvitePlayer.class, id++, NetworkDirection.PLAY_TO_SERVER)
-			.encoder(C2SInvitePlayer::encode)
-			.decoder(C2SInvitePlayer::new)
-			.consumerMainThread(C2SInvitePlayer::handle)
-			.add();
+		clientAddPacket(C2SRequestSync.class, id++, C2SRequestSync::encode, C2SRequestSync::new, C2SRequestSync::handle);
+		clientAddPacket(C2SCreateTeam.class, id++, C2SCreateTeam::encode, C2SCreateTeam::new, C2SCreateTeam::handle);
+		clientAddPacket(C2SClaimChunk.class, id++, C2SClaimChunk::encode, C2SClaimChunk::new, C2SClaimChunk::handle);
+		clientAddPacket(C2SInvitePlayer.class, id++, C2SInvitePlayer::encode, C2SInvitePlayer::new, C2SInvitePlayer::handle);
 	}
 
 	public static void sendToServer(Object msg) {

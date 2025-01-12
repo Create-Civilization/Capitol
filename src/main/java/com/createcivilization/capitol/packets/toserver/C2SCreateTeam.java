@@ -37,13 +37,7 @@ public class C2SCreateTeam {
 		friendlyByteBuf.writeInt(teamColor.getBlue());
 	}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(
-				Dist.DEDICATED_SERVER,
-				() -> () -> ServerPacketHandler.createTeam(this.teamName, ctx.getSender(), this.teamColor)
-			)
-		);
+	public void handle(NetworkEvent.Context context) {
+		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.createTeam(this.teamName, context.getSender(), this.teamColor), context);
 	}
 }

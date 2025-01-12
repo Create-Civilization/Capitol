@@ -27,12 +27,7 @@ public class S2COpenTeamStatistics {
 		friendlyByteBuf.writeUtf(this.teamId);
 	}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.openTeamStatistics(this.teamId))
-		);
-
-		ctx.setPacketHandled(true);
+	public void handle(NetworkEvent.Context context) {
+		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.openTeamStatistics(this.teamId), context);
 	}
 }

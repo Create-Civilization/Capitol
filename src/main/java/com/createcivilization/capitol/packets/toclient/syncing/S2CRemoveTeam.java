@@ -27,12 +27,7 @@ public class S2CRemoveTeam {
 		friendlyByteBuf.writeUtf(this.toRemoveId);
 	}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.removeTeam(this.toRemoveId))
-		);
-
-		ctx.setPacketHandled(true);
+	public void handle(NetworkEvent.Context context) {
+		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.removeTeam(this.toRemoveId), context);
 	}
 }

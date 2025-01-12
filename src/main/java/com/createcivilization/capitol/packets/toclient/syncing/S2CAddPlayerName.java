@@ -31,12 +31,7 @@ public class S2CAddPlayerName {
 		friendlyByteBuf.writeUUID(this.playerUUID);
 	}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.addPlayerInfo(this.playerName, this.playerUUID))
-		);
-
-		ctx.setPacketHandled(true);
+	public void handle(NetworkEvent.Context context) {
+		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.addPlayerInfo(this.playerName, this.playerUUID), context);
 	}
 }

@@ -18,13 +18,7 @@ public class C2SClaimChunk {
 
 	public void encode(FriendlyByteBuf friendlyByteBuf) {}
 
-	public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(
-				Dist.DEDICATED_SERVER,
-				() -> () -> ServerPacketHandler.claimCurrentPlayerChunk(ctx.getSender())
-			)
-		);
+	public void handle(NetworkEvent.Context context) {
+		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.claimCurrentPlayerChunk(context.getSender()), context);
 	}
 }
