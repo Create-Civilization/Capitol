@@ -53,10 +53,11 @@ public class JourneyMapIntegration implements IClientPlugin {
 							"captiol",
 							team.getTeamId(),
 							ResourceKey.create(Registries.DIMENSION, claimedChunks.getKey()),
-							new ShapeProperties().setFillColor(0xFF0000),
+							new ShapeProperties().setFillColor(0xA020F0), // Purple to test
 							poly
 						);
 						try {
+							api.remove(overlay);
 							api.show(overlay);
 						} catch (Exception e) {
 							throw new RuntimeException("Failed to render claims!", e);
