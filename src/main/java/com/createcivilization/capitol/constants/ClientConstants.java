@@ -17,5 +17,6 @@ public class ClientConstants {
 	public static boolean viewChunks;
 	public static Map<UUID, String> playerMap = new HashMap<>();
 	public static ObjectHolder<Team> playerTeam;
+	public static boolean teamChat = false;
 
 }
