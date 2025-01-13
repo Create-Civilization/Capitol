@@ -1,17 +1,16 @@
 package com.createcivilization.capitol.packets.toserver;
 
 import com.createcivilization.capitol.packets.ServerPacketHandler;
+
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
 public class C2SInvitePlayer {
 
-	UUID playerToInvite;
+	private final UUID playerToInvite;
 
 	public C2SInvitePlayer(UUID playerToInvite) {
 		this.playerToInvite = playerToInvite;

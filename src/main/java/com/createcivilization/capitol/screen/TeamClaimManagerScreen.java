@@ -3,25 +3,21 @@ package com.createcivilization.capitol.screen;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
+import com.createcivilization.capitol.util.*;
 
-import com.createcivilization.capitol.util.GuiMenu;
-import com.createcivilization.capitol.util.PacketHandler;
-import com.createcivilization.capitol.util.Scene;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.*;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class TeamClaimManagerScreen extends GuiMenu {
 
 	private static final Component TITLE = Component.translatable("gui.capitol.claim_block_menu");
 	private static final Component PLAYERS = Component.literal("Players");
 	private static final Component INVITE = Component.literal("Invite");
-	private static final Component PLAYERNAME = Component.literal("Player name");
+	private static final Component PLAYER_NAME = Component.literal("Player name");
 	private static final Component CONFIRM = Component.literal("Confirm");
 
 	public TeamClaimManagerScreen() {
@@ -36,7 +32,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 		this.leftPos = (this.width - this.imageWidth) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
 
-		if (minecraft==null) return;
+		if (minecraft == null) return;
 
 		Scene mainScene = new Scene();
 		Scene invitePlayerScene = new Scene();
@@ -50,7 +46,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				this.topPos + 141,
 				50,
 				15,
-					PLAYERNAME
+				PLAYER_NAME
 			)
 		);
 
