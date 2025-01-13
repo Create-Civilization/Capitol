@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.*;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -19,10 +20,11 @@ import net.minecraftforge.fml.DistExecutor;
 
 import wiiu.mavity.util.*;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -223,6 +225,7 @@ public class TeamUtils {
         String name = null, teamId = null;
         Map<String, List<UUID>> players = new LinkedHashMap<>();
 		Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
+		List<Tuple<UUID, String>> teamMessages = new ArrayList<>();
         Color color = null;
 		List<String> allies = new ArrayList<>();
         reader.beginObject();

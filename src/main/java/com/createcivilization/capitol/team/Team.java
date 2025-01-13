@@ -5,11 +5,13 @@ import com.createcivilization.capitol.util.*;
 import com.google.gson.stream.JsonWriter;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.ChunkPos;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 @SuppressWarnings("FieldMayBeFinal")
 public class Team {
@@ -209,6 +211,8 @@ public class Team {
 
 		private Map<String, List<UUID>> players = new HashMap<>();
 
+		private List<Tuple<UUID, String>> teamMessages = new ArrayList<>();
+
 		private Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
 
 		private Color color;
@@ -230,6 +234,11 @@ public class Team {
             this.teamId = teamId;
             return this;
         }
+
+		public TeamBuilder setTeamMessages(List<Tuple<UUID, String>> teamMessages) {
+			this.teamMessages = teamMessages;
+			return this;
+		}
 
         public TeamBuilder setColor(Color color) {
             this.color = color;

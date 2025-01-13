@@ -6,6 +6,7 @@ import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
 import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
 import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
+import com.createcivilization.capitol.packets.toserver.C2SSendTeamMessage;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -101,6 +102,7 @@ public class PacketHandler {
 		clientAddPacket(C2SCreateTeam.class, id++, C2SCreateTeam::encode, C2SCreateTeam::new, C2SCreateTeam::handle);
 		clientAddPacket(C2SClaimChunk.class, id++, C2SClaimChunk::encode, C2SClaimChunk::new, C2SClaimChunk::handle);
 		clientAddPacket(C2SInvitePlayer.class, id++, C2SInvitePlayer::encode, C2SInvitePlayer::new, C2SInvitePlayer::handle);
+		clientAddPacket(C2SSendTeamMessage.class, id++, C2SSendTeamMessage::encode, C2SSendTeamMessage::new, C2SSendTeamMessage::handle);
 	}
 
 	public static void sendToServer(Object msg) {

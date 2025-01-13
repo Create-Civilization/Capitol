@@ -7,6 +7,7 @@
 	"key.capitol.view_chunks": "Toggle claim visibility",
 	"key.capitol.open_claim_menu": "Open claim menu",
 	"key.capitol.claim_chunk": "Claim chunk",
+	"key.capitol.toggle_team_chat": "Toggle team chat",
 
 	"gui.capitol.claim_block_menu": "Claim statistics",
 	"gui.capitol.create_team": "Create Team",

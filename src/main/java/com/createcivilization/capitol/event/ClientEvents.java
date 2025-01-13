@@ -4,6 +4,7 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.KeyBindings;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
+import com.createcivilization.capitol.packets.toserver.C2SSendTeamMessage;
 import com.createcivilization.capitol.screen.*;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
@@ -15,8 +16,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.*;
 
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -41,6 +45,15 @@ public class ClientEvents {
 	}
 
 	@SubscribeEvent
+	public static void onChat(ClientChatEvent event) {
+		if (!ClientConstants.teamChat) return;
+		event.setCanceled(true);
+		assert ClientConstants.INSTANCE.player != null;
+		String message = event.getMessage();
+		PacketHandler.sendToServer(new C2SSendTeamMessage(message));
+	}
+
+	@SubscribeEvent
 	public static void clientTick(TickEvent.ClientTickEvent event) {
 		final LocalPlayer player = ClientConstants.INSTANCE.player;
 		if (player == null) return;
@@ -58,6 +71,13 @@ public class ClientEvents {
 		if (KeyBindings.openClaimMenu.consumeClick()) {
 			if (getTeamOrDisplayClientMessage(player).isPresent()) ClientConstants.INSTANCE.setScreen(new TeamClaimManagerScreen());
 			else ClientConstants.INSTANCE.setScreen(new CreateTeamScreen());
+		}
+
+		if (KeyBindings.toggleTeamChat.consumeClick()) {
+			if (getTeamOrDisplayClientMessage(player).isPresent()) {
+				ClientConstants.teamChat = !ClientConstants.teamChat;
+				ClientConstants.INSTANCE.player.displayClientMessage(Component.literal("Now talking in " + (ClientConstants.teamChat ? "team chat" : "public chat")), false);
+			};
 		}
 
 		if (KeyBindings.claim_chunk.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {

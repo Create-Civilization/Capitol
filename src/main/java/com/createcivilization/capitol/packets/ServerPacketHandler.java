@@ -1,6 +1,5 @@
 package com.createcivilization.capitol.packets;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
@@ -8,6 +7,7 @@ import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.*;
 
 import net.minecraftforge.fml.DistExecutor;
@@ -58,5 +58,16 @@ public class ServerPacketHandler {
 			)
 		);
 		ctx.setPacketHandled(true);
+	}
+
+	public static void sendTeamMessage(ServerPlayer sender, String message) {
+		ObjectHolder<Team> holder = TeamUtils.getTeam(sender);
+		if (holder.isEmpty()) return;
+		Team team = holder.getOrThrow();
+
+		for (UUID member : team.getAllPlayers()) {
+			Player toSend = ServerConstants.server.getOrThrow().getPlayerList().getPlayer(member);
+			if (toSend != null) toSend.displayClientMessage(Component.literal("[" + team.getName() + "] <").append(sender.getDisplayName()).append("> " + message), false);
+		}
 	}
 }

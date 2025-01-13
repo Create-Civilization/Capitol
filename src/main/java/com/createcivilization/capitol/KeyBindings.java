@@ -49,6 +49,17 @@ public class KeyBindings {
 		),
 		CATEGORY
 	);
+
+	public static final KeyMapping toggleTeamChat = new KeyMapping(
+		"key." + Capitol.MOD_ID + ".toggle_team_chat",
+		KeyConflictContext.IN_GAME,
+		InputConstants.getKey(
+			InputConstants.KEY_H,
+			-1
+		),
+		CATEGORY
+	);
+
 	public static final KeyMapping claim_chunk = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".claim_chunk",
 		KeyConflictContext.IN_GAME,
