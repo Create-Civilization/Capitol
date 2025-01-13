@@ -20,11 +20,10 @@ import net.minecraftforge.fml.DistExecutor;
 
 import wiiu.mavity.util.*;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.*;
 import java.time.*;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -522,6 +521,7 @@ public class TeamUtils {
 	 * @param player Player to check
 	 * @param radius The chunk radius around the player to check
 	 */
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, Player player) {
 		ResourceLocation dimension = player.level().dimension().location();
 		radius++;
