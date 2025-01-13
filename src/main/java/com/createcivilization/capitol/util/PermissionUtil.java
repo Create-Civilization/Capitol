@@ -79,7 +79,7 @@ public class PermissionUtil {
 
 	public static void savePermission(JsonWriter writer, Map<String, Map<String, Boolean>> rolePermissions) throws IOException {
 		writer.name("rolePermissions").beginObject();
-		for (Map.Entry<String, Map<String , Boolean>> mapEntry : rolePermissions.entrySet()) {
+		for (Map.Entry<String, Map<String, Boolean>> mapEntry : rolePermissions.entrySet()) {
 			writer.name(mapEntry.getKey()).beginObject();
 			for (Map.Entry<String, Boolean> subEntry : mapEntry.getValue().entrySet()) {
 				writer.name(subEntry.getKey()).value(subEntry.getValue());

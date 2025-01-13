@@ -8,10 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.ChunkPos;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.*;
 import java.util.*;
-import java.util.List;
 
 @SuppressWarnings("FieldMayBeFinal")
 public class Team {
