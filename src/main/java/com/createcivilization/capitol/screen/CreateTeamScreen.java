@@ -2,11 +2,8 @@ package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
-import com.createcivilization.capitol.util.GuiMenu;
-import com.createcivilization.capitol.util.PacketHandler;
+import com.createcivilization.capitol.util.*;
 
-import com.createcivilization.capitol.util.Scene;
-import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

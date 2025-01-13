@@ -2,9 +2,8 @@ package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.*;
 
-import com.createcivilization.capitol.util.Config;
-import com.createcivilization.capitol.util.GuiMenu;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -43,7 +42,7 @@ public class TeamStatisticsScreen extends GuiMenu {
 		this.leftPos = (this.width - this.imageWidth) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
 
-		if (minecraft==null) return;
+		if (minecraft == null) return;
 
 		addRenderableWidget(
 			new StringWidget(
