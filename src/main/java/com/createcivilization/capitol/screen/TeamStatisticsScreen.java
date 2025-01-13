@@ -5,10 +5,7 @@ import com.createcivilization.capitol.team.Team;
 
 import com.createcivilization.capitol.util.Config;
 import com.createcivilization.capitol.util.GuiMenu;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 

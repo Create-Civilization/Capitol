@@ -2,25 +2,17 @@ package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.event.ClientEvents;
 import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
-import com.createcivilization.capitol.team.Team;
 
 import com.createcivilization.capitol.util.GuiMenu;
 import com.createcivilization.capitol.util.PacketHandler;
 import com.createcivilization.capitol.util.Scene;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
