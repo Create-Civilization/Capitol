@@ -56,7 +56,7 @@ public class ClientEvents {
 		}
 
 		if (KeyBindings.openClaimMenu.consumeClick()) {
-			if (getTeamOrDisplayClientMessage(player).isPresent()) ClientConstants.INSTANCE.setScreen(new TeamClaimManagerScreen(playerTeam.getOrThrow()));
+			if (getTeamOrDisplayClientMessage(player).isPresent()) ClientConstants.INSTANCE.setScreen(new TeamClaimManagerScreen());
 			else ClientConstants.INSTANCE.setScreen(new CreateTeamScreen());
 		}
 
