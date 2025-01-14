@@ -12,6 +12,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
+import static com.createcivilization.capitol.util.MojangAPI.getUsernameFromUUID;
+
 public class TeamClaimManagerScreen extends GuiMenu {
 
 	private static final Component TITLE = Component.translatable("gui.capitol.claim_block_menu");
@@ -35,11 +37,40 @@ public class TeamClaimManagerScreen extends GuiMenu {
 		if (minecraft == null) return;
 
 		Scene mainScene = new Scene();
-		Scene invitePlayerScene = new Scene();
+		Scene playerScene = new Scene();
 
 		super.init();
 
-		EditBox inviteBox = invitePlayerScene.addRenderableWidget(
+		int i = 0;
+		for(Map.Entry<String, List<UUID>> entry : ClientConstants.playerTeam.getOrThrow().getPlayers().entrySet()) {
+			Component roleComponent = Component.literal(entry.getKey());
+			playerScene.addRenderableWidget(
+				new StringWidget(
+					this.leftPos + 10,
+					this.topPos + 10 + ( i++ * 20 ),
+					this.font.width(roleComponent.getVisualOrderText()),
+					9,
+					roleComponent,
+					this.font
+				)
+			);
+			for (UUID uuid : entry.getValue()) {
+				Component playerNameComponent = Component.literal(Objects.requireNonNull(getUsernameFromUUID("069a79f4-44e9-4726-a5be-fca90e38aaf5")));
+				playerScene.addRenderableWidget(
+					Button.builder(
+						playerNameComponent,
+						button -> {}
+					).bounds(
+						this.leftPos + 10,
+						this.topPos + 10 + ( i++ * 20 ),
+						this.font.width(playerNameComponent.getVisualOrderText()),
+						9
+					).build()
+				);
+			}
+		}
+
+		EditBox inviteBox = playerScene.addRenderableWidget(
 			new EditBox(
 				this.font,
 				this.leftPos + 50,
@@ -50,23 +81,19 @@ public class TeamClaimManagerScreen extends GuiMenu {
 			)
 		);
 
-		invitePlayerScene.addRenderableWidget(
+		playerScene.addRenderableWidget(
 			Button.builder(
 				INVITE,
 				button -> {
 					if (inviteBox.isActive()) {
 						// They clicked to confirm
 						String inviteName = inviteBox.getValue();
-						for (Map.Entry<UUID, String> entry : ClientConstants.playerMap.entrySet())
-							if (entry.getValue().equalsIgnoreCase(inviteName)) {
-								PacketHandler.sendToServer(new C2SInvitePlayer(entry.getKey()));
-								break;
-						}
-						invitePlayerScene.hideWidget(inviteBox);
+						PacketHandler.sendToServer(new C2SInvitePlayer(inviteName));
+						playerScene.hideWidget(inviteBox);
 						button.setMessage(INVITE);
 					}else{
 						// Open name prompt
-						invitePlayerScene.showWidget(inviteBox);
+						playerScene.showWidget(inviteBox);
 						button.setMessage(CONFIRM);
 					}
 				}
@@ -84,8 +111,8 @@ public class TeamClaimManagerScreen extends GuiMenu {
 			Button.builder(
 				PLAYERS,
 				button -> {
-					swapScene(mainScene, invitePlayerScene);
-					invitePlayerScene.hideWidget(inviteBox);
+					swapScene(mainScene, playerScene);
+					playerScene.hideWidget(inviteBox);
 				}
 			)
 				.bounds(
@@ -97,9 +124,9 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				.build()
 		);
 
-		invitePlayerScene.hide();
+		playerScene.hide();
 
 		this.addScene(mainScene);
-		this.addScene(invitePlayerScene);
+		this.addScene(playerScene);
 	}
 }

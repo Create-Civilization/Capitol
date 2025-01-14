@@ -15,6 +15,7 @@ import journeymap.client.api.model.ShapeProperties;
 import journeymap.client.api.util.PolygonHelper;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -49,11 +50,12 @@ public class JourneyMapIntegration implements IClientPlugin {
 	public void onPopupMenuEvent(PopupMenuEvent popupMenuEvent) {
 		ModPopupMenu menu = popupMenuEvent.getPopupMenu();
 
-		var player = ClientConstants.INSTANCE.player;
+		LocalPlayer player = ClientConstants.INSTANCE.player;
 		assert player != null;
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
 			if (ClientEvents.getTeamOrDisplayClientMessage(player).isEmpty()) return;
-			if (!TeamUtils.nearClaimedChunk(new ChunkPos(pos), 1, player))
+			ChunkPos chunkPos = new ChunkPos(pos);
+			if (!TeamUtils.nearClaimedChunk(chunkPos, 1, player))
 				player.displayClientMessage(
 					ClientConstants.NOT_NEAR_CHUNK,
 					true
@@ -68,7 +70,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 					ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED,
 					true
 				);
-				PacketHandler.sendToServer(new C2SClaimChunk(pos));
+				PacketHandler.sendToServer(new C2SClaimChunk(chunkPos));
 				if (lastClickOverlay != null) {
 					this.api.remove(lastClickOverlay);
 					lastClickOverlay = null;

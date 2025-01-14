@@ -527,12 +527,24 @@ public class TeamUtils {
 	 */
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, Player player) {
-		ResourceLocation dimension = player.level().dimension().location();
+		ObjectHolder<Team> holder = getTeam(player);
+		return holder.isPresent() && nearClaimedChunk(chunkPos, radius, player.level().dimension().location(), holder.getOrThrow());
+	}
+
+	/**
+	 * Checks if nearby chunks in radius are of a team
+	 * @param chunkPos origin on which to check around
+	 * @param radius the radius to check around chunkPos
+	 * @param dimension the dimension to check in
+	 * @param team the team to check
+	 * @return wether any were found
+	 */
+	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, ResourceLocation dimension, Team team) {
 		radius++;
 		for (int x = -1; x < radius; x++) {
 			for (int z = -1; z < radius; z++) {
 				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
-				if (allowedInChunk(player, dimension, currentChunkPos)) return true;
+				if (allowedInChunk(team, dimension, currentChunkPos)) return true;
 				else if (TeamUtils.isClaimedChunk(dimension, chunkPos)) return true;
 			}
 		}

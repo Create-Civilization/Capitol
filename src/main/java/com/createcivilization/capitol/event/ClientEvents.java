@@ -3,7 +3,8 @@ package com.createcivilization.capitol.event;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.KeyBindings;
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.packets.toserver.*;
+import com.createcivilization.capitol.packets.toserver.C2SClaimCurrentChunk;
+import com.createcivilization.capitol.packets.toserver.C2SSendTeamMessage;
 import com.createcivilization.capitol.screen.*;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
@@ -15,11 +16,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.*;
 
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.*;
+import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import net.minecraftforge.server.ServerLifecycleHooks;
 import wiiu.mavity.util.ObjectHolder;
 
 import java.util.*;
@@ -29,10 +32,14 @@ import static com.createcivilization.capitol.constants.ClientConstants.playerTea
 @Mod.EventBusSubscriber(modid = Capitol.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientEvents {
 
+	private static final Component NOT_IN_TEAM = Component.literal("You are not in a team");
+	private static final Component NOT_NEAR_CHUNK = Component.literal("You must be next to a claimed chunk to do this");
+	private static final Component CLAIMED_CHUNK = Component.literal("Chunk already claimed");
+	private static final Component SUCCESS_CHUNK = Component.literal("Chunk successfully claimed");
+
 	@SubscribeEvent
 	public static void onLeave(ClientPlayerNetworkEvent.LoggingOut event) {
 		TeamUtils.loadedTeams.clear();
-		ClientConstants.playerMap.clear();
 	}
 
 	@SubscribeEvent
@@ -74,20 +81,20 @@ public class ClientEvents {
 		if (KeyBindings.claim_chunk.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
 			if (!TeamUtils.nearClaimedChunk(player.chunkPosition(), 1, player))
 				player.displayClientMessage(
-					ClientConstants.NOT_NEAR_CHUNK,
+					NOT_NEAR_CHUNK,
 					true
 				);
 			else if (TeamUtils.isInClaimedChunk(player))
 				player.displayClientMessage(
-					ClientConstants.CHUNK_ALREADY_CLAIMED,
+					CLAIMED_CHUNK,
 					true
 				);
 			else {
 				player.displayClientMessage(
-					ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED,
+					SUCCESS_CHUNK,
 					true
 				);
-				PacketHandler.sendToServer(new C2SClaimChunk());
+				PacketHandler.sendToServer(new C2SClaimCurrentChunk());
 			}
 		}
 
@@ -117,7 +124,7 @@ public class ClientEvents {
 	public static ObjectHolder<Team> getTeamOrDisplayClientMessage(LocalPlayer player) {
 		ObjectHolder<Team> teamHolder = TeamUtils.getTeam(player);
 		if (teamHolder.isEmpty()) {
-			player.displayClientMessage(ClientConstants.NOT_IN_TEAM, true);
+			player.displayClientMessage(NOT_IN_TEAM, true);
 			return teamHolder;
 		} else {
 			playerTeam = teamHolder;

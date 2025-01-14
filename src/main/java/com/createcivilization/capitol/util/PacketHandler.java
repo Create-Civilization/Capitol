@@ -87,7 +87,6 @@ public class PacketHandler {
 		// S2C packets
 		serverAddPacket(S2COpenTeamStatistics.class, id++, S2COpenTeamStatistics::encode, S2COpenTeamStatistics::new, S2COpenTeamStatistics::handle);
 		serverAddPacket(S2CAddChunk.class, id++, S2CAddChunk::encode, S2CAddChunk::new, S2CAddChunk::handle);
-		serverAddPacket(S2CAddPlayerName.class, id++, S2CAddPlayerName::encode, S2CAddPlayerName::new, S2CAddPlayerName::handle);
 		serverAddPacket(S2CAddTeam.class, id++, S2CAddTeam::encode, S2CAddTeam::new, S2CAddTeam::handle);
 		serverAddPacket(S2CRemoveChunk.class, id++, S2CRemoveChunk::encode, S2CRemoveChunk::new, S2CRemoveChunk::handle);
 		serverAddPacket(S2CRemoveTeam.class, id++, S2CRemoveTeam::encode, S2CRemoveTeam::new, S2CRemoveTeam::handle);
@@ -96,6 +95,8 @@ public class PacketHandler {
 		clientAddPacket(C2SRequestSync.class, id++, C2SRequestSync::encode, C2SRequestSync::new, C2SRequestSync::handle);
 		clientAddPacket(C2SCreateTeam.class, id++, C2SCreateTeam::encode, C2SCreateTeam::new, C2SCreateTeam::handle);
 		clientAddPacket(C2SClaimChunk.class, id++, C2SClaimChunk::encode, C2SClaimChunk::new, C2SClaimChunk::handle);
+		clientAddPacket(C2SUnclaimChunk.class, id++, C2SUnclaimChunk::encode, C2SUnclaimChunk::new, C2SUnclaimChunk::handle);
+		clientAddPacket(C2SClaimCurrentChunk.class, id++, C2SClaimCurrentChunk::encode, C2SClaimCurrentChunk::new, C2SClaimCurrentChunk::handle);
 		clientAddPacket(C2SInvitePlayer.class, id++, C2SInvitePlayer::encode, C2SInvitePlayer::new, C2SInvitePlayer::handle);
 		clientAddPacket(C2SSendTeamMessage.class, id++, C2SSendTeamMessage::encode, C2SSendTeamMessage::new, C2SSendTeamMessage::handle);
 	}

@@ -1,8 +1,6 @@
 package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.constants.ServerConstants;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CAddPlayerName;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -12,7 +10,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -48,8 +45,6 @@ public class ServerEvents {
 		if (playerLoggedInEvent.getEntity() instanceof ServerPlayer player) {
 			player.getPersistentData().putString(LAST_CHUNK_TEAM_ID, "");
 			TeamUtils.synchronizeServerDataWithPlayer(player);
-			for (ServerPlayer serverPlayer : ServerConstants.server.getOrThrow().getPlayerList().getPlayers()) if (serverPlayer != player) PacketHandler.sendToPlayer(new S2CAddPlayerName(serverPlayer), player);
-			PacketHandler.sendToAllClients(new S2CAddPlayerName(player));
 		}
 	}
 }

@@ -4,8 +4,8 @@ import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
@@ -37,16 +37,19 @@ public class ServerPacketHandler {
 		TeamUtils.claimCurrentChunk(sender);
 	}
 
-	public static void claimChunk(ServerPlayer sender, BlockPos pos) {
-		if (TeamUtils.isInClaimedChunk(sender, pos) || !TeamUtils.nearClaimedChunk(new ChunkPos(pos), 1, sender)) return;
+	public static void claimChunk(ResourceLocation dimension, ChunkPos pos, Team team) {
+		if (TeamUtils.allowedInChunk(team, dimension, pos) || !TeamUtils.nearClaimedChunk(pos, 1, dimension, team)) return;
 
-		TeamUtils.claimChunk(sender, pos);
+		TeamUtils.claimChunk(team, dimension, pos);
 	}
 
-	public static void invitePlayerToTeam(ServerPlayer sender, UUID playerToInviteUUID) {
+	public static void invitePlayerToTeam(ServerPlayer sender, String playerToInviteName) {
 		ObjectHolder<Team> invitingTeam = TeamUtils.getTeam(sender);
+		Player player = ServerConstants.server.getOrThrow().getPlayerList().getPlayerByName(playerToInviteName); // already ignores case
+		if (player == null) return;
+		UUID playerToInviteUUID = Objects.requireNonNull(ServerConstants.server.getOrThrow().getPlayerList().getPlayerByName(playerToInviteName)).getUUID();
 
-		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
+//		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
 
 		Team team = invitingTeam.getOrThrow();
 
@@ -78,5 +81,11 @@ public class ServerPacketHandler {
 			if (toSend != null) toSend.displayClientMessage(Component.literal("[" + team.getName() + "] <").append(sender.getDisplayName()).append("> " + message), false);
 			System.out.println("[" + team.getName() + "] <" + sender.getName() + "> " + message);
 		}
+	}
+
+	public static void unclaimChunk(ResourceLocation dimension, ChunkPos pos, Team team) {
+		if (!TeamUtils.allowedInChunk(team, dimension, pos)) return;
+
+		TeamUtils.unclaimChunk(team, dimension, pos);
 	}
 }

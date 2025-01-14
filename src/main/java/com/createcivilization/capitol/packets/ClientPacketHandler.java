@@ -44,10 +44,6 @@ public class ClientPacketHandler {
 		ClientConstants.INSTANCE.setScreen(new TeamStatisticsScreen(team));
 	}
 
-	public static void addPlayerInfo(String playerName, UUID playerUUID) {
-		ClientConstants.playerMap.put(playerUUID, playerName);
-	}
-
 	public static void handlePacket(Runnable run, NetworkEvent.Context ctx) {
 		ctx.enqueueWork(
 			() -> DistExecutor.unsafeRunWhenOn(

@@ -10,19 +10,19 @@ import java.util.UUID;
 
 public class C2SInvitePlayer {
 
-	private final UUID playerToInvite;
+	private final String playerToInvite;
 
-	public C2SInvitePlayer(UUID playerToInvite) {
+	public C2SInvitePlayer(String playerToInvite) {
 		this.playerToInvite = playerToInvite;
 	}
 
 	public C2SInvitePlayer(FriendlyByteBuf friendlyByteBuf) {
 		// Decode
-		this.playerToInvite = friendlyByteBuf.readUUID();
+		this.playerToInvite = friendlyByteBuf.readUtf();
 	}
 
 	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUUID(this.playerToInvite);
+		friendlyByteBuf.writeUtf(this.playerToInvite);
 	}
 
 	public void handle(NetworkEvent.Context context) {
