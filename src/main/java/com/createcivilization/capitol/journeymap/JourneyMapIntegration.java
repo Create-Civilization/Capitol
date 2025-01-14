@@ -7,6 +7,7 @@ import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
 import journeymap.client.api.*;
+import journeymap.client.api.display.ModPopupMenu;
 import journeymap.client.api.display.PolygonOverlay;
 import journeymap.client.api.event.*;
 import journeymap.client.api.event.forge.PopupMenuEvent;
@@ -17,11 +18,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-
 import net.minecraft.world.level.ChunkPos;
+
 import net.minecraftforge.common.MinecraftForge;
 
 import org.jetbrains.annotations.*;
+
+import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
@@ -34,7 +37,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 	public void initialize(@NotNull IClientAPI iClientAPI) {
 		System.out.println("Capitol initializing JourneyMap integration...");
 		this.api = iClientAPI;
-		this.api.subscribe(this.getModId(), EnumSet.of(ClientEvent.Type.DISPLAY_UPDATE));
+		this.api.subscribe(this.getModId(), EnumSet.of(ClientEvent.Type.DISPLAY_UPDATE, ClientEvent.Type.MAP_CLICKED));
 		MinecraftForge.EVENT_BUS.addListener(this::onPopupMenuEvent);
 	}
 
@@ -44,7 +47,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 	}
 
 	public void onPopupMenuEvent(PopupMenuEvent popupMenuEvent) {
-		var menu = popupMenuEvent.getPopupMenu();
+		ModPopupMenu menu = popupMenuEvent.getPopupMenu();
 
 		var player = ClientConstants.INSTANCE.player;
 		assert player != null;
@@ -66,11 +69,18 @@ public class JourneyMapIntegration implements IClientPlugin {
 					true
 				);
 				PacketHandler.sendToServer(new C2SClaimChunk(pos));
+				if (lastClickOverlay != null) {
+					this.api.remove(lastClickOverlay);
+					lastClickOverlay = null;
+				}
 			}
 		});
 
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> {
-
+			if (lastClickOverlay != null) {
+				this.api.remove(lastClickOverlay);
+				lastClickOverlay = null;
+			}
 		});
 	}
 
@@ -78,7 +88,38 @@ public class JourneyMapIntegration implements IClientPlugin {
 
 	@Override
 	public void onEvent(ClientEvent clientEvent) {
-		if (clientEvent.type != ClientEvent.Type.DISPLAY_UPDATE) return;
+		if (clientEvent.type == ClientEvent.Type.DISPLAY_UPDATE) handleDisplayUpdate((DisplayUpdateEvent) clientEvent);
+		if (clientEvent.type == ClientEvent.Type.MAP_CLICKED) handleMapClicked((FullscreenMapEvent.ClickEvent.Post) clientEvent);
+	}
+
+	private PolygonOverlay lastClickOverlay;
+
+	public void handleMapClicked(FullscreenMapEvent.ClickEvent.Post mapClickedEvent) {
+		if (mapClickedEvent.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+			var pos = mapClickedEvent.getLocation();
+			var displaySelector = PolygonHelper.createChunkPolygonForWorldCoords(pos.getX(), pos.getY(), pos.getZ());
+			try {
+				PolygonOverlay clickOverlay = new PolygonOverlay(
+					this.getModId(),
+					"capitolMouseSelector",
+					mapClickedEvent.getLevel(),
+					new ShapeProperties().setFillColor(-8388480), // Purple
+					displaySelector
+				);
+				this.api.show(clickOverlay);
+				lastClickOverlay = clickOverlay;
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		} else if (mapClickedEvent.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+			if (lastClickOverlay != null) {
+				this.api.remove(lastClickOverlay);
+				lastClickOverlay = null;
+			}
+		}
+	}
+
+	public void handleDisplayUpdate(DisplayUpdateEvent displayUpdateEvent) {
 		if (!ClientConstants.chunksDirty) return;
 		for (Team team : TeamUtils.loadedTeams) {
 			for (var claimedChunks : team.getClaimedChunks().entrySet()) {
@@ -96,9 +137,9 @@ public class JourneyMapIntegration implements IClientPlugin {
 						poly
 					);
 					try {
-						if (prevOverlay != null) api.remove(prevOverlay);
-						api.show(overlay);
-						overlays.put(teamId, overlay);
+						if (prevOverlay != null) this.api.remove(prevOverlay);
+						this.api.show(overlay);
+						this.overlays.put(teamId, overlay);
 					} catch (Exception e) {
 						throw new RuntimeException("Failed to render claims!", e);
 					}
