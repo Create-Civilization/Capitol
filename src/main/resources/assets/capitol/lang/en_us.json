@@ -1,8 +1,10 @@
 {
 	"block.capitol.capitol_block": "Capitol Block",
+
 	"container.capitol.capitol_block": "Capitol",
 
 	"key.categories.capitol": "Capitol",
+
 	"key.capitol.stats": "Open claim statistics",
 	"key.capitol.view_chunks": "Toggle claim visibility",
 	"key.capitol.open_claim_menu": "Open claim menu",
@@ -11,5 +13,8 @@
 
 	"gui.capitol.claim_block_menu": "Claim statistics",
 	"gui.capitol.create_team": "Create Team",
-	"gui.capitol.manage_team": "Team Manager"
+	"gui.capitol.manage_team": "Team Manager",
+
+	"gui.journeymap.capitol.claim_chunk": "Claim chunk",
+	"gui.journeymap.capitol.unclaim_chunk": "Unclaim chunk"
 }

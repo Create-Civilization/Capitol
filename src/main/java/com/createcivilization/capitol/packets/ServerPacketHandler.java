@@ -4,14 +4,16 @@ import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
-
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.*;
 
+import net.minecraft.world.level.ChunkPos;
+import net.minecraftforge.api.distmarker.*;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
+
 import wiiu.mavity.util.ObjectHolder;
 
 import java.awt.Color;
@@ -33,6 +35,12 @@ public class ServerPacketHandler {
 		if (TeamUtils.isInClaimedChunk(sender) || !TeamUtils.nearClaimedChunk(sender.chunkPosition(), 1, sender)) return;
 
 		TeamUtils.claimCurrentChunk(sender);
+	}
+
+	public static void claimChunk(ServerPlayer sender, BlockPos pos) {
+		if (TeamUtils.isInClaimedChunk(sender, pos) || !TeamUtils.nearClaimedChunk(new ChunkPos(pos), 1, sender)) return;
+
+		TeamUtils.claimChunk(sender, pos);
 	}
 
 	public static void invitePlayerToTeam(ServerPlayer sender, UUID playerToInviteUUID) {
@@ -68,7 +76,7 @@ public class ServerPacketHandler {
 		for (UUID member : team.getAllPlayers()) {
 			Player toSend = ServerConstants.server.getOrThrow().getPlayerList().getPlayer(member);
 			if (toSend != null) toSend.displayClientMessage(Component.literal("[" + team.getName() + "] <").append(sender.getDisplayName()).append("> " + message), false);
-			System.out.println("[" + team.getName() + "] <" +  sender.getName() + "> " + message);
+			System.out.println("[" + team.getName() + "] <" + sender.getName() + "> " + message);
 		}
 	}
 }

@@ -1,6 +1,5 @@
 package com.createcivilization.capitol.mixin;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;

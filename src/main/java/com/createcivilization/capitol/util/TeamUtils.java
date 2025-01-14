@@ -116,7 +116,7 @@ public class TeamUtils {
 		boolean result = false;
 		for (Team team : loadedTeams) {
 			var chunks = team.getClaimedChunks().get(dimension);
-			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) result = true;
+			if (chunks != null && chunks.stream().anyMatch(pos::equals)) result = true;
 		}
 		return result;
 	}
@@ -491,6 +491,10 @@ public class TeamUtils {
 	 */
 	public static int claimCurrentChunk(Player player) {
 		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
+	}
+
+	public static void claimChunk(Player player, BlockPos pos) {
+		TeamUtils.getTeam(player).ifPresent(team -> claimChunk(team, getPlayerDimension(player), new ChunkPos(pos)));
 	}
 
 	/**

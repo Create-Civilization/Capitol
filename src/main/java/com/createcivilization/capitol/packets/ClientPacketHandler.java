@@ -38,7 +38,7 @@ public class ClientPacketHandler {
 	}
 
 	public static void openTeamStatistics(String teamId) {
-		// This SHOULD throw if team is not loaded due to the server already checking for team existance
+		// This SHOULD throw if team is not loaded due to the server already checking for team existence
 		// If it throws, client is out of sync, thus needs to be synced
 		Team team = TeamUtils.getTeam(teamId).getOrThrow();
 		ClientConstants.INSTANCE.setScreen(new TeamStatisticsScreen(team));

@@ -3,10 +3,7 @@ package com.createcivilization.capitol.util;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
-import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
-import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
-import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
-import com.createcivilization.capitol.packets.toserver.C2SSendTeamMessage;
+import com.createcivilization.capitol.packets.toserver.*;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -16,9 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.*;
 import net.minecraftforge.network.simple.SimpleChannel;
 
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 public class PacketHandler {
 
@@ -41,7 +36,7 @@ public class PacketHandler {
 		ctx.setPacketHandled(true);
 	}
 
-	public static void handleSyncedPacket (Runnable toRun) {
+	public static void handleSyncedPacket(Runnable toRun) {
 		try {
 			toRun.run();
 		} catch (NullPointerException e) {
@@ -72,7 +67,7 @@ public class PacketHandler {
 		BiConsumer<T, FriendlyByteBuf> encoder,
 		Function<FriendlyByteBuf, T> decoder,
 		BiConsumer<T,NetworkEvent.Context> handler
-	){
+	) {
 		generalAddPacket(packet, id, encoder, decoder, (packett, context) -> handleSyncedPacket(() -> handler.accept(packett, context)), NetworkDirection.PLAY_TO_SERVER);
 	}
 
@@ -82,7 +77,7 @@ public class PacketHandler {
 		BiConsumer<T, FriendlyByteBuf> encoder,
 		Function<FriendlyByteBuf, T> decoder,
 		BiConsumer<T,NetworkEvent.Context> handler
-	){
+	) {
 		generalAddPacket(packet, id, encoder, decoder, handler, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
