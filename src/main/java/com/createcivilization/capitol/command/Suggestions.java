@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.command;
 
+import com.createcivilization.capitol.constants.CommonConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -34,6 +35,11 @@ public class Suggestions {
 
 	public static final SuggestionProvider<CommandSourceStack> PERMISSIONS = (context, builder) -> {
 		PermissionUtil.permissions.forEach(builder::suggest);
+		return builder.buildFuture();
+	};
+
+	public static final SuggestionProvider<CommandSourceStack> COLORS = (context, builder) -> {
+		CommonConstants.colors.keySet().forEach(builder::suggest);
 		return builder.buildFuture();
 	};
 }
