@@ -18,5 +18,6 @@ public class ClientConstants {
 	public static Map<UUID, String> playerMap = new HashMap<>();
 	public static ObjectHolder<Team> playerTeam;
 	public static boolean teamChat = false;
+	public static boolean chunksDirty = false;
 
 }

@@ -19,18 +19,22 @@ public class ClientPacketHandler {
 
 	public static void addTeam(Team toAdd) {
 		TeamUtils.loadedTeams.add(toAdd);
+		ClientConstants.chunksDirty = true;
 	}
 
 	public static void removeTeam(String toRemoveId) {
 		TeamUtils.loadedTeams.removeIf(team -> team.getTeamId().equals(toRemoveId));
+		ClientConstants.chunksDirty = true;
 	}
 
 	public static void addChunk(String claimingTeamId, ChunkPos chunkToAdd, ResourceLocation dimension) {
 		TeamUtils.claimChunk(TeamUtils.getTeam(claimingTeamId).getOrThrow(), dimension, chunkToAdd);
+		ClientConstants.chunksDirty = true;
 	}
 
 	public static void removeChunk(String claimingTeamId, ChunkPos chunkToAdd, ResourceLocation dimension) {
 		TeamUtils.unclaimChunk(TeamUtils.getTeam(claimingTeamId).getOrThrow(), dimension, chunkToAdd);
+		ClientConstants.chunksDirty = true;
 	}
 
 	public static void openTeamStatistics(String teamId) {
