@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-// TODO: Implement color
 @ClientPlugin
 @SuppressWarnings("NullableProblems")
 public class JourneyMapIntegration implements IClientPlugin {
@@ -56,7 +55,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 						this.getModId(),
 						teamId,
 						ResourceKey.create(Registries.DIMENSION, claimedChunks.getKey()),
-						new ShapeProperties().setFillColor(0xA020F0), // Purple to test
+						new ShapeProperties().setFillColor(team.getColor().getRGB()),
 						poly
 					);
 					try {
