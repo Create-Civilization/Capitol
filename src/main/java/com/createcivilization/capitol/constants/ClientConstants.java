@@ -9,8 +9,6 @@ import net.minecraftforge.api.distmarker.*;
 
 import wiiu.mavity.util.ObjectHolder;
 
-import java.util.*;
-
 @OnlyIn(Dist.CLIENT)
 public class ClientConstants {
 
@@ -21,7 +19,7 @@ public class ClientConstants {
 	public static boolean chunksDirty = false;
 
 	public static final Component NOT_IN_TEAM = Component.literal("You are not in a team");
-	public static final Component NOT_NEAR_CHUNK = Component.literal("You must be next to a claimed chunk to do this");
+	public static final Component NOT_NEAR_CHUNK = Component.literal("Must be next to a claimed chunk to do this");
 	public static final Component CHUNK_ALREADY_CLAIMED = Component.literal("Chunk already claimed");
 	public static final Component CHUNK_SUCCESSFULLY_CLAIMED = Component.literal("Chunk successfully claimed");
 

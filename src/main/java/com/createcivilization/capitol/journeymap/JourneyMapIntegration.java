@@ -7,8 +7,7 @@ import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
 import journeymap.client.api.*;
-import journeymap.client.api.display.ModPopupMenu;
-import journeymap.client.api.display.PolygonOverlay;
+import journeymap.client.api.display.*;
 import journeymap.client.api.event.*;
 import journeymap.client.api.event.forge.PopupMenuEvent;
 import journeymap.client.api.model.ShapeProperties;
@@ -47,9 +46,10 @@ public class JourneyMapIntegration implements IClientPlugin {
 		return "capitol";
 	}
 
-	public void onPopupMenuEvent(PopupMenuEvent popupMenuEvent) {
-		ModPopupMenu menu = popupMenuEvent.getPopupMenu();
+	public void onPopupMenuEvent(PopupMenuEvent event) {
+		if (event.getLayer() != PopupMenuEvent.Layer.FULLSCREEN) return;
 
+		ModPopupMenu menu = event.getPopupMenu();
 		LocalPlayer player = ClientConstants.INSTANCE.player;
 		assert player != null;
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
@@ -96,15 +96,15 @@ public class JourneyMapIntegration implements IClientPlugin {
 
 	private PolygonOverlay lastClickOverlay;
 
-	public void handleMapClicked(FullscreenMapEvent.ClickEvent.Post mapClickedEvent) {
-		if (mapClickedEvent.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-			var pos = mapClickedEvent.getLocation();
+	public void handleMapClicked(FullscreenMapEvent.ClickEvent.Post event) {
+		if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+			var pos = event.getLocation();
 			var displaySelector = PolygonHelper.createChunkPolygonForWorldCoords(pos.getX(), pos.getY(), pos.getZ());
 			try {
 				PolygonOverlay clickOverlay = new PolygonOverlay(
 					this.getModId(),
 					"capitolMouseSelector",
-					mapClickedEvent.getLevel(),
+					event.getLevel(),
 					new ShapeProperties().setFillColor(-8388480), // Purple
 					displaySelector
 				);
@@ -113,7 +113,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		} else if (mapClickedEvent.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+		} else {
 			if (lastClickOverlay != null) {
 				this.api.remove(lastClickOverlay);
 				lastClickOverlay = null;
@@ -121,7 +121,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 		}
 	}
 
-	public void handleDisplayUpdate(DisplayUpdateEvent displayUpdateEvent) {
+	public void handleDisplayUpdate(DisplayUpdateEvent event) {
 		if (!ClientConstants.chunksDirty) return;
 		for (Team team : TeamUtils.loadedTeams) {
 			for (var claimedChunks : team.getClaimedChunks().entrySet()) {
