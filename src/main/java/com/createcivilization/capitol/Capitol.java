@@ -29,6 +29,10 @@ public class Capitol {
         CapitolBlockEntities.register(ew);
 
         MinecraftForge.EVENT_BUS.register(this);
+
+		// Don't ask.
+		boolean cake = true || false;
+		System.out.println(cake);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
