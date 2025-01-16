@@ -119,7 +119,7 @@ public class ClientEvents {
 			player.displayClientMessage(ClientConstants.NOT_IN_TEAM, true);
 			return teamHolder;
 		} else {
-			playerTeam = teamHolder;
+			playerTeam.setFrom(teamHolder);
 			return playerTeam;
 		}
 	}

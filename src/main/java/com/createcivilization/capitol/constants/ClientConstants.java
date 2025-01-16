@@ -14,7 +14,7 @@ public class ClientConstants {
 
 	public static final Minecraft INSTANCE = Minecraft.getInstance();
 	public static boolean viewChunks;
-	public static ObjectHolder<Team> playerTeam;
+	public static ObjectHolder<Team> playerTeam = new ObjectHolder<>();
 	public static boolean teamChat = false;
 	public static boolean chunksDirty = false;
 

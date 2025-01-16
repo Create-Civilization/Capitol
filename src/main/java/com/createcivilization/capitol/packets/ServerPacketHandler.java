@@ -8,8 +8,8 @@ import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-
 import net.minecraft.world.level.ChunkPos;
+
 import net.minecraftforge.api.distmarker.*;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
@@ -78,8 +78,9 @@ public class ServerPacketHandler {
 
 		for (UUID member : team.getAllPlayers()) {
 			Player toSend = ServerConstants.server.getOrThrow().getPlayerList().getPlayer(member);
-			if (toSend != null) toSend.displayClientMessage(Component.literal("[" + team.getName() + "] <").append(sender.getDisplayName()).append("> " + message), false);
-			System.out.println("[" + team.getName() + "] <" + sender.getName() + "> " + message);
+			String msg = "[" + team.getName() + "] <" + sender.getName().getString() + "> " + message;
+			if (toSend != null) toSend.displayClientMessage(Component.literal(msg), false);
+			System.out.println(msg);
 		}
 	}
 
