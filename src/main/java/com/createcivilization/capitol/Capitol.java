@@ -31,7 +31,7 @@ public class Capitol {
         MinecraftForge.EVENT_BUS.register(this);
 
 		// Don't ask.
-		boolean cake = true || false;
+		boolean cake = true & false;
 		System.out.println(cake);
     }
 
