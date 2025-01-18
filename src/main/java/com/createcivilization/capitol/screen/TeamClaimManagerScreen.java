@@ -12,8 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
-import static com.createcivilization.capitol.util.MojangAPI.getUsernameFromUUID;
-
 public class TeamClaimManagerScreen extends GuiMenu {
 
 	private static final Component TITLE = Component.translatable("gui.capitol.claim_block_menu");
@@ -55,7 +53,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				)
 			);
 			for (UUID uuid : entry.getValue()) {
-				Component playerNameComponent = Component.literal(Objects.requireNonNull(getUsernameFromUUID("069a79f4-44e9-4726-a5be-fca90e38aaf5")));
+				Component playerNameComponent = Component.literal(Objects.requireNonNull(NetworkUtil.getUsernameFromUUID(uuid.toString())));
 				playerScene.addRenderableWidget(
 					Button.builder(
 						playerNameComponent,

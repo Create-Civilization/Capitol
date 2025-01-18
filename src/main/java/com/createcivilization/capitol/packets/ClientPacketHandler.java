@@ -12,8 +12,6 @@ import net.minecraftforge.api.distmarker.*;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.UUID;
-
 @OnlyIn(Dist.CLIENT)
 public class ClientPacketHandler {
 
