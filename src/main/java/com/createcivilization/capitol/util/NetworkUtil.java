@@ -1,9 +1,9 @@
 package com.createcivilization.capitol.util;
 
+import com.google.gson.*;
+
 import java.io.*;
 import java.net.*;
-
-import com.google.gson.*;
 
 public class NetworkUtil {
 
@@ -35,14 +35,20 @@ public class NetworkUtil {
 				while ((inputLine = in.readLine()) != null) content.append(inputLine);
 				in.close();
 				return content.toString();
-			} else System.out.println(errorRequest(url) + ", expected response code: " + HTTP_STATUS_OK + ", got: " + responseCode);
+			} else throw new NetworkException(errorRequest(url) + ", expected response code: " + HTTP_STATUS_OK + ", got: " + responseCode);
 		} catch (Exception e) {
-			String msg = errorRequest(url);
-			System.out.println(msg);
-			System.err.println(msg);
-			e.printStackTrace(System.out);
-			e.printStackTrace(System.err);
+			throw new NetworkException(errorRequest(url), e);
 		}
-		return null;
+	}
+
+	public static class NetworkException extends RuntimeException {
+
+		public NetworkException(String message) {
+			super(message);
+		}
+
+		public NetworkException(String message, Throwable cause) {
+			super(message, cause);
+		}
 	}
 }
