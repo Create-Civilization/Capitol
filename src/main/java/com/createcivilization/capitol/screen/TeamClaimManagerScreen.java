@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.*;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import wiiu.mavity.util.network.NetworkUtil;
 
 import java.util.*;
 
@@ -53,7 +54,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				)
 			);
 			for (UUID uuid : entry.getValue()) {
-				Component playerNameComponent = Component.literal(Objects.requireNonNull(NetworkUtil.getUsernameFromUUID(uuid.toString())));
+				Component playerNameComponent = Component.literal(Objects.requireNonNull(NetworkUtil.getUsernameFromUUID(uuid)));
 				playerScene.addRenderableWidget(
 					Button.builder(
 						playerNameComponent,
