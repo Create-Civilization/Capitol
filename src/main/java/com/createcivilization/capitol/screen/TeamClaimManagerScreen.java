@@ -54,7 +54,8 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				)
 			);
 			for (UUID uuid : entry.getValue()) {
-				Component playerNameComponent = Component.literal(Objects.requireNonNull(NetworkUtil.getUsernameFromUUID(uuid)));
+				if (Config.debug.getOrThrow()) uuid = UUID.fromString("5084e6f3-8f54-43f1-8df5-1dca109e430f"); // Prevent offline uuid errors
+				Component playerNameComponent = Component.literal(NetworkUtil.getUsernameFromUUID(uuid));
 				playerScene.addRenderableWidget(
 					Button.builder(
 						playerNameComponent,

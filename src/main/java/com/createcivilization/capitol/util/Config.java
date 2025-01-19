@@ -12,7 +12,7 @@ public class Config {
 	private Config() { throw new AssertionError("java.lang.reflect is cheating!"); }
 
 	public static final ObjectHolder<Integer> claimRadius = new ObjectHolder<>(1);
-	public static final ObjectHolder<Boolean> debugLogs = new ObjectHolder<>(false);
+	public static final ObjectHolder<Boolean> debug = new ObjectHolder<>(false);
 	public static final ObjectHolder<Integer> inviteTimeout = new ObjectHolder<>(120);
 
 	public static final ObjectHolder<Boolean> nonMemberUseItems = new ObjectHolder<>(true);
