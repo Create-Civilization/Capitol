@@ -13,7 +13,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 @Mod.EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class ServerEvents {

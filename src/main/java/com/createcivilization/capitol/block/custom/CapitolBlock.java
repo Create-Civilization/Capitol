@@ -26,7 +26,7 @@ import net.minecraftforge.fml.DistExecutor;
 
 import org.jetbrains.annotations.Nullable;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 @SuppressWarnings({"deprecation", "NullableProblems"})
 public class CapitolBlock extends BaseEntityBlock {

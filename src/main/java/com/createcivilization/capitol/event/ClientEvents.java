@@ -20,7 +20,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 import java.util.*;
 

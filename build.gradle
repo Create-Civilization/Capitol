@@ -153,6 +153,8 @@ dependencies {
     // Journeymap + Journeymap API
     compileOnly fg.deobf(group: 'info.journeymap', name: 'journeymap-api', version: '1.20-1.9-SNAPSHOT', changing: true)
     runtimeOnly fg.deobf("curse.maven:journeymap-32274:5789363")
+
+    implementation fg.deobf('curse.maven:wiiu-lib-1182545:6101801')
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

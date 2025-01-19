@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Player;
 
 import org.jetbrains.annotations.Nullable;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 public abstract class AbstractPlayerCommand extends AbstractCommand {
 

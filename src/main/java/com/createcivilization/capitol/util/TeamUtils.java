@@ -18,7 +18,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 
-import wiiu.mavity.util.*;
+import wiiu.mavity.wiiu_lib.util.*;
 
 import java.awt.Color;
 import java.io.*;

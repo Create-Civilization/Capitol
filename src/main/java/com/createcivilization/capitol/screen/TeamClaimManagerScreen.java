@@ -9,7 +9,8 @@ import net.minecraft.client.gui.components.*;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import wiiu.mavity.util.network.NetworkUtil;
+
+import wiiu.mavity.wiiu_lib.util.network.NetworkUtil;
 
 import java.util.*;
 
@@ -54,7 +55,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				)
 			);
 			for (UUID uuid : entry.getValue()) {
-				if (Config.debug.getOrThrow()) uuid = UUID.fromString("5084e6f3-8f54-43f1-8df5-1dca109e430f"); // Prevent offline uuid errors
+				uuid = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"); // TODO: Add a client config to remove this outside of debug
 				Component playerNameComponent = Component.literal(NetworkUtil.getUsernameFromUUID(uuid));
 				playerScene.addRenderableWidget(
 					Button.builder(

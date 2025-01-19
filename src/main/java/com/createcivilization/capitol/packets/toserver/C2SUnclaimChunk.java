@@ -7,7 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraftforge.network.NetworkEvent;
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 
 public class C2SUnclaimChunk {

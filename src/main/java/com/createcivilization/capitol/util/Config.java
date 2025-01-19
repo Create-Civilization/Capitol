@@ -2,7 +2,7 @@ package com.createcivilization.capitol.util;
 
 import com.google.gson.stream.*;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.*;
 
 import java.io.*;
 import java.util.StringJoiner;

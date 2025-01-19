@@ -11,7 +11,7 @@ import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 import java.util.*;
 

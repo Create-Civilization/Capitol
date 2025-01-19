@@ -6,8 +6,6 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.UUID;
-
 public class C2SInvitePlayer {
 
 	private final String playerToInvite;

@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 
 import net.minecraftforge.api.distmarker.*;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientConstants {

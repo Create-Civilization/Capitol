@@ -4,7 +4,7 @@ import net.minecraft.server.MinecraftServer;
 
 import net.minecraftforge.api.distmarker.*;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 @OnlyIn(Dist.DEDICATED_SERVER)
 public class ServerConstants {

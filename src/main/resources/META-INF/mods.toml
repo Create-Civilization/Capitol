@@ -61,3 +61,10 @@ mandatory = false
 versionRange = "*"
 ordering = "NONE"
 side = "CLIENT"
+
+[[dependencies."${mod_id}"]]
+modId = "wiiu_lib"
+mandatory = true
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"

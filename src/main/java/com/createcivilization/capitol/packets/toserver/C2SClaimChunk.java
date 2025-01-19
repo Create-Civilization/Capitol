@@ -1,15 +1,16 @@
 package com.createcivilization.capitol.packets.toserver;
 
 import com.createcivilization.capitol.packets.ServerPacketHandler;
-
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
-import net.minecraft.network.FriendlyByteBuf;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
+
 import net.minecraftforge.network.NetworkEvent;
-import wiiu.mavity.util.ObjectHolder;
+
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 
 public class C2SClaimChunk {

@@ -14,7 +14,7 @@ import net.minecraftforge.api.distmarker.*;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
-import wiiu.mavity.util.ObjectHolder;
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 import java.awt.Color;
 import java.util.*;

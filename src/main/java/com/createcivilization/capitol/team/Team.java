@@ -8,6 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.ChunkPos;
 
+import wiiu.mavity.wiiu_lib.util.JsonUtils;
+
 import java.awt.Color;
 import java.io.*;
 import java.util.*;
