@@ -14,6 +14,8 @@ import net.minecraft.world.entity.player.Player;
 
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
+import java.awt.Color;
+
 public class CreateTeamCommand extends AbstractTeamCommand {
 
     public CreateTeamCommand() {
@@ -25,7 +27,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 						Commands.literal("colorByName")
 							.then(Commands.argument("color", StringArgumentType.word())
 								.suggests(Suggestions.COLORS)
-								.executes(this::executeAllParams)
+								.executes(this::executeColorName)
 							)
 					)
 					.then(
@@ -33,11 +35,11 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 							.then(
 								Commands.argument("color", IntegerArgumentType.integer())
 									.suggests(Suggestions.COLORS_RGB)
-									.executes(this::executeAllParams)
+									.executes(this::executeColorRGBInt)
 							)
 					)
 					.then(
-						Commands.literal("colorByRGB")
+						Commands.literal("colorByRGBArray")
 							.then(
 								Commands.argument("red", IntegerArgumentType.integer())
 									.suggests(Suggestions.COLORS_RED)
@@ -47,7 +49,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 											.then(
 												Commands.argument("blue", IntegerArgumentType.integer())
 													.suggests(Suggestions.COLORS_BLUE)
-													.executes(this::executeAllParams)
+													.executes(this::executeColorRGBArray)
 											)
 									)
 							)
@@ -62,31 +64,33 @@ public class CreateTeamCommand extends AbstractTeamCommand {
         return !TeamUtils.hasTeam(player);
     }
 
-	public int executeAllParams(CommandContext<CommandSourceStack> command) {
-		String name = StringArgumentType.getString(command, "name");
+	public int executeColorName(CommandContext<CommandSourceStack> command) {
+		return executeAllParams(command, CommonConstants.Colors.get(StringArgumentType.getString(command, "color")));
+	}
 
-		Object color; // Color may be a string or an int
-		try {
-			color = StringArgumentType.getString(command, "color").toUpperCase();
-		} catch (IllegalArgumentException e) {
-			try {
-				color = IntegerArgumentType.getInteger(command, "color");
-			} catch (IllegalArgumentException e2) {
-				color = new Integer[] {
-					IntegerArgumentType.getInteger(command, "red"),
-					IntegerArgumentType.getInteger(command, "green"),
-					IntegerArgumentType.getInteger(command, "blue")
-				};
-			}
-		}
+	public int executeColorRGBInt(CommandContext<CommandSourceStack> command) {
+		int rgb = IntegerArgumentType.getInteger(command, "color");
+		return executeAllParams(command, CommonConstants.Colors.get(rgb));
+	}
+
+	public int executeColorRGBArray(CommandContext<CommandSourceStack> command) {
+		int[] rgb = new int[] {
+			IntegerArgumentType.getInteger(command, "red"),
+			IntegerArgumentType.getInteger(command, "green"),
+			IntegerArgumentType.getInteger(command, "blue")
+		};
+		return executeAllParams(command, CommonConstants.Colors.get(rgb));
+	}
+
+	public int executeAllParams(CommandContext<CommandSourceStack> command, Color color) {
+		String name = StringArgumentType.getString(command, "name");
 		if (TeamUtils.teamExists(name)) {
 			command.getSource().sendFailure(Component.literal("A team with the name '" + name + "' already exists!"));
 			return -1;
 		}
-		Object finalColor = color;
 		return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
-			TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, CommonConstants.Colors.get(finalColor)));
-			command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + finalColor + "'."), true);
+			TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, color));
+			command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + color + "'."), true);
 			command.getSource().sendSystemMessage(Component.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
 			return 1;
 		}, () -> {

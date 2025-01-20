@@ -160,6 +160,11 @@ public class TeamUtils {
 		return new ObjectHolder<>();
 	}
 
+	public static ObjectHolder<Team> getTeamByName(String name) {
+		for (Team team : loadedTeams) if (team.getName().equals(name)) return new ObjectHolder<>(team);
+		return new ObjectHolder<>();
+	}
+
 	public static ObjectHolder<Team> getTeam(ChunkPos pos, ResourceLocation dimension) {
 		for (Team team : loadedTeams) {
 			List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
@@ -281,14 +286,7 @@ public class TeamUtils {
     }
 
     public static boolean teamExists(String teamName) {
-        boolean exists = false;
-        for (Team team : loadedTeams) {
-            if (team.getName().equalsIgnoreCase(teamName)) {
-                exists = true;
-                break;
-            }
-        }
-        return exists;
+		return getTeamByName(teamName).isPresent();
     }
 
 	/**
