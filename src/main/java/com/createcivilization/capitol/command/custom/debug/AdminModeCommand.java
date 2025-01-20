@@ -1,21 +1,17 @@
 package com.createcivilization.capitol.command.custom.debug;
 
-import com.createcivilization.capitol.command.custom.abstracts.AbstractPlayerCommand;
-
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-public class AdminModeCommand extends AbstractPlayerCommand {
+public class AdminModeCommand extends AbstractDebugCommand {
 
 	public AdminModeCommand() {
-		super("capitolTeams", "adminMode");
-		command.set(
-			Commands.literal("debug")
+		super();
+		subSubCommand.set(
+			Commands.literal("adminMode")
 				.requires(this::canExecuteAllParams)
-				.then(Commands.literal(subCommandName.getOrThrow())
-					.executes(this::executeAllParams)
-				)
+				.executes(this::executeAllParams)
 		);
 	}
 

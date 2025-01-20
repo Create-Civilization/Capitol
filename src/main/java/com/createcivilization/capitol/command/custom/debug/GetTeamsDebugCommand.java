@@ -1,6 +1,5 @@
 package com.createcivilization.capitol.command.custom.debug;
 
-import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 
@@ -8,15 +7,14 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-public class GetTeamsDebugCommand extends AbstractTeamCommand {
+public class GetTeamsDebugCommand extends AbstractDebugCommand {
 
 	public GetTeamsDebugCommand() {
-		super("getTeams");
-		command.set(
-			Commands.literal("debug")
-			.then(Commands.literal(subCommandName.getOrThrow())
-			.requires(this::canExecuteAllParams)
-			.executes(this::executeAllParams))
+		super();
+		subSubCommand.set(
+			Commands.literal("getTeams")
+				.requires(this::canExecuteAllParams)
+				.executes(this::executeAllParams)
 		);
 	}
 

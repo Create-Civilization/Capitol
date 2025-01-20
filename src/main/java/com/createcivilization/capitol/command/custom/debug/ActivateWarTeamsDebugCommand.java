@@ -1,7 +1,6 @@
 package com.createcivilization.capitol.command.custom.debug;
 
 import com.createcivilization.capitol.command.Suggestions;
-import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.*;
 import com.createcivilization.capitol.util.TeamUtils;
 
@@ -10,27 +9,30 @@ import com.mojang.brigadier.context.CommandContext;
 
 import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 
-public class ActivateWarTeamsDebugCommand extends AbstractTeamCommand {
+public class ActivateWarTeamsDebugCommand extends AbstractDebugCommand {
 
 	public ActivateWarTeamsDebugCommand() {
-		super("startWar");
-		command.set(
-			Commands.literal("debug")
-				.then(Commands.literal(subCommandName.getOrThrow())
-					.then(Commands.argument("attackerTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES)
-						.then(Commands.argument("defenderTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES))
-					)
-					.requires(this::canExecuteAllParams)
-					.executes(this::executeAllParams)
+		super();
+		subSubCommand.set(
+			Commands.literal("startWar")
+				.then(
+					Commands.argument("attackerTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES)
+						.then(
+							Commands.argument("defenderTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES)
+								.requires(this::canExecuteAllParams)
+								.executes(this::executeAllParams)
+						)
 				)
+
 		);
 	}
 
 	@Override
-	public boolean canExecuteAllParams(CommandSourceStack s) {
+	public boolean canExecute(Player player) {
 		setMustWhat("be a player and an operator");
-		return s.hasPermission(4);
+		return player.hasPermissions(4);
 	}
 
 	@Override

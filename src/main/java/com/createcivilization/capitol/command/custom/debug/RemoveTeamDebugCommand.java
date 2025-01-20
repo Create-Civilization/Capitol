@@ -1,25 +1,24 @@
 package com.createcivilization.capitol.command.custom.debug;
 
 import com.createcivilization.capitol.command.Suggestions;
-import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 
 import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Objects;
 
 import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
 
-public class RemoveTeamDebugCommand extends AbstractTeamCommand {
+public class RemoveTeamDebugCommand extends AbstractDebugCommand {
 
 	public RemoveTeamDebugCommand() {
-		super("removeTeam");
-		command.set(
-			Commands.literal("debug")
-			.then(Commands.literal(subCommandName.getOrThrow())
+		super();
+		subSubCommand.set(
+			Commands.literal("removeTeam")
 				.requires(this::canExecuteAllParams)
 				.then(
 					Commands.argument("teamName", StringArgumentType.string())
@@ -27,14 +26,13 @@ public class RemoveTeamDebugCommand extends AbstractTeamCommand {
 						.requires(this::canExecuteAllParams)
 						.executes(this::executeAllParams)
 				)
-			)
 		);
 	}
 
 	@Override
-	public boolean canExecuteAllParams(CommandSourceStack s) {
+	public boolean canExecute(Player player) {
 		setMustWhat("be a player and an operator");
-		return s.hasPermission(4);
+		return player.hasPermissions(4);
 	}
 
 	@Override
