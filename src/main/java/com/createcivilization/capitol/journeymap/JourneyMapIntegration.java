@@ -54,6 +54,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 	public void updateChunks(TickEvent.LevelTickEvent event) {
 		if (event.side != LogicalSide.CLIENT) return;
 		if (System.currentTimeMillis() / 1000f % 5f != 0 && !ClientConstants.chunksDirty) return;
+
 		for (Team team : TeamUtils.loadedTeams) {
 			for (var claimedChunks : team.getClaimedChunks().entrySet()) {
 				var player = Minecraft.getInstance().player;
@@ -79,6 +80,15 @@ public class JourneyMapIntegration implements IClientPlugin {
 				}
 			}
 		}
+
+		// Cleanup old overlays from deleted teams
+		for (String teamId : overlays.keySet()) {
+			if (TeamUtils.loadedTeams.stream().noneMatch(team -> team.getTeamId().equals(teamId))) {
+				this.api.remove(this.overlays.get(teamId));
+				this.overlays.remove(teamId);
+			}
+		}
+
 		ClientConstants.chunksDirty = false;
 	}
 
