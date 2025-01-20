@@ -20,6 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -44,11 +45,19 @@ public class JourneyMapIntegration implements IClientPlugin {
 		MinecraftForge.EVENT_BUS.addListener(this::onPopupMenuEvent);
 		MinecraftForge.EVENT_BUS.addListener(this::updateChunks);
 		MinecraftForge.EVENT_BUS.addListener(this::onKey);
+		MinecraftForge.EVENT_BUS.addListener(this::clearCache);
 	}
 
 	@Override
 	public String getModId() {
 		return "capitol";
+	}
+
+	// Turns out you can crash the game if you don't clear this data :/
+	public void clearCache(ClientPlayerNetworkEvent.LoggingOut event) {
+		this.overlays.clear();
+		ClientConstants.toResetChunksTeamIds.clear();
+		ClientConstants.chunksDirty = false;
 	}
 
 	public void updateChunks(TickEvent.LevelTickEvent event) {

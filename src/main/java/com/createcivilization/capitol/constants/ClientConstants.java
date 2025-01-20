@@ -18,6 +18,8 @@ public class ClientConstants {
 	public static boolean viewChunks;
 	public static ObjectHolder<Team> playerTeam = new ObjectHolder<>();
 	public static boolean teamChat = false;
+
+	// JourneyMap Integration use ONLY
 	public static boolean chunksDirty = false;
 	public static final List<String> toResetChunksTeamIds = new ArrayList<>();
 
