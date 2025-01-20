@@ -8,6 +8,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.commands.CommandSourceStack;
 
+import java.awt.Color;
 import java.util.Arrays;
 
 public class Suggestions {
@@ -40,6 +41,11 @@ public class Suggestions {
 
 	public static final SuggestionProvider<CommandSourceStack> COLORS = (context, builder) -> {
 		CommonConstants.Colors.colors.keySet().forEach(builder::suggest);
+		return builder.buildFuture();
+	};
+
+	public static final SuggestionProvider<CommandSourceStack> COLORS_RGB = (context, builder) -> {
+		CommonConstants.Colors.colors.values().stream().map(Color::getRGB).forEach(builder::suggest);
 		return builder.buildFuture();
 	};
 }
