@@ -20,8 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.LogicalSide;
@@ -55,7 +54,9 @@ public class JourneyMapIntegration implements IClientPlugin {
 
 	// Turns out you can crash the game if you don't clear this data :/
 	public void clearCache(ClientPlayerNetworkEvent.LoggingOut event) {
+		this.overlays.values().forEach(this.api::remove);
 		this.overlays.clear();
+		this.removeLastClickOverlayIfPresent();
 		ClientConstants.toResetChunksTeamIds.clear();
 		ClientConstants.chunksDirty = false;
 	}
@@ -65,9 +66,10 @@ public class JourneyMapIntegration implements IClientPlugin {
 		if (System.currentTimeMillis() / 1000f % 5f != 0 && !ClientConstants.chunksDirty) return;
 
 		// Cleanup old overlays from chunks that are no longer claimed
-		overlays.keySet().stream().filter(ClientConstants.toResetChunksTeamIds::contains).forEach((teamId) -> {
-			this.api.remove(this.overlays.get(teamId));
-		});
+		this.overlays.keySet().stream()
+			.filter(ClientConstants.toResetChunksTeamIds::contains)
+			.forEach((teamId) -> this.api.remove(this.overlays.get(teamId)));
+		ClientConstants.toResetChunksTeamIds.clear();
 
 		// Cleanup old overlays from deleted teams
 		for (String teamId : overlays.keySet()) {
@@ -168,7 +170,9 @@ public class JourneyMapIntegration implements IClientPlugin {
 					this.getModId(),
 					"capitolMouseSelector",
 					event.getLevel(),
-					new ShapeProperties().setFillColor(-8388480), // Purple
+					new ShapeProperties()
+						.setFillColor(-8388480) // Purple
+						.setFillOpacity(0.25f),
 					displaySelector
 				);
 				this.api.show(clickOverlay);
