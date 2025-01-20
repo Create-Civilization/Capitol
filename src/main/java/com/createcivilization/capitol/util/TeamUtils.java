@@ -581,7 +581,8 @@ public class TeamUtils {
 	public static boolean allowedInChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
 		if (!TeamUtils.isClaimedChunk(dimension, chunkPos)) return false;
 		List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
-		return chunks.contains(chunkPos);
+		if (chunks == null) return false;
+		else return chunks.contains(chunkPos);
 	}
 
 	/**
