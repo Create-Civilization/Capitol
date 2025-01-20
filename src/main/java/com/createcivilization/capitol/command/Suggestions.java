@@ -39,7 +39,7 @@ public class Suggestions {
 	};
 
 	public static final SuggestionProvider<CommandSourceStack> COLORS = (context, builder) -> {
-		CommonConstants.colors.keySet().forEach(builder::suggest);
+		CommonConstants.Colors.colors.keySet().forEach(builder::suggest);
 		return builder.buildFuture();
 	};
 }

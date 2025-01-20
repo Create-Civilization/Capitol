@@ -5,6 +5,7 @@ import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamComma
 import com.createcivilization.capitol.constants.CommonConstants;
 import com.createcivilization.capitol.util.TeamUtils;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 
 import net.minecraft.commands.Commands;
@@ -23,16 +24,22 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                         .then(Commands.argument("color", StringArgumentType.word())
 								.suggests(Suggestions.COLORS)
                                 .executes((command) -> {
-                                    String
-                                            color = StringArgumentType.getString(command, "color").toUpperCase(),
-                                            name = StringArgumentType.getString(command, "name");
+                                    String name = StringArgumentType.getString(command, "name");
+
+									Object color; // Color may be a string or an int
+									try {
+										color = StringArgumentType.getString(command, "color").toUpperCase();
+									} catch (IllegalArgumentException e) {
+										color = IntegerArgumentType.getInteger(command, "color");
+									}
 									if (TeamUtils.teamExists(name)) {
 										command.getSource().sendFailure(Component.literal("A team with the name '" + name + "' already exists!"));
 										return -1;
 									}
-                                    return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
-										TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, CommonConstants.colors.get(color)));
-										command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + color + "'."), true);
+									Object finalColor = color;
+									return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
+										TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, CommonConstants.Colors.get(finalColor)));
+										command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + finalColor + "'."), true);
 										command.getSource().sendSystemMessage(Component.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
 										return 1;
                                     }, () -> {
@@ -40,7 +47,9 @@ public class CreateTeamCommand extends AbstractTeamCommand {
                                         return -1;
                                     });
                                 })
-                        )
+						).then(
+							Commands.argument("color", IntegerArgumentType.integer())
+					)
                 )
 		);
     }
