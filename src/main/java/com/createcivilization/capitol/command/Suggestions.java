@@ -45,7 +45,22 @@ public class Suggestions {
 	};
 
 	public static final SuggestionProvider<CommandSourceStack> COLORS_RGB = (context, builder) -> {
-		CommonConstants.Colors.colors.values().stream().map(Color::getRGB).forEach(builder::suggest);
+		CommonConstants.Colors.getColorsStream().map(Color::getRGB).forEach(builder::suggest);
+		return builder.buildFuture();
+	};
+
+	public static final SuggestionProvider<CommandSourceStack> COLORS_RED = (context, builder) -> {
+		CommonConstants.Colors.getColorsStream().map(Color::getRed).forEach(builder::suggest);
+		return builder.buildFuture();
+	};
+
+	public static final SuggestionProvider<CommandSourceStack> COLORS_GREEN = (context, builder) -> {
+		CommonConstants.Colors.getColorsStream().map(Color::getGreen).forEach(builder::suggest);
+		return builder.buildFuture();
+	};
+
+	public static final SuggestionProvider<CommandSourceStack> COLORS_BLUE = (context, builder) -> {
+		CommonConstants.Colors.getColorsStream().map(Color::getBlue).forEach(builder::suggest);
 		return builder.buildFuture();
 	};
 }

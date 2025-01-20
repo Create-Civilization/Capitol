@@ -29,11 +29,27 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 							)
 					)
 					.then(
-						Commands.literal("colorByRGB")
+						Commands.literal("colorByRGBInt")
 							.then(
-								Commands.argument("colorRGB", IntegerArgumentType.integer())
+								Commands.argument("color", IntegerArgumentType.integer())
 									.suggests(Suggestions.COLORS_RGB)
 									.executes(this::executeAllParams)
+							)
+					)
+					.then(
+						Commands.literal("colorByRGB")
+							.then(
+								Commands.argument("red", IntegerArgumentType.integer())
+									.suggests(Suggestions.COLORS_RED)
+									.then(
+										Commands.argument("green", IntegerArgumentType.integer())
+											.suggests(Suggestions.COLORS_GREEN)
+											.then(
+												Commands.argument("blue", IntegerArgumentType.integer())
+													.suggests(Suggestions.COLORS_BLUE)
+													.executes(this::executeAllParams)
+											)
+									)
 							)
 					)
                 )
@@ -53,7 +69,15 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 		try {
 			color = StringArgumentType.getString(command, "color").toUpperCase();
 		} catch (IllegalArgumentException e) {
-			color = IntegerArgumentType.getInteger(command, "color");
+			try {
+				color = IntegerArgumentType.getInteger(command, "color");
+			} catch (IllegalArgumentException e2) {
+				color = new Integer[] {
+					IntegerArgumentType.getInteger(command, "red"),
+					IntegerArgumentType.getInteger(command, "green"),
+					IntegerArgumentType.getInteger(command, "blue")
+				};
+			}
 		}
 		if (TeamUtils.teamExists(name)) {
 			command.getSource().sendFailure(Component.literal("A team with the name '" + name + "' already exists!"));

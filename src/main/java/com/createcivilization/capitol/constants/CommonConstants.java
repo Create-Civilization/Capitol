@@ -3,8 +3,9 @@ package com.createcivilization.capitol.constants;
 import java.awt.Color;
 
 import java.util.*;
+import java.util.stream.Stream;
 
-// Try to avoid setting variables that are stored here.
+// Try to avoid setting variables that are stored here from outside of here.
 public class CommonConstants {
 
 	public static class Colors {
@@ -17,10 +18,30 @@ public class CommonConstants {
 			return colors.values().stream().filter(color -> color.getRGB() == rgb).findFirst().orElse(new Color(rgb));
 		}
 
+		public static Color get(int[] rgb) {
+			int
+				red = rgb[0],
+				green = rgb[1],
+				blue = rgb[2];
+			return colors.values().stream()
+				.filter(color -> color.getRed() == red && color.getGreen() == green && color.getBlue() == blue)
+				.findFirst().orElse(new Color(red, green, blue));
+		}
+
 		public static Color get(Object o) {
+			if (o == null) return null;
+			if (o instanceof int[]) return get((int[]) o);
 			if (o instanceof Integer) return get((int) o);
 			if (o instanceof String) return get((String) o);
 			return null;
+		}
+
+		public static List<Color> getColors() {
+			return new ArrayList<>(colors.values());
+		}
+
+		public static Stream<Color> getColorsStream() {
+			return getColors().stream();
 		}
 
 		public static final Map<String, Color> colors = new HashMap<>();
