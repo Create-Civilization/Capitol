@@ -55,7 +55,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				)
 			);
 			for (UUID uuid : entry.getValue()) {
-				uuid = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"); // TODO: Add a client config to remove this outside of debug
+				if (ClientConstants.INSTANCE.getUser().getName().equals("Dev")) uuid = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"); // TODO: Add a client config to remove this outside of debug
 				Component playerNameComponent = Component.literal(NetworkUtil.getUsernameFromUUID(uuid));
 				playerScene.addRenderableWidget(
 					Button.builder(
