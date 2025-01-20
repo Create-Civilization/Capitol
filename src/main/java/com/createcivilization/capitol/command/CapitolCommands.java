@@ -32,5 +32,6 @@ public class CapitolCommands {
 		new AddRoleTeamCommand().register(dispatcher);
 		new ReassignRoleTeamCommand().register(dispatcher);
 		new EditRoleTeamCommand().register(dispatcher);
+		new AdminModeCommand().register(dispatcher);
     }
 }

@@ -35,6 +35,7 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteractSpecific event) {
 		var player = event.getEntity();
+		if (hasAdminPermission(player)) return;
 		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("interactEntities"), "interact with entities");
 	}
@@ -45,6 +46,7 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPlayerBreakBlock(PlayerInteractEvent.LeftClickBlock event) {
 		var player = event.getEntity();
+		if (hasAdminPermission(player)) return;
 		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("breakBlocks"), "break blocks");
 	}
@@ -55,6 +57,7 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
 		var player = event.getEntity();
+		if (hasAdminPermission(player)) return;
 		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerRightClickBlock firing!"));
 		Map<String, Boolean> permission = TeamUtils.getPermissionInChunk(event.getPos(), player);
 		var mainHandItem = player.getMainHandItem().getItem();
@@ -86,6 +89,7 @@ public class PlayerInteractionEvents {
 	@SuppressWarnings("resource")
 	public static void onPlayerUseItem(PlayerInteractEvent.RightClickItem event) {
 		var player = event.getEntity();
+		if (hasAdminPermission(player)) return;
 		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerUseItem firing!"));
 		var stack = event.getItemStack();
 		var level = player.level();
@@ -110,5 +114,9 @@ public class PlayerInteractionEvents {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 		}
+	}
+
+	public static boolean hasAdminPermission(Player player) {
+		return player.getPersistentData().contains("capitolTeamsAdminMode") && player.getPersistentData().getBoolean("capitolTeamsAdminMode");
 	}
 }
