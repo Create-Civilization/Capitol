@@ -597,9 +597,9 @@ public class TeamUtils {
 
 	/**
 	 * Unclaims chunks in a radius of a center position from a team
-	 * @param team The team to claim the chunks to
-	 * @param dimension The dimension to claim the chunks in
-	 * @param chunkPos The center of the radius to claim the chunks in
+	 * @param team The team to unclaim the chunks from
+	 * @param dimension The dimension to unclaim the chunks in
+	 * @param chunkPos The center of the radius to unclaim the chunks in
 	 * @param radius The radius itself
 	 */
 	public static void unclaimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {

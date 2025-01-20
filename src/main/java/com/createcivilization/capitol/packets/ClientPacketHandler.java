@@ -12,6 +12,8 @@ import net.minecraftforge.api.distmarker.*;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.*;
+
 @OnlyIn(Dist.CLIENT)
 public class ClientPacketHandler {
 
@@ -30,8 +32,9 @@ public class ClientPacketHandler {
 		ClientConstants.chunksDirty = true;
 	}
 
-	public static void removeChunk(String claimingTeamId, ChunkPos chunkToAdd, ResourceLocation dimension) {
-		TeamUtils.unclaimChunk(TeamUtils.getTeam(claimingTeamId).getOrThrow(), dimension, chunkToAdd);
+	public static void removeChunk(String teamId, ChunkPos pos, ResourceLocation dimension) {
+		TeamUtils.unclaimChunk(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos);
+		ClientConstants.toResetChunksTeamIds.add(teamId);
 		ClientConstants.chunksDirty = true;
 	}
 

@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.constants.CommonConstants;
 import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
 import com.createcivilization.capitol.util.*;
 
@@ -96,15 +97,9 @@ public class CreateTeamScreen extends GuiMenu {
 			Button.builder(
 					CREATE_TEAM,
 				button -> {
-					try {
-						String value = teamName.getValue();
-						if (TeamUtils.teamExists(value)) return;
-						PacketHandler.sendToServer(new C2SCreateTeam(value, (Color)  Color.class.getField(colorName.getValue().toLowerCase()).get(null)));
-					} catch (IllegalAccessException | NoSuchFieldException e) {
-						this.onClose();
-						minecraft.player.displayClientMessage(INVALID_COLOR, true);
-						return;
-					}
+					String value = teamName.getValue();
+					if (TeamUtils.teamExists(value)) return;
+					PacketHandler.sendToServer(new C2SCreateTeam(value, CommonConstants.Colors.get(colorName.getValue())));
 					// TODO: SUCCESS SCREEN
 					minecraft.player.displayClientMessage(TEAM_SUCCESS, true);
 					this.onClose();

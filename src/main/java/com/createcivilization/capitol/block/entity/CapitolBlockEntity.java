@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.block.entity;
 
 import com.createcivilization.capitol.Capitol;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("all")
 public class CapitolBlockEntity extends BlockEntity implements MenuProvider {
+
 	public static final Component DISPLAY_NAME =
 		Component.translatable("container." + Capitol.MOD_ID + ".capitol_block");
 

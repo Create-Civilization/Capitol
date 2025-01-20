@@ -70,11 +70,10 @@ public class CapitolBlock extends BaseEntityBlock {
 		ChunkPos chunkPos = new ChunkPos(pos);
 		ObjectHolder<Team> team = TeamUtils.getTeam(chunkPos, dimension);
 		if (!team.isEmpty()) {
-			TeamUtils.unclaimChunkRadius(
+			TeamUtils.unclaimSpread(
 				team.getOrThrow(),
 				dimension,
-				chunkPos,
-				1
+				chunkPos
 			);
 		}
 

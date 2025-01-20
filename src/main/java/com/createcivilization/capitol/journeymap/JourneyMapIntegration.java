@@ -55,6 +55,19 @@ public class JourneyMapIntegration implements IClientPlugin {
 		if (event.side != LogicalSide.CLIENT) return;
 		if (System.currentTimeMillis() / 1000f % 5f != 0 && !ClientConstants.chunksDirty) return;
 
+		// Cleanup old overlays from chunks that are no longer claimed
+		overlays.keySet().stream().filter(ClientConstants.toResetChunksTeamIds::contains).forEach((teamId) -> {
+			this.api.remove(this.overlays.get(teamId));
+		});
+
+		// Cleanup old overlays from deleted teams
+		for (String teamId : overlays.keySet()) {
+			if (TeamUtils.loadedTeams.stream().noneMatch(team -> team.getTeamId().equals(teamId))) {
+				this.api.remove(this.overlays.get(teamId));
+				this.overlays.remove(teamId);
+			}
+		}
+
 		for (Team team : TeamUtils.loadedTeams) {
 			for (var claimedChunks : team.getClaimedChunks().entrySet()) {
 				var player = Minecraft.getInstance().player;
@@ -67,7 +80,9 @@ public class JourneyMapIntegration implements IClientPlugin {
 						this.getModId(),
 						teamId,
 						ResourceKey.create(Registries.DIMENSION, claimedChunks.getKey()),
-						new ShapeProperties().setFillColor(team.getColor().getRGB()),
+						new ShapeProperties()
+							.setFillColor(team.getColor().getRGB())
+							.setFillOpacity(0.25f),
 						poly
 					);
 					try {
@@ -78,14 +93,6 @@ public class JourneyMapIntegration implements IClientPlugin {
 						throw new RuntimeException("Failed to render claims!", e);
 					}
 				}
-			}
-		}
-
-		// Cleanup old overlays from deleted teams
-		for (String teamId : overlays.keySet()) {
-			if (TeamUtils.loadedTeams.stream().noneMatch(team -> team.getTeamId().equals(teamId))) {
-				this.api.remove(this.overlays.get(teamId));
-				this.overlays.remove(teamId);
 			}
 		}
 
