@@ -8,6 +8,7 @@ import com.createcivilization.capitol.util.PacketHandler;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -20,11 +21,12 @@ public class Capitol {
 
     public static final String MOD_ID = "capitol";
 
-    @SuppressWarnings("removal") // Forge docs are gaslighting when it says to place FMLJavaModLoadingContext in the constructor
+    @SuppressWarnings("removal") // Putting FMLJavaModLoadingContext in the constructor is incompatible with versions below 47.3.10
     public Capitol() {
-		FMLJavaModLoadingContext context = FMLJavaModLoadingContext.get();
-        IEventBus ew = context.getModEventBus();
-		context.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);
+        IEventBus ew = FMLJavaModLoadingContext.get().getModEventBus();
+
+		// Don't use FMLJavaModLoadingContext because it doesn't have this method below version 47.3.10
+		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);
 
         ew.addListener(this::commonSetup);
 
