@@ -20,7 +20,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.fml.LogicalSide;
 
 import org.jetbrains.annotations.*;
 
@@ -37,13 +40,46 @@ public class JourneyMapIntegration implements IClientPlugin {
 	public void initialize(@NotNull IClientAPI iClientAPI) {
 		System.out.println("Capitol initializing JourneyMap integration...");
 		this.api = iClientAPI;
-		this.api.subscribe(this.getModId(), EnumSet.of(ClientEvent.Type.DISPLAY_UPDATE, ClientEvent.Type.MAP_CLICKED));
+		this.api.subscribe(this.getModId(), EnumSet.of(ClientEvent.Type.MAP_CLICKED));
 		MinecraftForge.EVENT_BUS.addListener(this::onPopupMenuEvent);
+		MinecraftForge.EVENT_BUS.addListener(this::updateChunks);
+		MinecraftForge.EVENT_BUS.addListener(this::onKey);
 	}
 
 	@Override
 	public String getModId() {
 		return "capitol";
+	}
+
+	public void updateChunks(TickEvent.LevelTickEvent event) {
+		if (event.side != LogicalSide.CLIENT) return;
+		if (System.currentTimeMillis() / 1000f % 5f != 0 && !ClientConstants.chunksDirty) return;
+		for (Team team : TeamUtils.loadedTeams) {
+			for (var claimedChunks : team.getClaimedChunks().entrySet()) {
+				var player = Minecraft.getInstance().player;
+				assert player != null;
+				var polygon = PolygonHelper.createChunksPolygon(claimedChunks.getValue(), player.getBlockY());
+				for (var poly : polygon) {
+					String teamId = team.getTeamId();
+					@Nullable PolygonOverlay prevOverlay = overlays.get(teamId);
+					PolygonOverlay overlay = new PolygonOverlay(
+						this.getModId(),
+						teamId,
+						ResourceKey.create(Registries.DIMENSION, claimedChunks.getKey()),
+						new ShapeProperties().setFillColor(team.getColor().getRGB()),
+						poly
+					);
+					try {
+						if (prevOverlay != null) this.api.remove(prevOverlay);
+						this.api.show(overlay);
+						this.overlays.put(teamId, overlay);
+					} catch (Exception e) {
+						throw new RuntimeException("Failed to render claims!", e);
+					}
+				}
+			}
+		}
+		ClientConstants.chunksDirty = false;
 	}
 
 	public void onPopupMenuEvent(PopupMenuEvent event) {
@@ -71,26 +107,27 @@ public class JourneyMapIntegration implements IClientPlugin {
 					true
 				);
 				PacketHandler.sendToServer(new C2SClaimChunk(chunkPos));
-				if (lastClickOverlay != null) {
-					this.api.remove(lastClickOverlay);
-					lastClickOverlay = null;
-				}
 			}
+			this.removeLastClickOverlayIfPresent();
 		});
 
+		// TODO: Work on this.
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> {
-			if (lastClickOverlay != null) {
-				this.api.remove(lastClickOverlay);
-				lastClickOverlay = null;
-			}
+			this.removeLastClickOverlayIfPresent();
 		});
+	}
+
+	public void removeLastClickOverlayIfPresent() {
+		if (lastClickOverlay != null) {
+			this.api.remove(lastClickOverlay);
+			lastClickOverlay = null;
+		}
 	}
 
 	private final Map<String, PolygonOverlay> overlays = new HashMap<>();
 
 	@Override
 	public void onEvent(ClientEvent clientEvent) {
-		if (clientEvent.type == ClientEvent.Type.DISPLAY_UPDATE) handleDisplayUpdate((DisplayUpdateEvent) clientEvent);
 		if (clientEvent.type == ClientEvent.Type.MAP_CLICKED) handleMapClicked((FullscreenMapEvent.ClickEvent.Post) clientEvent);
 	}
 
@@ -121,33 +158,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 		}
 	}
 
-	public void handleDisplayUpdate(DisplayUpdateEvent event) {
-		if (!ClientConstants.chunksDirty) return;
-		for (Team team : TeamUtils.loadedTeams) {
-			for (var claimedChunks : team.getClaimedChunks().entrySet()) {
-				var player = Minecraft.getInstance().player;
-				assert player != null;
-				var polygon = PolygonHelper.createChunksPolygon(claimedChunks.getValue(), player.getBlockY());
-				for (var poly : polygon) {
-					String teamId = team.getTeamId();
-					@Nullable PolygonOverlay prevOverlay = overlays.get(teamId);
-					PolygonOverlay overlay = new PolygonOverlay(
-						this.getModId(),
-						teamId,
-						ResourceKey.create(Registries.DIMENSION, claimedChunks.getKey()),
-						new ShapeProperties().setFillColor(team.getColor().getRGB()),
-						poly
-					);
-					try {
-						if (prevOverlay != null) this.api.remove(prevOverlay);
-						this.api.show(overlay);
-						this.overlays.put(teamId, overlay);
-					} catch (Exception e) {
-						throw new RuntimeException("Failed to render claims!", e);
-					}
-				}
-			}
-		}
-		ClientConstants.chunksDirty = false;
+	public void onKey(InputEvent.Key event) {
+		this.removeLastClickOverlayIfPresent();
 	}
 }

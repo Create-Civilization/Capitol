@@ -552,10 +552,10 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Returns wether player can do X action based on their permission
+	 * Returns whether player can do X action based on their permission
 	 */
 	public static boolean canPlayerDo(Team team, Player player, String action) {
-		return team.getPermission(team.getPlayerRole(player.getUUID())).get(action);
+		return getPlayerPermission(team, player).get(action);
 	}
 
 	public static Map<String, Boolean> getPlayerPermission(Team team, Player player) {
