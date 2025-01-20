@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.command.custom.teamcommands.team;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
+import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -43,7 +44,7 @@ public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 		}
 		if (
 			invitingTeam.hasInvitee(uuid)
-			&& (invitingTeam.getInviteeTimestamp(uuid) + Config.inviteTimeout.getOrThrow()) > (System.currentTimeMillis() / 1000L)
+			&& (invitingTeam.getInviteeTimestamp(uuid) + CapitolConfig.SERVER.inviteTimeout.get()) > (System.currentTimeMillis() / 1000L)
 		) {
 			invitingTeam.addPlayer("member", uuid);
 			source.sendSuccess(() -> Component.literal("Successfully joined team \"" + invitingTeam.getName() + "\""), true);

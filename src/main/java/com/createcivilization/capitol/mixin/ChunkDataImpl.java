@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.mixin;
 
+import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
 
@@ -43,14 +44,14 @@ public abstract class ChunkDataImpl implements IChunkData {
 
 	@Override
 	public void incrementTakeOverProgress() {
-		this.setTakeOverProgress(this.getTakeOverProgress() + Config.warTakeoverIncrement.getOrThrow());
+		this.setTakeOverProgress(this.getTakeOverProgress() + CapitolConfig.SERVER.warTakeoverIncrement.get());
 		this.wasJustIncremented = true;
 		this.isDecrementing = false;
 	}
 
 	@Override
 	public void decrementTakeOverProgress() {
-		this.setTakeOverProgress(this.getTakeOverProgress() - Config.warTakeoverDecrement.getOrThrow());
+		this.setTakeOverProgress(this.getTakeOverProgress() - CapitolConfig.SERVER.warTakeoverDecrement.get());
 		this.wasJustIncremented = false;
 		this.isDecrementing = this.getTakeOverProgress() != 0;
 	}
@@ -65,7 +66,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 					TeamUtils.getTeam(this.getPos(), this.getThisLevel().dimension().location()).getOrThrow().equals(war.getDeclaringTeam());
 
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
-					if (this.getTakeOverProgress() <= Config.maxWarTakeoverAmount.getOrThrow()) this.incrementTakeOverProgress();
+					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
 					else {
 						TeamUtils.unclaimChunk(
 							isThisChunkClaimedByDeclaringTeam ? war.getDeclaringTeam() : war.getReceivingTeam(),

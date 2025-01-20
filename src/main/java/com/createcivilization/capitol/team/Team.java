@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.team;
 
-import com.createcivilization.capitol.util.*;
+import com.createcivilization.capitol.config.CapitolConfig;
+import com.createcivilization.capitol.util.PermissionUtil;
 
 import com.google.gson.stream.JsonWriter;
 
@@ -83,7 +84,7 @@ public class Team {
 
 		// Do some cleanup ;)
 		for (Map.Entry<UUID, Long> entry : invites.entrySet()) {
-			if (entry.getValue() + Config.inviteTimeout.getOrThrow() < timestamp) invites.remove(entry.getKey());
+			if (entry.getValue() + CapitolConfig.SERVER.inviteTimeout.get() < timestamp) invites.remove(entry.getKey());
 		}
 	}
 

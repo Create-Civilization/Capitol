@@ -34,10 +34,9 @@ public final class DataHandler {
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) {
 			ServerConstants.server.set((MinecraftServer) (Object) this);
 			try {
-				Config.loadConfig();
 				TeamUtils.loadTeams();
 			} catch (IOException e) {
-				throw new RuntimeException("An error occurred trying to load config and teams for Capitol!", e);
+				throw new RuntimeException("An error occurred trying to load teams for Capitol!", e);
 			}
         }
     }
@@ -51,10 +50,9 @@ public final class DataHandler {
 		@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;saveAll()V", shift = At.Shift.BEFORE), method = "saveEverything")
 		private void autoSaveTeams(boolean suppressLog, boolean flush, boolean forced, CallbackInfoReturnable<Boolean> cir) {
 			try {
-				Config.saveConfig();
 				TeamUtils.saveTeams();
 			} catch (IOException e) {
-				throw new RuntimeException("An error occurred trying to save config and teams for Capitol!", e);
+				throw new RuntimeException("An error occurred trying to save teams for Capitol!", e);
 			}
 		}
 
@@ -64,10 +62,9 @@ public final class DataHandler {
 		@Inject(at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;)V", shift = At.Shift.BEFORE, ordinal = 1), method = "stopServer")
 		private void saveTeams(CallbackInfo ci) {
 			try {
-				Config.saveConfig();
 				TeamUtils.saveTeams();
 			} catch (IOException e) {
-				throw new RuntimeException("An error occurred trying to save config and teams for Capitol!", e);
+				throw new RuntimeException("An error occurred trying to save teams for Capitol!", e);
 			}
 		}
 	}

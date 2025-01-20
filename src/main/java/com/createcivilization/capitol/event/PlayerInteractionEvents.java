@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.network.chat.Component;
@@ -36,7 +37,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteractSpecific event) {
 		var player = event.getEntity();
 		if (hasAdminPermission(player)) return;
-		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
+		if (CapitolConfig.SERVER.debugLogs.get()) player.sendSystemMessage(Component.literal("onPlayerInteractEntity firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("interactEntities"), "interact with entities");
 	}
 
@@ -47,7 +48,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerBreakBlock(PlayerInteractEvent.LeftClickBlock event) {
 		var player = event.getEntity();
 		if (hasAdminPermission(player)) return;
-		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
+		if (CapitolConfig.SERVER.debugLogs.get()) player.sendSystemMessage(Component.literal("onPlayerBreakBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("breakBlocks"), "break blocks");
 	}
 
@@ -58,7 +59,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
 		var player = event.getEntity();
 		if (hasAdminPermission(player)) return;
-		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerRightClickBlock firing!"));
+		if (CapitolConfig.SERVER.debugLogs.get()) player.sendSystemMessage(Component.literal("onPlayerRightClickBlock firing!"));
 		Map<String, Boolean> permission = TeamUtils.getPermissionInChunk(event.getPos(), player);
 		var mainHandItem = player.getMainHandItem().getItem();
 		var offhandItem = player.getOffhandItem().getItem();
@@ -70,7 +71,7 @@ public class PlayerInteractionEvents {
 	 * Handles players trying to place blocks.
 	 */
 	public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player, Map<String, Boolean> permission) {
-		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerPlaceBlock firing!"));
+		if (CapitolConfig.SERVER.debugLogs.get()) player.sendSystemMessage(Component.literal("onPlayerPlaceBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !permission.get("placeBlocks"), "place blocks");
 	}
 
@@ -78,7 +79,7 @@ public class PlayerInteractionEvents {
 	 * Handles players trying to interact with blocks.
 	 */
 	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player, Map<String, Boolean> permission) {
-		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
+		if (CapitolConfig.SERVER.debugLogs.get()) player.sendSystemMessage(Component.literal("onPlayerInteractBlock firing!"));
 		cancelIfHasInsufficientPermission(event, !permission.get("interactBlocks"), "interact with blocks");
 	}
 
@@ -90,7 +91,7 @@ public class PlayerInteractionEvents {
 	public static void onPlayerUseItem(PlayerInteractEvent.RightClickItem event) {
 		var player = event.getEntity();
 		if (hasAdminPermission(player)) return;
-		if (Config.debug.getOrThrow()) player.sendSystemMessage(Component.literal("onPlayerUseItem firing!"));
+		if (CapitolConfig.SERVER.debugLogs.get()) player.sendSystemMessage(Component.literal("onPlayerUseItem firing!"));
 		var stack = event.getItemStack();
 		var level = player.level();
 		var item = stack.getItem();

@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.block.custom;
 
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
+import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
@@ -109,7 +110,7 @@ public class CapitolBlock extends BaseEntityBlock {
 				team,
 				dimension,
 				chunk,
-				Config.claimRadius.getOrThrow() // It is NOT null.
+				CapitolConfig.SERVER.claimRadius.get()
 			);
 		} else {
 			// Conditions not met, destroy

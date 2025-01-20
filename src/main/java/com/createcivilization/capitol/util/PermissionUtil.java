@@ -1,5 +1,7 @@
 package com.createcivilization.capitol.util;
 
+import com.createcivilization.capitol.config.CapitolConfig;
+
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
@@ -52,9 +54,9 @@ public class PermissionUtil {
 			case "non-member" -> PermissionUtil.newPermission(
 				false,
 				false,
-				Config.nonMemberUseItems.getOrThrow(),
-				Config.nonMemberInteractEntities.getOrThrow(),
-				Config.nonMemberInteractBlocks.getOrThrow(),
+				CapitolConfig.SERVER.nonMemberUseItems.get(),
+				CapitolConfig.SERVER.nonMemberInteractEntities.get(),
+				CapitolConfig.SERVER.nonMemberInteractBlocks.get(),
 				false,
 				false,
 				false

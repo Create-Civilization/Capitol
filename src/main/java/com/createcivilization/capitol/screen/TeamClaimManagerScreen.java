@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
 import com.createcivilization.capitol.util.*;
@@ -55,7 +56,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 				)
 			);
 			for (UUID uuid : entry.getValue()) {
-				if (ClientConstants.INSTANCE.getUser().getName().equals("Dev")) uuid = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"); // TODO: Add a client config to remove this outside of debug
+				if (CapitolConfig.SERVER.offlineMode.get()) uuid = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5");
 				Component playerNameComponent = Component.literal(NetworkUtil.getUsernameFromUUID(uuid));
 				playerScene.addRenderableWidget(
 					Button.builder(
