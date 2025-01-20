@@ -21,13 +21,20 @@ public class CreateTeamCommand extends AbstractTeamCommand {
         command.set(
 			Commands.literal(subCommandName.getOrThrow()).requires(this::canExecuteAllParams).executes((c) -> 1)
                 .then(Commands.argument("name", StringArgumentType.string())
-                        .then(Commands.argument("color", StringArgumentType.word())
+					.then(
+						Commands.literal("colorByName")
+							.then(Commands.argument("color", StringArgumentType.word())
 								.suggests(Suggestions.COLORS)
-                                .executes(this::executeAllParams)
-						).then(
-							Commands.argument("colorRGB", IntegerArgumentType.integer())
-								.suggests(Suggestions.COLORS_RGB)
 								.executes(this::executeAllParams)
+							)
+					)
+					.then(
+						Commands.literal("colorByRGB")
+							.then(
+								Commands.argument("colorRGB", IntegerArgumentType.integer())
+									.suggests(Suggestions.COLORS_RGB)
+									.executes(this::executeAllParams)
+							)
 					)
                 )
 		);
