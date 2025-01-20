@@ -12,10 +12,16 @@ public class AdminModeCommand extends AbstractPlayerCommand {
 		super("capitolTeams", "adminMode");
 		command.set(
 			Commands.literal("debug")
-			.then(Commands.literal(subCommandName.getOrThrow())
 				.requires(this::canExecuteAllParams)
-			)
+				.then(Commands.literal(subCommandName.getOrThrow())
+					.executes(this::executeAllParams)
+				)
 		);
+	}
+
+	@Override
+	public boolean canExecute(Player player) {
+		return player.hasPermissions(4);
 	}
 
 	@Override
