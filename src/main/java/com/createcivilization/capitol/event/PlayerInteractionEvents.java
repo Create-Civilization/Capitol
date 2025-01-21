@@ -95,13 +95,16 @@ public class PlayerInteractionEvents {
 		var stack = event.getItemStack();
 		var level = player.level();
 		var item = stack.getItem();
-		if (TeamUtils.isClaimedChunk(level.dimension().location(), level.getChunk(event.getPos()).getPos())
+		var dimension = level.dimension().location();
+		var chunkPos = level.getChunk(event.getPos()).getPos();
+		if (TeamUtils.isClaimedChunk(dimension, chunkPos)
 			&&
 			(
 				stack.is(Items.ENDER_PEARL) ||
 				item.getDescriptionId().replace("item.", "").replace(".", "").contains("boat") ||
 				item instanceof BucketItem
 			)
+			&& !TeamUtils.getTeam(player).deepEquals(TeamUtils.getTeam(chunkPos, dimension))
 		) cancelIfHasInsufficientPermission(event, true, "use boats, enderpearls or buckets");
 		cancelIfHasInsufficientPermission(event, !TeamUtils.getPermissionInChunk(event.getPos(), player).get("useItems"), "use items");
 	}

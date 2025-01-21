@@ -25,7 +25,7 @@ public class Capitol {
     public Capitol() {
         IEventBus ew = FMLJavaModLoadingContext.get().getModEventBus();
 
-		// Don't use FMLJavaModLoadingContext because it doesn't have this method below version 47.3.10
+		// Don't use FMLJavaModLoadingContext to register because it doesn't have this method below version 47.3.10
 		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);
 
         ew.addListener(this::commonSetup);
