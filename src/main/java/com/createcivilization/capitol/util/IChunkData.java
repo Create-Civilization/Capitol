@@ -8,6 +8,8 @@ public interface IChunkData {
 
 	void setTakeOverProgress(float i);
 
+	void resetTakeOverProgress();
+
 	void incrementTakeOverProgress();
 
 	void decrementTakeOverProgress();

@@ -40,6 +40,13 @@ public abstract class ChunkDataImpl implements IChunkData {
 	@Override
 	public void setTakeOverProgress(float i) {
 		this.takeOverProgress = i;
+		this.wasJustIncremented = false;
+		this.isDecrementing = false;
+	}
+
+	@Override
+	public void resetTakeOverProgress() {
+		this.setTakeOverProgress(0);
 	}
 
 	@Override
@@ -60,6 +67,10 @@ public abstract class ChunkDataImpl implements IChunkData {
 	public void updateTakeOverProgress(MinecraftServer server) {
 		for (War war : TeamUtils.wars) {
 			if (TeamUtils.isChunkEdgeOfClaims((ChunkAccess) (Object) this)) {
+				if (this.getTakeOverProgress() < 0) {
+					System.out.println("ERROR: Takeover progress is less than 0! Error occurred at ChunkPos " + this.getPos());
+					this.resetTakeOverProgress();
+				}
 
 				var players = server.getPlayerList().getPlayers();
 				boolean isThisChunkClaimedByDeclaringTeam =
@@ -73,7 +84,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 							this.getThisLevel().dimension().location(),
 							this.getPos()
 						);
-						this.setTakeOverProgress(0);
+						this.resetTakeOverProgress();
 					}
 				} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
 			}
