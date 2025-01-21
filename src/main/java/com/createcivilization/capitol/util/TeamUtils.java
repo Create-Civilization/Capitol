@@ -25,6 +25,7 @@ import java.awt.Color;
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
@@ -513,7 +514,7 @@ public class TeamUtils {
 	public static boolean hasCapitolBlock(ChunkPos pos, ResourceLocation dimension) {
 		boolean result = false;
 		for (Team team : loadedTeams) {
-			List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
+			List<ChunkPos> chunks = team.getCapitolBlocks().get(dimension);
 			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) result = true;
 		}
 		return result;
@@ -608,17 +609,6 @@ public class TeamUtils {
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.unclaimChunkIfFromTeam(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
 	}
 
-	public static void unclaimSpread(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
-		// warning recursive
-		TeamUtils.unclaimChunk(team, dimension, chunkPos);
-		for (int x = -1; x < 2; x++) {
-			for (int z = -1; z < 2; z++) {
-				ChunkPos currentChunk = new ChunkPos(chunkPos.x + x, chunkPos.z + z);
-				if (TeamUtils.isClaimedChunk(dimension, currentChunk)) unclaimSpread(team, dimension, currentChunk);
-			}
-		}
-	}
-
 	/**
 	 * Claims the given chunk for the given team.
 	 * @return 1 if successful, -1 if failed (for /command usage)
@@ -640,6 +630,15 @@ public class TeamUtils {
 		return 1;
 	}
 
+	public static int unclaimCurrentChunkAndUpdate(Player player) {
+		return unclaimChunkAndUpdate(getTeam(player).getOrThrow(), player.level().dimension().location(), player.chunkPosition());
+	}
+
+	public static int unclaimChunkAndUpdate(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
+		int toReturn = unclaimChunk(team, dimension, chunkPos);
+		updateChunks(team, dimension);
+		return toReturn;
+	}
 
 	/**
 	 * Unclaims the given chunk from the given team.
@@ -659,6 +658,39 @@ public class TeamUtils {
 		);
 
 		return 1;
+	}
+
+	public static void updateChunks(Team team, ResourceLocation dimension) {
+		updateChunks(team, team.getCapitolBlocks().get(dimension), dimension, team.getClaimedChunksOfDimension(dimension));
+	}
+
+	private static void updateChunks(Team team, List<ChunkPos> capitolBlocks, ResourceLocation dimension, List<ChunkPos> claimedChunks) {
+		List<ChunkPos> connectedChunks = new ArrayList<>();
+		for (ChunkPos chunkPos : capitolBlocks) {
+			// Limit is temporary until optimized
+			connectedChunks.addAll(checkConnection(team, chunkPos, connectedChunks, claimedChunks, 20));
+		}
+		for (ChunkPos chunkPos : claimedChunks) {
+			if (!connectedChunks.contains(chunkPos)) unclaimChunk(team, dimension, chunkPos);
+		}
+	}
+
+	private static List<ChunkPos> checkConnection(Team team, ChunkPos chunkPos, List<ChunkPos> toVerify, List<ChunkPos> claimedChunks, int limit) {
+		ChunkPos left = new ChunkPos(chunkPos.x-1, chunkPos.z);
+		ChunkPos right = new ChunkPos(chunkPos.x+1, chunkPos.z);
+		ChunkPos top = new ChunkPos(chunkPos.x, chunkPos.z-1);
+		ChunkPos bottom = new ChunkPos(chunkPos.x, chunkPos.z+1);
+		Consumer<ChunkPos> verifyAndAdd = chunkPos1 -> {
+			if(limit > 0 && !toVerify.contains(chunkPos1) && claimedChunks.contains(chunkPos1)) {
+				toVerify.add(chunkPos1);
+				toVerify.addAll(checkConnection(team, chunkPos1, toVerify, claimedChunks, limit-1));
+			}
+		};
+		verifyAndAdd.accept(left);
+		verifyAndAdd.accept(right);
+		verifyAndAdd.accept(top);
+		verifyAndAdd.accept(bottom);
+		return toVerify;
 	}
 
 	public static void claimChunkIfNotClaimed(Team team, ResourceLocation dimension, ChunkPos pos) {

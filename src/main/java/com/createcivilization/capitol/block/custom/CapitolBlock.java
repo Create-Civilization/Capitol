@@ -70,13 +70,13 @@ public class CapitolBlock extends BaseEntityBlock {
 		ResourceLocation dimension = level.dimension().location();
 		ChunkPos chunkPos = new ChunkPos(pos);
 		ObjectHolder<Team> team = TeamUtils.getTeam(chunkPos, dimension);
-		if (!team.isEmpty()) {
-			TeamUtils.unclaimSpread(
+		if (!team.isEmpty())
+			TeamUtils.unclaimChunkAndUpdate(
 				team.getOrThrow(),
 				dimension,
 				chunkPos
 			);
-		}
+
 
 		return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
 	}

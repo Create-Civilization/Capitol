@@ -35,7 +35,6 @@ public class TeamStatisticsScreen extends GuiMenu {
 
 	@Override
 	protected void init() {
-		super.init();
 
 		this.playerAmount = menuTeam.getPlayers().values().stream().mapToInt(List::size).sum();
 		this.chunkAmount = menuTeam.getClaimedChunks().values().stream().mapToInt(List::size).sum();
@@ -66,5 +65,7 @@ public class TeamStatisticsScreen extends GuiMenu {
 				this.font
 			)
 		);
+
+		super.init();
 	}
 }

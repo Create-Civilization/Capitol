@@ -33,14 +33,13 @@ public class UnclaimCurrentChunkCommand extends AbstractTeamCommand {
 			return -1;
 		}
 		if (TeamUtils.hasCapitolBlock(chunkPos, dimension)) {
-
 			// Claim has capitol block
-			player.sendSystemMessage(Component.literal("You are not allowed to unclaim a chunk with a Capital in it"));
+			player.sendSystemMessage(Component.literal("You are not allowed to unclaim a chunk with a Capitol in it"));
 			return -1;
 		}
 
 		player.sendSystemMessage(Component.literal("Unclaiming chunk"));
-		return TeamUtils.unclaimCurrentChunk(player);
+		return TeamUtils.unclaimCurrentChunkAndUpdate(player);
 	}
 
 	@Override
