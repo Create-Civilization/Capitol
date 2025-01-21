@@ -502,7 +502,7 @@ public class TeamUtils {
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int unclaimCurrentChunk(Player player) {
-		return getTeam(player).ifPresentOrElse(team -> unclaimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
+		return getTeam(player).ifPresentOrElse(team -> unclaimChunkAndUpdate(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
 	}
 
 	/**

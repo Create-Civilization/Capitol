@@ -68,7 +68,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
 					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
 					else {
-						TeamUtils.unclaimChunk(
+						TeamUtils.unclaimChunkAndUpdate(
 							isThisChunkClaimedByDeclaringTeam ? war.getDeclaringTeam() : war.getReceivingTeam(),
 							this.getThisLevel().dimension().location(),
 							this.getPos()

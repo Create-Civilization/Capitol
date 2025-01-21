@@ -33,7 +33,7 @@ public class ClientPacketHandler {
 	}
 
 	public static void removeChunk(String teamId, ChunkPos pos, ResourceLocation dimension) {
-		TeamUtils.unclaimChunk(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos);
+		TeamUtils.unclaimChunk(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
 		ClientConstants.toResetChunksTeamIds.add(teamId);
 		ClientConstants.chunksDirty = true;
 	}

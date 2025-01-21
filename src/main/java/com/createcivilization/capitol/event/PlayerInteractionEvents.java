@@ -2,7 +2,7 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.util.*;
+import com.createcivilization.capitol.util.TeamUtils;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

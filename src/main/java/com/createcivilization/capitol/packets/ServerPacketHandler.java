@@ -87,6 +87,6 @@ public class ServerPacketHandler {
 	public static void unclaimChunk(ResourceLocation dimension, ChunkPos pos, Team team) {
 		if (!TeamUtils.allowedInChunk(team, dimension, pos)) return;
 
-		TeamUtils.unclaimChunk(team, dimension, pos);
+		TeamUtils.unclaimChunkAndUpdate(team, dimension, pos);
 	}
 }
