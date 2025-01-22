@@ -661,7 +661,7 @@ public class TeamUtils {
 	}
 
 	public static void updateChunks(Team team, ResourceLocation dimension) {
-		updateChunks(team, team.getCapitolBlocks().get(dimension), dimension, team.getClaimedChunksOfDimension(dimension));
+		updateChunks(team, team.getCapitolBlocks().getOrDefault(dimension, new ArrayList<>()), dimension, team.getClaimedChunksOfDimension(dimension));
 	}
 
 	private static void updateChunks(Team team, List<ChunkPos> capitolBlocks, ResourceLocation dimension, List<ChunkPos> claimedChunks) {
@@ -676,14 +676,14 @@ public class TeamUtils {
 	}
 
 	private static List<ChunkPos> checkConnection(Team team, ChunkPos chunkPos, List<ChunkPos> toVerify, List<ChunkPos> claimedChunks, int limit) {
-		ChunkPos left = new ChunkPos(chunkPos.x-1, chunkPos.z);
-		ChunkPos right = new ChunkPos(chunkPos.x+1, chunkPos.z);
-		ChunkPos top = new ChunkPos(chunkPos.x, chunkPos.z-1);
-		ChunkPos bottom = new ChunkPos(chunkPos.x, chunkPos.z+1);
-		Consumer<ChunkPos> verifyAndAdd = chunkPos1 -> {
-			if(limit > 0 && !toVerify.contains(chunkPos1) && claimedChunks.contains(chunkPos1)) {
-				toVerify.add(chunkPos1);
-				toVerify.addAll(checkConnection(team, chunkPos1, toVerify, claimedChunks, limit-1));
+		ChunkPos left = new ChunkPos(chunkPos.x - 1, chunkPos.z);
+		ChunkPos right = new ChunkPos(chunkPos.x + 1, chunkPos.z);
+		ChunkPos top = new ChunkPos(chunkPos.x, chunkPos.z - 1);
+		ChunkPos bottom = new ChunkPos(chunkPos.x, chunkPos.z + 1);
+		Consumer<ChunkPos> verifyAndAdd = pos -> {
+			if (limit > 0 && !toVerify.contains(pos) && claimedChunks.contains(pos)) {
+				toVerify.add(pos);
+				toVerify.addAll(checkConnection(team, pos, toVerify, claimedChunks, limit - 1));
 			}
 		};
 		verifyAndAdd.accept(left);

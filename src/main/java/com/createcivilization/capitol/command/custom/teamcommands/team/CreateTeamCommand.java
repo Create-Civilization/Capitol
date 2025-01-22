@@ -54,6 +54,14 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 									)
 							)
 					)
+					.then(
+						Commands.literal("colorByHex")
+							.then(
+								Commands.argument("color", StringArgumentType.greedyString())
+									.suggests(Suggestions.COLORS_HEX)
+									.executes(this::executeColorHex)
+							)
+					)
                 )
 		);
     }
@@ -80,6 +88,10 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 			IntegerArgumentType.getInteger(command, "blue")
 		};
 		return executeAllParams(command, CommonConstants.Colors.get(rgb));
+	}
+
+	public int executeColorHex(CommandContext<CommandSourceStack> command) {
+		return executeAllParams(command, CommonConstants.Colors.get0(StringArgumentType.getString(command, "color")));
 	}
 
 	public int executeAllParams(CommandContext<CommandSourceStack> command, Color color) {

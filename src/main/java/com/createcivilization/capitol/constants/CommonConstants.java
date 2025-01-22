@@ -10,12 +10,24 @@ public class CommonConstants {
 
 	public static class Colors {
 
+		public static String getHex(Color color) {
+			return String.format("#%02x%02x%02x", color.getRed(), color.getBlue(), color.getGreen());
+		}
+
 		public static Color get(String color) {
 			return colors.get(color.toUpperCase());
 		}
 
+		public static Color get0(String hex) {
+			return getColorsStream()
+				.filter(color -> getHex(color).equals(hex))
+				.findFirst().orElse(Color.decode(hex));
+		}
+
 		public static Color get(int rgb) {
-			return colors.values().stream().filter(color -> color.getRGB() == rgb).findFirst().orElse(new Color(rgb));
+			return getColorsStream()
+				.filter(color -> color.getRGB() == rgb)
+				.findFirst().orElse(new Color(rgb));
 		}
 
 		public static Color get(int[] rgb) {
@@ -23,7 +35,7 @@ public class CommonConstants {
 				red = rgb[0],
 				green = rgb[1],
 				blue = rgb[2];
-			return colors.values().stream()
+			return getColorsStream()
 				.filter(color -> color.getRed() == red && color.getGreen() == green && color.getBlue() == blue)
 				.findFirst().orElse(new Color(red, green, blue));
 		}

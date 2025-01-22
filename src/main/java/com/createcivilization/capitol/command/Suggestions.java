@@ -63,4 +63,9 @@ public class Suggestions {
 		CommonConstants.Colors.getColorsStream().map(Color::getBlue).forEach(builder::suggest);
 		return builder.buildFuture();
 	};
+
+	public static final SuggestionProvider<CommandSourceStack> COLORS_HEX = (context, builder) -> {
+		CommonConstants.Colors.getColorsStream().map(CommonConstants.Colors::getHex).forEach(builder::suggest);
+		return builder.buildFuture();
+	};
 }

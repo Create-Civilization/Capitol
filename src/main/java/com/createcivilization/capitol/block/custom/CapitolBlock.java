@@ -67,6 +67,7 @@ public class CapitolBlock extends BaseEntityBlock {
 	// onDestroyedByPlayer --> forge
 	@Override
 	public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
+		if (level.isClientSide) return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
 		ResourceLocation dimension = level.dimension().location();
 		ChunkPos chunkPos = new ChunkPos(pos);
 		ObjectHolder<Team> team = TeamUtils.getTeam(chunkPos, dimension);
