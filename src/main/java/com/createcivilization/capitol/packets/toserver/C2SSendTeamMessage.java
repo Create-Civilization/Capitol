@@ -1,11 +1,13 @@
 package com.createcivilization.capitol.packets.toserver;
 
 import com.createcivilization.capitol.packets.ServerPacketHandler;
+
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
 public class C2SSendTeamMessage {
-	private String message;
+
+	private final String message;
 
 	public C2SSendTeamMessage(String message) {
 		this.message = message;

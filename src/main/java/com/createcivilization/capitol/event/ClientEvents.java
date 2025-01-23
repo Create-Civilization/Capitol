@@ -1,7 +1,6 @@
 package com.createcivilization.capitol.event;
 
-import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.KeyBindings;
+import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.packets.toserver.*;
 import com.createcivilization.capitol.screen.*;
@@ -38,7 +37,6 @@ public class ClientEvents {
 	public static void onChat(ClientChatEvent event) {
 		if (!ClientConstants.teamChat) return;
 		event.setCanceled(true);
-		assert ClientConstants.INSTANCE.player != null;
 		String message = event.getMessage();
 		PacketHandler.sendToServer(new C2SSendTeamMessage(message));
 	}
