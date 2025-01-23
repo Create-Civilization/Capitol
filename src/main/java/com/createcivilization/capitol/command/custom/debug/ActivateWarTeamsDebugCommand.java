@@ -18,9 +18,11 @@ public class ActivateWarTeamsDebugCommand extends AbstractDebugCommand {
 		subSubCommand.set(
 			Commands.literal("startWar")
 				.then(
-					Commands.argument("attackerTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES)
+					Commands.argument("attackerTeamName", StringArgumentType.string())
+						.suggests(Suggestions.TEAM_NAMES)
 						.then(
-							Commands.argument("defenderTeamName", StringArgumentType.string()).suggests(Suggestions.TEAM_NAMES)
+							Commands.argument("defenderTeamName", StringArgumentType.string())
+								.suggests(Suggestions.TEAM_NAMES)
 								.requires(this::canExecuteAllParams)
 								.executes(this::executeAllParams)
 						)
@@ -39,8 +41,8 @@ public class ActivateWarTeamsDebugCommand extends AbstractDebugCommand {
 	public int executeAllParams(CommandContext<CommandSourceStack> context) {
 		String attackerTeamName = StringArgumentType.getString(context, "attackerTeamName");
 		String defenderTeamName = StringArgumentType.getString(context, "defenderTeamName");
-		Team attackerTeam = TeamUtils.getTeam(attackerTeamName).getOrThrow();
-		Team defenderTeam = TeamUtils.getTeam(defenderTeamName).getOrThrow();
+		Team attackerTeam = TeamUtils.getTeamByName(attackerTeamName).getOrThrow();
+		Team defenderTeam = TeamUtils.getTeamByName(defenderTeamName).getOrThrow();
 		TeamUtils.wars.add(new War(attackerTeam, defenderTeam));
 
 		context.getSource().sendSuccess(() -> Component.literal(

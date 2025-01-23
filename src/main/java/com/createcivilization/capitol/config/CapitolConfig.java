@@ -27,6 +27,8 @@ public class CapitolConfig {
 
 	public final ForgeConfigSpec.BooleanValue debugLogs;
 	public final ForgeConfigSpec.BooleanValue offlineMode;
+	public final ForgeConfigSpec.BooleanValue logCapitolActions;
+	public final ForgeConfigSpec.ConfigValue<String> logUrl;
 
 	public final ForgeConfigSpec.IntValue warTakeoverIncrement;
 	public final ForgeConfigSpec.IntValue warTakeoverDecrement;
@@ -86,6 +88,16 @@ public class CapitolConfig {
 			"offline_mode",
 			false
 		);
+		this.logCapitolActions = this.boolean0(
+			"Sends actions like creating teams, adding members to teams, and claiming chunks to the specified url.",
+			"log_capitol_actions",
+			false
+		);
+		this.logUrl = this.string(
+			"The url to send actions to (formatted for discord webhooks).",
+			"log_url",
+			""
+		);
 		this.builder.pop();
 
 		this.builder.push("War");
@@ -128,6 +140,15 @@ public class CapitolConfig {
 
 	@SafeVarargs
 	public final ForgeConfigSpec.BooleanValue boolean0(String comment, String name, boolean defaultValue, Consumer<ForgeConfigSpec.Builder>... additions) {
+		try {
+			return this.builder.comment(comment).translation(this.translate(name)).define(name, defaultValue);
+		} finally {
+			for (Consumer<ForgeConfigSpec.Builder> addition : additions) addition.accept(this.builder);
+		}
+	}
+
+	@SafeVarargs
+	public final ForgeConfigSpec.ConfigValue<String> string(String comment, String name, String defaultValue, Consumer<ForgeConfigSpec.Builder>... additions) {
 		try {
 			return this.builder.comment(comment).translation(this.translate(name)).define(name, defaultValue);
 		} finally {
