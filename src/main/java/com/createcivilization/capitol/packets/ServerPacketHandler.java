@@ -2,7 +2,7 @@ package com.createcivilization.capitol.packets;
 
 import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.*;
 
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
@@ -44,20 +44,24 @@ public class ServerPacketHandler {
 	}
 
 	public static void invitePlayerToTeam(ServerPlayer sender, String playerToInviteName) {
+		var playerList = ServerConstants.server.getOrThrow().getPlayerList();
 		ObjectHolder<Team> invitingTeam = TeamUtils.getTeam(sender);
-		Player player = ServerConstants.server.getOrThrow().getPlayerList().getPlayerByName(playerToInviteName); // already ignores case
+		Player player = playerList.getPlayerByName(playerToInviteName); // already ignores case
 		if (player == null) return;
-		UUID playerToInviteUUID = Objects.requireNonNull(ServerConstants.server.getOrThrow().getPlayerList().getPlayerByName(playerToInviteName)).getUUID();
+		UUID playerToInviteUUID = Objects.requireNonNull(playerList.getPlayerByName(playerToInviteName)).getUUID();
 
 //		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
 
 		Team team = invitingTeam.getOrThrow();
 
 		team.addInvitee(playerToInviteUUID);
-		Objects.requireNonNull(ServerConstants.server.getOrThrow().getPlayerList().getPlayer(playerToInviteUUID)).sendSystemMessage(Component.literal(team.getName() + " has invited you to join, click here to accept")
-			.setStyle(Style.EMPTY
-				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + team.getTeamId()))
-				.withColor(TextColor.fromRgb(0x00FF00))));
+		Objects.requireNonNull(playerList.getPlayer(playerToInviteUUID))
+			.sendSystemMessage(Component.literal(team.getName() + " has invited you to join, click here to accept")
+				.setStyle(Style.EMPTY
+					.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + team.getTeamId()))
+					.withColor(TextColor.fromRgb(0x00FF00))
+				)
+			);
 	}
 
 
@@ -76,11 +80,13 @@ public class ServerPacketHandler {
 		if (holder.isEmpty()) return;
 		Team team = holder.getOrThrow();
 
+		var playerList = ServerConstants.server.getOrThrow().getPlayerList();
 		for (UUID member : team.getAllPlayers()) {
-			Player toSend = ServerConstants.server.getOrThrow().getPlayerList().getPlayer(member);
+			Player receiver = playerList.getPlayer(member);
 			String msg = "[" + team.getName() + "] <" + sender.getName().getString() + "> " + message;
-			if (toSend != null) toSend.displayClientMessage(Component.literal(msg), false);
+			if (receiver != null) receiver.displayClientMessage(Component.literal(msg), false);
 			System.out.println(msg);
+			LogToDiscord.postIfAllowed(team, msg);
 		}
 	}
 

@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.team;
 
 import com.createcivilization.capitol.config.CapitolConfig;
+import com.createcivilization.capitol.util.LogToDiscord;
 import com.createcivilization.capitol.util.PermissionUtil;
 
 import com.google.gson.stream.JsonWriter;
@@ -13,6 +14,7 @@ import wiiu.mavity.wiiu_lib.util.JsonUtils;
 
 import java.awt.Color;
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @SuppressWarnings("FieldMayBeFinal")
@@ -46,6 +48,7 @@ public class Team {
 		this.teamId = teamId;
 		this.players = players;
 		this.color = colour;
+		LogToDiscord.postIfAllowed(this, "Team created! " + this.getQuotedName() + ", timestamp: " + LocalDateTime.now());
 	}
 
 	public Color getColor() {

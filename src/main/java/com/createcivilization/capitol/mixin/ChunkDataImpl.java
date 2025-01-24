@@ -73,9 +73,8 @@ public abstract class ChunkDataImpl implements IChunkData {
 				}
 
 				var players = server.getPlayerList().getPlayers();
-				boolean isThisChunkClaimedByDeclaringTeam =
-					TeamUtils.getTeam(this.getPos(), this.getThisLevel().dimension().location()).getOrThrow().equals(war.getDeclaringTeam());
-
+				var team = TeamUtils.getTeam(this.getPos(), this.getThisLevel().dimension().location()).getOrThrow();
+				boolean isThisChunkClaimedByDeclaringTeam = team.equals(war.getDeclaringTeam());
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
 					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
 					else {
@@ -85,6 +84,10 @@ public abstract class ChunkDataImpl implements IChunkData {
 							this.getPos()
 						);
 						this.resetTakeOverProgress();
+						LogToDiscord.postIfAllowed(
+							team,
+							"Chunk taken over in war " + war + ", at ChunkPos " + this.getPos()
+						);
 					}
 				} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
 			}

@@ -16,7 +16,7 @@ import java.io.*;
 import java.util.function.BooleanSupplier;
 
 /**
- * Class for saving and loading Team data and claimed Chunks.<br>
+ * Class for saving and loading Team data and claimed chunks.<br>
  * The data is loaded before {@link net.minecraftforge.event.server.ServerStartingEvent}, and the teams are stored in {@link TeamUtils#loadedTeams}.<br>
  * The data is saved regularly on the autosave (/save-all), and saved and cleared when the server stops, right before the player list is saved and cleared.
  */

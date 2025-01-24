@@ -14,7 +14,7 @@ public class War {
 	public War(Team declare, Team receive) {
 		this.declare = declare;
 		this.receive = receive;
-		LogToDiscord.sendPostRequest(this.declare, "War started! " + this + ", timestamp: " + LocalDateTime.now());
+		LogToDiscord.postIfAllowed(this.declare, "War started! " + this + ", timestamp: " + LocalDateTime.now());
 	}
 
 	public Team getDeclaringTeam() {
