@@ -1,8 +1,7 @@
 package com.createcivilization.capitol.team;
 
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.util.LogToDiscord;
-import com.createcivilization.capitol.util.PermissionUtil;
+import com.createcivilization.capitol.util.*;
 
 import com.google.gson.stream.JsonWriter;
 

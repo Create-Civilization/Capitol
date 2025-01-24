@@ -71,16 +71,7 @@ public class TeamUtils {
 	 * @return If the {@link UUID} is in a team or not
 	 */
 	public static boolean hasTeam(UUID playerUUID) {
-		boolean hasTeam = false;
-		for (Team team : loadedTeams) {
-			for (var uuid : team.getAllPlayers())
-				if (uuid.equals(playerUUID)) {
-					hasTeam = true;
-					break;
-				}
-			if (hasTeam) break;
-		}
-		return hasTeam;
+		return loadedTeams.stream().anyMatch(team -> team.getPlayers().values().stream().anyMatch(list -> list.contains(playerUUID)));
 	}
 
 	/**
