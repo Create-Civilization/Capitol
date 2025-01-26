@@ -3,16 +3,13 @@ package com.createcivilization.capitol.packets;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.screen.TeamStatisticsScreen;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.*;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
 import net.minecraftforge.api.distmarker.*;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
-
-import java.util.*;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientPacketHandler {
@@ -47,8 +44,7 @@ public class ClientPacketHandler {
 
 	public static void handlePacket(Runnable run, NetworkEvent.Context ctx) {
 		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(
-				Dist.CLIENT,
+			() -> DistHelper.runWhenOnClient(
 				() -> run
 			)
 		);

@@ -22,9 +22,6 @@ import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-
 import org.jetbrains.annotations.Nullable;
 
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
@@ -71,12 +68,15 @@ public class CapitolBlock extends BaseEntityBlock {
 		ResourceLocation dimension = level.dimension().location();
 		ChunkPos chunkPos = new ChunkPos(pos);
 		ObjectHolder<Team> team = TeamUtils.getTeam(chunkPos, dimension);
-		if (!team.isEmpty())
+		if (!team.isEmpty()) {
+			var team1 = team.getOrThrow();
+			team1.getCapitolBlocks().get(dimension).remove(chunkPos);
 			TeamUtils.unclaimChunkAndUpdate(
-				team.getOrThrow(),
+				team1,
 				dimension,
 				chunkPos
 			);
+		}
 
 
 		return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
@@ -124,10 +124,7 @@ public class CapitolBlock extends BaseEntityBlock {
 		ObjectHolder<Team> team = TeamUtils.getTeam(new ChunkPos(pos), level.dimension().location());
 		if (team.isEmpty()) return InteractionResult.FAIL;
 
-		DistExecutor.unsafeRunWhenOn(
-			Dist.DEDICATED_SERVER,
-			() -> () -> PacketHandler.sendToPlayer(new S2COpenTeamStatistics(team.getOrThrow().getTeamId()), (ServerPlayer) player)
-		);
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToPlayer(new S2COpenTeamStatistics(team.getOrThrow().getTeamId()), (ServerPlayer) player));
 
 		return InteractionResult.CONSUME;
 	}

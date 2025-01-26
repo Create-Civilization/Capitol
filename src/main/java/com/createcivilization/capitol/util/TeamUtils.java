@@ -16,9 +16,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-
 import wiiu.mavity.wiiu_lib.util.*;
 
 import java.awt.Color;
@@ -177,7 +174,7 @@ public class TeamUtils {
 		} finally {
 			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
 			TeamUtils.loadChunksForTeams();
-			LogToDiscord.postIfAllowed("Server", "Loaded teams and chunks, timestamp: " + LocalDateTime.now());
+			LogToDiscord.postIfAllowed("Capitol", "Loaded teams and chunks, timestamp: " + LocalDateTime.now());
 		}
     }
 
@@ -201,7 +198,7 @@ public class TeamUtils {
         writer.endArray();
         writer.close();
 		TeamUtils.saveChunks();
-		LogToDiscord.postIfAllowed("Server", "Saved teams and claimed chunks, timestamp: " + LocalDateTime.now());
+		LogToDiscord.postIfAllowed("Capitol", "Saved teams and claimed chunks, timestamp: " + LocalDateTime.now());
     }
 
 	/**
@@ -316,9 +313,7 @@ public class TeamUtils {
                 .setColor(color)
                 .build();
 
-		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () ->
-			PacketHandler.sendToAllClients(new S2CAddTeam(created))
-		);
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CAddTeam(created)));
 
 		return created;
     }
@@ -329,9 +324,7 @@ public class TeamUtils {
 	public static void removeTeam(String teamId) {
 		loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
 
-		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-			PacketHandler.sendToAllClients(new S2CRemoveTeam(teamId));
-		});
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CRemoveTeam(teamId)));
 	}
 
 	/**
@@ -609,16 +602,9 @@ public class TeamUtils {
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
 		if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
 
-		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension); // Suck my proper typing
-		if (claimedChunks == null) {
-			List<ChunkPos> list = new ArrayList<>();
-			list.add(pos);
-			team.getClaimedChunks().put(dimension, list);
-		} else claimedChunks.add(pos);
+		team.getClaimedChunks().computeIfAbsent(dimension, k -> new ArrayList<>()).add(pos);
 
-		DistExecutor.unsafeRunWhenOn(
-			Dist.DEDICATED_SERVER, () -> () -> PacketHandler.sendToAllClients(new S2CAddChunk(team.getTeamId(), pos, dimension))
-		);
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CAddChunk(team.getTeamId(), pos, dimension)));
 
 		return 1;
 	}
@@ -646,9 +632,7 @@ public class TeamUtils {
 		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension);
 		claimedChunks.remove(chunkPos);
 
-		DistExecutor.unsafeRunWhenOn(
-			Dist.DEDICATED_SERVER, () -> () -> PacketHandler.sendToAllClients(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension))
-		);
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension)));
 
 		return 1;
 	}

@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
 import net.minecraftforge.api.distmarker.*;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
@@ -67,8 +66,7 @@ public class ServerPacketHandler {
 
 	public static void handlePacket(Runnable run, NetworkEvent.Context ctx) {
 		ctx.enqueueWork(
-			() -> DistExecutor.unsafeRunWhenOn(
-				Dist.DEDICATED_SERVER,
+			() -> DistHelper.runWhenOnServer(
 				() -> run
 			)
 		);

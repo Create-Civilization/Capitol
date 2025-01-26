@@ -20,6 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 
+import net.minecraftforge.api.distmarker.*;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -31,6 +32,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
+@OnlyIn(Dist.CLIENT)
 @ClientPlugin
 public class JourneyMapIntegration implements IClientPlugin {
 
