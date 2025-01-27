@@ -47,7 +47,7 @@ public class Team {
 		this.teamId = teamId;
 		this.players = players;
 		this.color = colour;
-		LogToDiscord.postIfAllowed(this, "Team created! " + this.getQuotedName() + ", timestamp: " + LocalDateTime.now());
+		LogToDiscord.postIfAllowed(this, "Team created! " + this.getQuotedName());
 	}
 
 	public Color getColor() {

@@ -174,7 +174,7 @@ public class TeamUtils {
 		} finally {
 			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
 			TeamUtils.loadChunksForTeams();
-			LogToDiscord.postIfAllowed("Capitol", "Loaded teams and chunks, timestamp: " + LocalDateTime.now());
+			LogToDiscord.postIfAllowed("Capitol", "Loaded teams and chunks");
 		}
     }
 
@@ -198,7 +198,7 @@ public class TeamUtils {
         writer.endArray();
         writer.close();
 		TeamUtils.saveChunks();
-		LogToDiscord.postIfAllowed("Capitol", "Saved teams and claimed chunks, timestamp: " + LocalDateTime.now());
+		LogToDiscord.postIfAllowed("Capitol", "Saved teams and claimed chunks");
     }
 
 	/**

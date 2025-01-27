@@ -68,7 +68,12 @@ public abstract class ChunkDataImpl implements IChunkData {
 		for (War war : TeamUtils.wars) {
 			if (TeamUtils.isChunkEdgeOfClaims((ChunkAccess) (Object) this)) {
 				if (this.getTakeOverProgress() < 0) {
-					System.out.println("ERROR: Takeover progress is less than 0! Error occurred at ChunkPos " + this.getPos());
+					String msg = "ERROR: Takeover progress is less than 0! Error occurred at ChunkPos " + this.getPos();
+					System.out.println(msg);
+					LogToDiscord.postIfAllowed(
+						"Capitol",
+						msg
+					);
 					this.resetTakeOverProgress();
 				}
 

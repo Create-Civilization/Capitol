@@ -2,7 +2,6 @@ package com.createcivilization.capitol.team;
 
 import com.createcivilization.capitol.util.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class War {
@@ -14,7 +13,7 @@ public class War {
 	public War(Team declare, Team receive) {
 		this.declare = declare;
 		this.receive = receive;
-		LogToDiscord.postIfAllowed(this.declare, "War started! " + this + ", timestamp: " + LocalDateTime.now());
+		LogToDiscord.postIfAllowed(this.declare, "War started! " + this);
 	}
 
 	public Team getDeclaringTeam() {

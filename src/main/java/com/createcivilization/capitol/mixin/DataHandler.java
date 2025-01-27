@@ -75,7 +75,6 @@ public final class DataHandler {
 		@Shadow
 		public abstract Iterable<ServerLevel> getAllLevels();
 
-		// Before any tick do:
 		@Inject(at = @At(value = "HEAD"), method = "tickServer")
 		private void updateTakeOverProgress(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
 			for (Team team : TeamUtils.loadedTeams) {
