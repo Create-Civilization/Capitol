@@ -615,7 +615,7 @@ public class TeamUtils {
 
 	public static int unclaimChunkAndUpdate(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
 		int toReturn = unclaimChunk(team, dimension, chunkPos);
-		updateChunks(team, dimension);
+//		updateChunks(team, dimension);
 		return toReturn;
 	}
 
