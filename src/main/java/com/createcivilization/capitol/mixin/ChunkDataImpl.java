@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.mixin;
 
 import com.createcivilization.capitol.config.CapitolConfig;
+import com.createcivilization.capitol.event.custom.WarEvent;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
 
@@ -8,6 +9,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
+
+import net.minecraftforge.common.MinecraftForge;
 
 import org.spongepowered.asm.mixin.*;
 
@@ -83,12 +86,15 @@ public abstract class ChunkDataImpl implements IChunkData {
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
 					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
 					else {
+						var thisTeam = isThisChunkClaimedByDeclaringTeam ? war.getReceivingTeam() : war.getDeclaringTeam();
 						TeamUtils.unclaimChunkAndUpdate(
-							isThisChunkClaimedByDeclaringTeam ? war.getDeclaringTeam() : war.getReceivingTeam(),
+							thisTeam,
 							this.getThisLevel().dimension().location(),
 							this.getPos()
 						);
 						this.resetTakeOverProgress();
+						//noinspection DataFlowIssue
+						MinecraftForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(war, (ChunkAccess)(Object)this, thisTeam));
 						LogToDiscord.postIfAllowed(
 							team,
 							"Chunk taken over in war " + war + ", at ChunkPos " + this.getPos()
