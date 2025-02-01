@@ -4,8 +4,6 @@ import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
-import com.google.gson.stream.*;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.*;
 import net.minecraft.server.level.ServerPlayer;
@@ -205,7 +203,7 @@ public class TeamUtils {
 	 * @return An individual {@link Team} object parsed from json.
 	 */
     public static Team parseTeam(String json) {
-        return GsonUtil.deserialize(json);
+        return GsonUtil.deserializeTeam(json);
     }
 
     public static boolean teamExists(String teamName) {
@@ -244,7 +242,7 @@ public class TeamUtils {
                 .setColor(color)
                 .build();
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CAddTeam(created)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CAddTeam(created)));
 
 		return created;
     }
@@ -255,7 +253,7 @@ public class TeamUtils {
 	public static void removeTeam(String teamId) {
 		loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CRemoveTeam(teamId)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveTeam(teamId)));
 	}
 
 	/**
@@ -458,9 +456,9 @@ public class TeamUtils {
 			return def;
 		});
 
-		parent.addChunk(pos);
+		parent.addChild(pos);
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CAddChunk(team.getTeamId(), pos, dimension)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CAddChunk(team.getTeamId(), pos, dimension)));
 
 		return 1;
 	}
@@ -488,7 +486,7 @@ public class TeamUtils {
 		System.out.println(chunkPos);
 		team.getDimensionalData(dimension).removeChildChunk(chunkPos);
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension)));
 
 		return 1;
 	}

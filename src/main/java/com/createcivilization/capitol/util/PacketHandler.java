@@ -90,6 +90,7 @@ public class PacketHandler {
 		serverAddPacket(S2CAddTeam.class, id++, S2CAddTeam::encode, S2CAddTeam::new, S2CAddTeam::handle);
 		serverAddPacket(S2CRemoveChunk.class, id++, S2CRemoveChunk::encode, S2CRemoveChunk::new, S2CRemoveChunk::handle);
 		serverAddPacket(S2CRemoveTeam.class, id++, S2CRemoveTeam::encode, S2CRemoveTeam::new, S2CRemoveTeam::handle);
+		serverAddPacket(S2CRemoveCapitol.class, id++, S2CRemoveCapitol::encode, S2CRemoveCapitol::new, S2CRemoveCapitol::handle);
 
 		// C2S packets
 		clientAddPacket(C2SRequestSync.class, id++, C2SRequestSync::encode, C2SRequestSync::new, C2SRequestSync::handle);
@@ -109,7 +110,7 @@ public class PacketHandler {
 		INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), msg);
 	}
 
-	public static void sendToAllClients(Object msg) {
+	public static void sendToAllPlayers(Object msg) {
 		INSTANCE.send(PacketDistributor.ALL.noArg(), msg);
 	}
 }

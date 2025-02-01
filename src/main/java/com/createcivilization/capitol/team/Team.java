@@ -174,7 +174,7 @@ public class Team {
 		}
 
 		public void removeCapitolData(CapitolData capitolData) {
-			this.capitolDataList.remove(capitolData);
+			this.capitolDataList.removeIf(test -> capitolData.capitolBlockChunk.equals(test.capitolBlockChunk));
 		}
 
 		public List<ChunkPos> getAllChildChunks() {
@@ -212,11 +212,11 @@ public class Team {
 			childChunks.addAll(toAdd);
 		}
 
-		public void removeChunk(ChunkPos chunkPos) {
+		public void removeChild(ChunkPos chunkPos) {
 			childChunks.remove(chunkPos);
 		}
 
-		public void addChunk(ChunkPos chunkPos) {
+		public void addChild(ChunkPos chunkPos) {
 			childChunks.add(chunkPos);
 		}
 

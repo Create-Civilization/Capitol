@@ -33,8 +33,16 @@ public class GsonUtil {
 		return GSON.toJson(teams);
 	}
 
-	public static Team deserialize(String json) {
+	public static Team deserializeTeam(String json) {
 		return GSON.fromJson(json, Team.class);
+	}
+
+	public static Team.CapitolData deserializeCapitol(String json) {
+		return GSON.fromJson(json, Team.CapitolData.class);
+	}
+
+	public static String serializeCapitol(Team.CapitolData capitolData) {
+		return GSON.toJson(capitolData);
 	}
 
 	public static List<Team> deserializeList(String json) {

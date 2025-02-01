@@ -3,6 +3,7 @@ package com.createcivilization.capitol.block.custom;
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
+import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveCapitol;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -69,13 +70,16 @@ public class CapitolBlock extends BaseEntityBlock {
 		ChunkPos chunkPos = new ChunkPos(pos);
 		ObjectHolder<Team> team = TeamUtils.getTeam(chunkPos, dimension);
 		team.ifPresent(
-			team1 ->
-				team.getOrThrow().getDimensionalData(dimension)
-					.getParentOfChunk(chunkPos)
-					.ifPresent(
-						capitolData ->
-							capitolData.getChildChunks().forEach(capitolData::removeChunk)
-					)
+			team1 -> {
+				Team.TeamDimensionData dimensionalData = team1.getDimensionalData(dimension);
+				dimensionalData.getParentOfChunk(chunkPos)
+					.ifPresent( capitolData ->
+						{
+							dimensionalData.removeCapitolData(capitolData);
+							PacketHandler.sendToAllPlayers(new S2CRemoveCapitol(capitolData, dimension, team1));
+						}
+					);
+			}
 		);
 
 
