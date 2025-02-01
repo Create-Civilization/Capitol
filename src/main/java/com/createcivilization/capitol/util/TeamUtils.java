@@ -14,16 +14,15 @@ import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
 import org.jetbrains.annotations.Nullable;
+
 import wiiu.mavity.wiiu_lib.util.*;
 
 import java.awt.Color;
 import java.io.*;
 import java.time.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
 /**
  * Utilities related to teams.
@@ -126,7 +125,10 @@ public class TeamUtils {
 	 */
 	public static Map<String, Boolean> getPermissionInChunk(ChunkPos pos, Player player) {
 		return getTeam(pos, player.level().dimension().location())
-			.ifPresentOrElse((IfPresentFunction<Team, Map<String, Boolean>>) team -> TeamUtils.getPlayerPermission(team, player), () -> PermissionUtil.newPermission("all_true")); // Prevent null
+			.ifPresentOrElse(
+				(IfPresentFunction<Team, Map<String, Boolean>>) team -> TeamUtils.getPlayerPermission(team, player),
+				() -> PermissionUtil.newPermission("all_true") // Prevent null
+			);
 	}
 
 	/**
@@ -195,8 +197,8 @@ public class TeamUtils {
 	/**
 	 * @return A list of {@link Team}s parsed from the given {@link String}.
 	 */
-    public static List<Team> parseTeams(String str) throws IOException {
-        return GsonUtil.loadFromFile(TeamUtils.getTeamDataFile().getPath());
+    public static List<Team> parseTeams(String str) {
+        return GsonUtil.loadFromString(str);
     }
 
 	/**
@@ -204,14 +206,6 @@ public class TeamUtils {
 	 */
     public static Team parseTeam(String json) {
         return GsonUtil.deserialize(json);
-    }
-
-    private static List<UUID> getListOfUUIDs(JsonReader reader) throws IOException {
-        List<UUID> UUIDs = new ArrayList<>();
-        reader.beginArray();
-        while (reader.hasNext()) UUIDs.add(UUID.fromString(reader.nextString()));
-        reader.endArray();
-        return UUIDs;
     }
 
     public static boolean teamExists(String teamName) {
@@ -314,16 +308,16 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Check if chunk has CapitolBlock.
+	 * Check if a chunk has a CapitolBlock.
 	 * @param pos The chunk position.
 	 * @param dimension The dimension.
-	 * @return boolean
+	 * @return If the chunk has a CapitolBlock.
 	 */
 	public static boolean chunkHasCapitolBlock(ChunkPos pos, ResourceLocation dimension) {
 		AtomicBoolean result = new AtomicBoolean(false);
 		for (Team team : loadedTeams) {
 			team.getDimensionalData(dimension).getParentOfChunk(pos).ifPresent(
-				capitolData -> result.set(capitolData.CAPITOL_BLOCK_CHUNK == pos)
+				capitolData -> result.set(capitolData.capitolBlockChunk == pos)
 			);
 		}
 		return result.get();
@@ -439,14 +433,14 @@ public class TeamUtils {
 		chunkRadiusOperation(chunkPos, radius, inputChunk -> isChildChunk(dimension, inputChunk), inputChunk -> unclaimChunk(team, dimension, inputChunk));
 	}
 
+	// Don't name atomic variables as optional, that makes no sense
 	public static Optional<Team.CapitolData> getNearestParent(ResourceLocation dimension, ChunkPos chunkPos) {
-		AtomicReference<Optional<Team.CapitolData>> optional = new AtomicReference<>(Optional.empty());
-		TeamUtils.chunkRadiusOperation(chunkPos, 1, inputChunk -> optional.get().isEmpty(),
-inputChunk -> {
+		AtomicReference<Optional<Team.CapitolData>> reference = new AtomicReference<>(Optional.empty());
+		TeamUtils.chunkRadiusOperation(chunkPos, 1, inputChunk -> reference.get().isEmpty(), inputChunk -> {
 			ObjectHolder<Team> team = getTeam(inputChunk, dimension);
-			if (team.isPresent()) optional.set(team.getOrThrow().getDimensionalData(dimension).getParentOfChunk(inputChunk));
+			if (team.isPresent()) reference.set(team.getOrThrow().getDimensionalData(dimension).getParentOfChunk(inputChunk));
 		});
-		return optional.get();
+		return reference.get();
 	}
 
 	/**
@@ -486,6 +480,7 @@ inputChunk -> {
 	 * @param chunkPos The position of the chunk.
 	 * @return 1 if successful, -1 if failed
 	 */
+	// TODO: ChunkUnclaimedEvent?
 	public static int unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
 		if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
 
@@ -524,14 +519,17 @@ inputChunk -> {
 		}
 	}
 
+	@SuppressWarnings("DataFlowIssue") // Only called server-side. We know the world is not null at this point, because that's impossible.
 	public static boolean isChunkEdgeOfClaims(ChunkAccess chunk) {
-		Level world = (Level) chunk.getWorldForge(); // If you're reading this, how can you still put var despite legit stating the type with (Level)?
-		if (world == null) return false; // I was told never to keep assert on shipping
+		// If you're reading this, how can you still put var despite legit stating the type with (Level)?
+		// Because I'm fucking lazy idk man - Matty
+		// I was told never to keep assert on shipping
+		// There's an assertion arg for jvm that makes them act like proper throwables but it's disabled by default, we know the world isn't null, assert is to just make intellij shut up about it
 		ChunkPos pos = chunk.getPos();
 		int radius = 1;
 		radius++;
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++)
-			if (!TeamUtils.isChildChunk(world.dimension().location(), new ChunkPos(pos.x - x, pos.z - z)))
+			if (!TeamUtils.isChildChunk(((Level) chunk.getWorldForge()).dimension().location(), new ChunkPos(pos.x - x, pos.z - z)))
 				return true;
 		return false;
 	}

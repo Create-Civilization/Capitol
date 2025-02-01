@@ -1,21 +1,24 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.team.Team;
+
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
+
 import net.minecraft.resources.ResourceLocation;
 
 import java.awt.Color;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class GsonUtil {
+
+	public static final Type LIST_TYPE = new TypeToken<List<Team>>() {}.getType();
+
 	private static final Gson GSON = new GsonBuilder()
 		.setPrettyPrinting()
+		.disableHtmlEscaping()
 		.registerTypeAdapter(Color.class, new ColorAdapter())
 		.registerTypeAdapter(UUID.class, new UUIDAdapter())
 		.registerTypeAdapter(ResourceLocation.class, new ResourceLocationAdapter())
@@ -35,8 +38,7 @@ public class GsonUtil {
 	}
 
 	public static List<Team> deserializeList(String json) {
-		Type listType = new TypeToken<List<Team>>() {}.getType();
-		return GSON.fromJson(json, listType);
+		return GSON.fromJson(json, LIST_TYPE);
 	}
 
 	public static void saveToFile(List<Team> teams, String filePath) throws IOException {
@@ -47,9 +49,12 @@ public class GsonUtil {
 
 	public static List<Team> loadFromFile(String filePath) throws IOException {
 		try (FileReader reader = new FileReader(filePath)) {
-			Type listType = new TypeToken<List<Team>>() {}.getType();
-			return GSON.fromJson(reader, listType);
+			return GSON.fromJson(reader, LIST_TYPE);
 		}
+	}
+
+	public static List<Team> loadFromString(String json) {
+		return GSON.fromJson(json, LIST_TYPE);
 	}
 
 	static class ColorAdapter implements JsonSerializer<Color>, JsonDeserializer<Color> {
@@ -108,5 +113,4 @@ public class GsonUtil {
 			return dimensionData;
 		}
 	}
-
 }

@@ -162,6 +162,7 @@ public class Team {
 	}
 
 	public static class TeamDimensionData {
+
 		private final List<CapitolData> capitolDataList = new ArrayList<>();
 
 		public List<CapitolData> getCapitolDataList() {
@@ -197,15 +198,17 @@ public class Team {
 	}
 
 	public static class CapitolData {
-		public final ChunkPos CAPITOL_BLOCK_CHUNK;
+
+		public final ChunkPos capitolBlockChunk;
+
 		private final List<ChunkPos> childChunks = new ArrayList<>();
 
 		public CapitolData(ChunkPos capitolBlockChunk) {
-			CAPITOL_BLOCK_CHUNK = capitolBlockChunk;
+			this.capitolBlockChunk = capitolBlockChunk;
 		}
 
 		public CapitolData(ChunkPos capitolBlockChunk, List<ChunkPos> toAdd) {
-			CAPITOL_BLOCK_CHUNK = capitolBlockChunk;
+			this.capitolBlockChunk = capitolBlockChunk;
 			childChunks.addAll(toAdd);
 		}
 
@@ -221,7 +224,6 @@ public class Team {
 			return this.childChunks;
 		}
 	}
-
 
 	@SuppressWarnings({"UnusedReturnValue", "TypeMayBeWeakened"})
 	public static class TeamBuilder {
