@@ -3,51 +3,41 @@ package com.createcivilization.capitol.team;
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.util.*;
 
-import com.google.gson.stream.JsonWriter;
-
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.level.ChunkPos;
 
-import wiiu.mavity.wiiu_lib.util.JsonUtils;
-
 import java.awt.Color;
-import java.io.*;
-import java.time.LocalDateTime;
 import java.util.*;
 
-@SuppressWarnings("FieldMayBeFinal")
 public class Team {
 
-	private String name, teamId;
-
-	private Map<String, List<UUID>> players;
+	private final String name;
+	private final String teamId;
 	// Default roles:
 	// owner
 	// moderator
 	// member
-
-	private Color color;
-
-	private Map<ResourceLocation, List<ChunkPos>> claimedChunks = new HashMap<>();
-
+	private final Map<String, List<UUID>> members;
+	private final Color color;
 	private Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
-
-	private Map<ResourceLocation, List<ChunkPos>> capitolBlocks = new HashMap<>();
-
 	// UUID = UUID of invitee
 	// Long = Unixtimestamp sent
 	// Not to save!
-	private Map<UUID, Long> invites = new HashMap<>();
+	private final Map<UUID, Long> invites = new HashMap<>();
+	private final List<String> allies = new ArrayList<>();
 
-	private List<String> allies = new ArrayList<>();
+	private final Map<ResourceLocation, TeamDimensionData> dimensionData = new HashMap<>();
 
 	private Team(String name, String teamId, Map<String, List<UUID>> players, Color colour) {
 		this.name = name;
 		this.teamId = teamId;
-		this.players = players;
+		this.members = players;
 		this.color = colour;
 		LogToDiscord.postIfAllowed(this, "Team created! " + this.getQuotedName());
+	}
+
+	public Map<ResourceLocation, TeamDimensionData> getDimensionDataMap() {
+		return dimensionData;
 	}
 
 	public Color getColor() {
@@ -55,29 +45,29 @@ public class Team {
 	}
 
 	public void addPlayer(String role, UUID uuid) {
-		if (!players.containsKey(role)) players.put(role, new ArrayList<>(List.of(uuid)));
-		else players.get(role).add(uuid);
+		if (!members.containsKey(role)) members.put(role, new ArrayList<>(List.of(uuid)));
+		else members.get(role).add(uuid);
 	}
 
 	public LinkedList<String> getRoleRanking() {
-		return new LinkedList<>(players.keySet());
+		return new LinkedList<>(members.keySet());
 	}
 
 	public void addRole(String roleName) {
-		this.players.put(roleName, new ArrayList<>());
+		this.members.put(roleName, new ArrayList<>());
 		this.rolePermissions.put(roleName, PermissionUtil.newPermission("all_false"));
 	}
 
 	public void removeRole(String roleName) {
-		players.remove(roleName);
+		members.remove(roleName);
 	}
 
 	public void removePlayer(UUID uuid) {
-		players.get(getPlayerRole(uuid)).remove(uuid);
+		members.get(getRole(uuid)).remove(uuid);
 	}
 
 	public List<UUID> getPlayersWithRole(String role) {
-		return players.get(role);
+		return members.get(role);
 	}
 
 	public void addInvitee(UUID uuid) {
@@ -85,9 +75,7 @@ public class Team {
 		invites.put(uuid, timestamp);
 
 		// Do some cleanup ;)
-		for (Map.Entry<UUID, Long> entry : invites.entrySet()) {
-			if (entry.getValue() + CapitolConfig.SERVER.inviteTimeout.get() < timestamp) invites.remove(entry.getKey());
-		}
+		invites.entrySet().removeIf(entry -> (entry.getValue() + CapitolConfig.SERVER.inviteTimeout.get()) < timestamp);
 	}
 
 	public long getInviteeTimestamp(UUID uuid) {
@@ -98,8 +86,8 @@ public class Team {
 		return invites.containsKey(uuid);
 	}
 
-	public Map<String, List<UUID>> getPlayers() {
-		return players;
+	public Map<String, List<UUID>> getMembers() {
+		return members;
 	}
 
 	public String getTeamId() {
@@ -114,42 +102,18 @@ public class Team {
 		return "\"" + name + "\"";
 	}
 
-	public String getPlayerRole(UUID uuid) {
-		for (Map.Entry<String, List<UUID>> entry : players.entrySet())
+	public String getRole(UUID uuid) {
+		for (Map.Entry<String, List<UUID>> entry : members.entrySet())
 			if (entry.getValue().contains(uuid)) return entry.getKey();
 		return "non-member";
 	}
 
 	public List<UUID> getAllPlayers() {
-		List<UUID> allPlayers = new ArrayList<>();
-		players.values().forEach(allPlayers::addAll);
-		return allPlayers;
-	}
-
-	public Map<ResourceLocation, List<ChunkPos>> getClaimedChunks() {
-		return claimedChunks;
-	}
-
-	public List<ChunkPos> getClaimedChunksOfDimension(ResourceLocation dimension) {
-		return claimedChunks.getOrDefault(dimension, new ArrayList<>()); // This can return null if the dimension doesn't have chunks already.
+		return members.values().stream().flatMap(Collection::stream).toList();
 	}
 
 	public List<String> getAllies() {
 		return allies;
-	}
-
-	public Map<ResourceLocation, List<ChunkPos>> getCapitolBlocks() {
-		return capitolBlocks;
-	}
-
-	public void addCapitolBlock(ResourceLocation dimension, List<ChunkPos> chunkPositions) {
-		var alreadyAdded = this.capitolBlocks.get(dimension);
-		if (alreadyAdded != null) alreadyAdded.addAll(chunkPositions);
-		else this.capitolBlocks.put(dimension, chunkPositions);
-	}
-
-	public void addCapitolBlock(ResourceLocation dimension, ChunkPos chunkPosition) {
-		this.addCapitolBlock(dimension, new ArrayList<>(List.of(chunkPosition)));
 	}
 
 	public void addAllies(Collection<String> allies) {
@@ -161,30 +125,7 @@ public class Team {
 	 */
 	@Override
 	public String toString() {
-		try (JsonWriter writer = new JsonWriter(new StringWriter())) {
-			this.toString(writer);
-
-			var field = writer.getClass().getDeclaredField("out");
-			field.trySetAccessible();
-			return field.get(writer).toString();
-		} catch (Throwable e) {
-			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
-		}
-	}
-
-	public void toString(JsonWriter writer) {
-		try {
-			writer.beginObject();
-			writer.name("name").value(name);
-			writer.name("teamId").value(teamId);
-			writer.name("color").value(color.getRGB());
-			PermissionUtil.savePermission(writer, rolePermissions);
-			JsonUtils.saveJsonMap(writer, "players", players, false);
-			JsonUtils.saveJsonList(writer, "allies", allies, false);
-			writer.endObject();
-		} catch (Throwable e) {
-			throw new RuntimeException("An exception occurred trying to serialize a team object!", e);
-		}
+		return GsonUtil.serialize(this);
 	}
 
 	public Map<String, Map<String, Boolean>> getAllRolePermissions() {
@@ -200,6 +141,14 @@ public class Team {
 		rolePermissions.get(role).put(permission, value);
 	}
 
+	public TeamDimensionData getDimensionalData(ResourceLocation dimension) {
+		return dimensionData.computeIfAbsent(dimension, ignored -> new TeamDimensionData());
+	}
+
+	public boolean hasChunkPos(ResourceLocation dimension, ChunkPos chunkPos) {
+		return getDimensionalData(dimension).capitolDataList.stream().anyMatch(capitolData -> capitolData.childChunks.contains(chunkPos));
+	}
+
 	public String[] getRoles() {
 		return rolePermissions.keySet().toArray(new String[0]);
 	}
@@ -208,20 +157,84 @@ public class Team {
 		this.rolePermissions = rolePermissions;
 	}
 
+	public List<ChunkPos> getAllChildChunks() {
+		return dimensionData.values().stream().flatMap(teamDimensionData -> teamDimensionData.getAllChildChunks().stream()).toList();
+	}
+
+	public static class TeamDimensionData {
+		private final List<CapitolData> capitolDataList = new ArrayList<>();
+
+		public List<CapitolData> getCapitolDataList() {
+			return capitolDataList;
+		}
+
+		public void addCapitolData(CapitolData capitolData) {
+			this.capitolDataList.add(capitolData);
+		}
+
+		public void removeCapitolData(CapitolData capitolData) {
+			this.capitolDataList.remove(capitolData);
+		}
+
+		public List<ChunkPos> getAllChildChunks() {
+			return capitolDataList.stream().flatMap(capitolData -> capitolData.childChunks.stream()).toList();
+		}
+
+		public void removeChildChunk(ChunkPos chunkPos) {
+			getParentOfChunk(chunkPos).ifPresent(capitolData -> capitolData.childChunks.remove(chunkPos));
+		}
+
+		public Optional<CapitolData> getParentOfChunk(ChunkPos chunkPos) {
+			Optional<CapitolData> toReturn = Optional.empty();
+			for (CapitolData capitolData : capitolDataList) {
+				if (capitolData.childChunks.contains(chunkPos)) {
+					toReturn = Optional.of(capitolData);
+					break;
+				}
+			}
+			return toReturn;
+		}
+	}
+
+	public static class CapitolData {
+		public final ChunkPos CAPITOL_BLOCK_CHUNK;
+		private final List<ChunkPos> childChunks = new ArrayList<>();
+
+		public CapitolData(ChunkPos capitolBlockChunk) {
+			CAPITOL_BLOCK_CHUNK = capitolBlockChunk;
+		}
+
+		public CapitolData(ChunkPos capitolBlockChunk, List<ChunkPos> toAdd) {
+			CAPITOL_BLOCK_CHUNK = capitolBlockChunk;
+			childChunks.addAll(toAdd);
+		}
+
+		public void removeChunk(ChunkPos chunkPos) {
+			childChunks.remove(chunkPos);
+		}
+
+		public void addChunk(ChunkPos chunkPos) {
+			childChunks.add(chunkPos);
+		}
+
+		public List<ChunkPos> getChildChunks() {
+			return this.childChunks;
+		}
+	}
+
+
 	@SuppressWarnings({"UnusedReturnValue", "TypeMayBeWeakened"})
 	public static class TeamBuilder {
 
 		private String name, teamId;
 
-		private Map<String, List<UUID>> players = new HashMap<>();
+		private final Map<String, List<UUID>> players = new HashMap<>();
 
-		private List<Tuple<UUID, String>> teamMessages = new ArrayList<>();
-
-		private Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
+		private final Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
 
 		private Color color;
 
-		private List<String> allies = new ArrayList<>();
+		private final List<String> allies = new ArrayList<>();
 
 		private TeamBuilder() {}
 
@@ -238,11 +251,6 @@ public class Team {
             this.teamId = teamId;
             return this;
         }
-
-		public TeamBuilder setTeamMessages(List<Tuple<UUID, String>> teamMessages) {
-			this.teamMessages = teamMessages;
-			return this;
-		}
 
         public TeamBuilder setColor(Color color) {
             this.color = color;

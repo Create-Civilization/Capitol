@@ -14,7 +14,7 @@ import java.util.List;
 
 public abstract class GuiMenu extends Screen {
 
-	protected static Component TITLE = Component.empty();
+	protected static final Component TITLE = Component.empty();
 	private static final Component EXIT = Component.literal("X");
 
 	private static int TITLE_WIDTH;
@@ -23,7 +23,7 @@ public abstract class GuiMenu extends Screen {
 	protected int leftPos;
 	protected int topPos;
 	protected ResourceLocation backgroundTexture;
-	protected boolean backgroundBoiler = true;
+	protected final boolean backgroundBoiler = true;
 
 	protected GuiMenu(Component pTitle) {
 		super(pTitle);

@@ -11,6 +11,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
+@SuppressWarnings("EmptyMethod")
 public class C2SClaimCurrentChunk {
 
 	public C2SClaimCurrentChunk() {}
@@ -21,9 +22,9 @@ public class C2SClaimCurrentChunk {
 
 	public void handle(NetworkEvent.Context context) {
 		ServerPlayer sender = context.getSender();
-		assert sender != null;
+		if (sender == null) return;
 		ObjectHolder<Team> holder = TeamUtils.getTeam(sender);
 		if (holder.isEmpty()) return;
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.claimChunk(sender.level().dimension().location(), sender.chunkPosition(), holder.getOrThrow()), context);
+		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.claimChunk(TeamUtils.getPlayerDimension(sender), sender.chunkPosition(), holder.getOrThrow()), context);
 	}
 }

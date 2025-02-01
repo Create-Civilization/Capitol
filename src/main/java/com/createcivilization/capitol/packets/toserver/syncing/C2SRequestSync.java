@@ -6,6 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import net.minecraftforge.network.NetworkEvent;
 
+@SuppressWarnings("EmptyMethod")
 public class C2SRequestSync {
 
 	public C2SRequestSync() {}

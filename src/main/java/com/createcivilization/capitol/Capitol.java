@@ -23,22 +23,20 @@ public class Capitol {
 
     @SuppressWarnings("removal") // Putting FMLJavaModLoadingContext in the constructor is incompatible with versions below 47.3.10
     public Capitol() {
-        IEventBus ew = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
 		// Don't use FMLJavaModLoadingContext to register because it doesn't have this method below version 47.3.10
 		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);
 
-        ew.addListener(this::commonSetup);
+        modEventBus.addListener(this::commonSetup);
 
-        CapitolItems.register(ew);
-        CapitolBlocks.register(ew);
-        CapitolBlockEntities.register(ew);
+        CapitolItems.register(modEventBus);
+        CapitolBlocks.register(modEventBus);
+        CapitolBlockEntities.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
 
-		// Don't ask.
-		boolean cake = true & false;
-		System.out.println(cake);
+		// I'm sorry but that was annoying me.
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

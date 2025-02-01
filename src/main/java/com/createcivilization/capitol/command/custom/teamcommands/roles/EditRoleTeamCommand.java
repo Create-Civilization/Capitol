@@ -40,8 +40,7 @@ public class EditRoleTeamCommand extends AbstractTeamCommand {
 	@Override
 	public int executeAllParams(CommandContext<CommandSourceStack> context) {
 		CommandSourceStack source = context.getSource();
-		Player player = source.getPlayer();
-		Team team = TeamUtils.getTeam(player).getOrThrow();
+		Team team = TeamUtils.getTeam(source.getPlayer()).getOrThrow();
 		String roleName = StringArgumentType.getString(context, "roleName");
 
 		if (Arrays.stream(team.getRoles()).noneMatch(role -> Objects.equals(role.toLowerCase(), roleName.toLowerCase()))) {

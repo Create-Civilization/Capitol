@@ -75,7 +75,7 @@ public class PermissionUtil {
 		for (Boolean permissionToPut : permissionsToPut) {
 			permission.put(permissions.get(i), permissionToPut);
 			i++;
-		};
+		}
 		return permission;
 	}
 

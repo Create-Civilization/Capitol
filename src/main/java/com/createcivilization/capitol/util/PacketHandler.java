@@ -98,7 +98,7 @@ public class PacketHandler {
 		clientAddPacket(C2SUnclaimChunk.class, id++, C2SUnclaimChunk::encode, C2SUnclaimChunk::new, C2SUnclaimChunk::handle);
 		clientAddPacket(C2SClaimCurrentChunk.class, id++, C2SClaimCurrentChunk::encode, C2SClaimCurrentChunk::new, C2SClaimCurrentChunk::handle);
 		clientAddPacket(C2SInvitePlayer.class, id++, C2SInvitePlayer::encode, C2SInvitePlayer::new, C2SInvitePlayer::handle);
-		clientAddPacket(C2SSendTeamMessage.class, id++, C2SSendTeamMessage::encode, C2SSendTeamMessage::new, C2SSendTeamMessage::handle);
+		clientAddPacket(C2SSendTeamMessage.class, id, C2SSendTeamMessage::encode, C2SSendTeamMessage::new, C2SSendTeamMessage::handle);
 	}
 
 	public static void sendToServer(Object msg) {

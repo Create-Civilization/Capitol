@@ -36,8 +36,8 @@ public class TeamStatisticsScreen extends GuiMenu {
 	@Override
 	protected void init() {
 
-		this.playerAmount = menuTeam.getPlayers().values().stream().mapToInt(List::size).sum();
-		this.chunkAmount = menuTeam.getClaimedChunks().values().stream().mapToInt(List::size).sum();
+		this.playerAmount = menuTeam.getMembers().values().stream().mapToInt(List::size).sum();
+		this.chunkAmount = menuTeam.getAllChildChunks().size();
 
 		this.leftPos = (this.width - this.imageWidth) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;

@@ -65,11 +65,11 @@ public class ClientEvents {
 			if (getTeamOrDisplayClientMessage(player).isPresent()) {
 				ClientConstants.teamChat = !ClientConstants.teamChat;
 				ClientConstants.INSTANCE.player.displayClientMessage(Component.literal("Now talking in " + (ClientConstants.teamChat ? "team chat" : "public chat")), false);
-			};
+			}
 		}
 
 		if (KeyBindings.claim_chunk.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
-			if (!TeamUtils.nearClaimedChunk(player.chunkPosition(), 1, player))
+			if (!TeamUtils.chunkIsNearChildChunk(player.chunkPosition(), 1, player))
 				player.displayClientMessage(
 					ClientConstants.NOT_NEAR_CHUNK,
 					true
@@ -96,7 +96,7 @@ public class ClientEvents {
 			// Render claim borders
 			for (Team team : TeamUtils.loadedTeams) {
 				// Remove all non-loaded chunks from list
-				List<ChunkPos> chunks = team.getClaimedChunksOfDimension(dimension);
+				List<ChunkPos> chunks = team.getDimensionalData(dimension).getAllChildChunks();
 				if (chunks == null) continue;
 				chunks = chunks.stream().filter(
 					chunkPos -> clientLevel.hasChunk(chunkPos.x, chunkPos.z)

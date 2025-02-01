@@ -18,6 +18,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
 import net.minecraftforge.api.distmarker.*;
@@ -82,10 +83,10 @@ public class JourneyMapIntegration implements IClientPlugin {
 		}
 
 		for (Team team : TeamUtils.loadedTeams) {
-			for (var claimedChunks : team.getClaimedChunks().entrySet()) {
+			for (Map.Entry<ResourceLocation, Team.TeamDimensionData> claimedChunks : team.getDimensionDataMap().entrySet()) {
 				var player = Minecraft.getInstance().player;
 				assert player != null;
-				var polygon = PolygonHelper.createChunksPolygon(claimedChunks.getValue(), player.getBlockY());
+				var polygon = PolygonHelper.createChunksPolygon(claimedChunks.getValue().getAllChildChunks(), player.getBlockY());
 				for (var poly : polygon) {
 					String teamId = team.getTeamId();
 					@Nullable PolygonOverlay prevOverlay = overlays.get(teamId);
@@ -121,7 +122,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
 			if (ClientEvents.getTeamOrDisplayClientMessage(player).isEmpty()) return;
 			ChunkPos chunkPos = new ChunkPos(pos);
-			if (!TeamUtils.nearClaimedChunk(chunkPos, 1, player))
+			if (!TeamUtils.chunkIsNearChildChunk(chunkPos, 1, player))
 				player.displayClientMessage(
 					ClientConstants.NOT_NEAR_CHUNK,
 					true
@@ -142,9 +143,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 		});
 
 		// TODO: Work on this.
-		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> {
-			this.removeLastClickOverlayIfPresent();
-		});
+		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> this.removeLastClickOverlayIfPresent());
 	}
 
 	public void removeLastClickOverlayIfPresent() {

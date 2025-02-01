@@ -20,11 +20,7 @@ public class S2CAddTeam {
 
 	public S2CAddTeam(FriendlyByteBuf friendlyByteBuf) {
 		// Decode
-		try {
-			this.toAdd = TeamUtils.parseTeam(friendlyByteBuf.readUtf());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		this.toAdd = TeamUtils.parseTeam(friendlyByteBuf.readUtf());
 	}
 
 	public void encode(FriendlyByteBuf friendlyByteBuf) {

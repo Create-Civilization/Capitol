@@ -21,7 +21,7 @@ public class ClaimCurrentChunkCommand extends AbstractTeamCommand {
 			player.sendSystemMessage(Component.literal("Chunk already claimed"));
 			return -1;
 		}
-		if (!TeamUtils.nearClaimedChunk(player.chunkPosition(), 1, player)) {
+		if (!TeamUtils.chunkIsNearChildChunk(player.chunkPosition(), 1, player)) {
 			// Near chunk to extend
 			player.sendSystemMessage(Component.literal("Must be near a claimed chunk"));
 			return -1;

@@ -9,6 +9,6 @@ import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 @OnlyIn(Dist.DEDICATED_SERVER)
 public class ServerConstants {
 
-	public static ObjectHolder<MinecraftServer> server = new ObjectHolder<>();
+	public static final ObjectHolder<MinecraftServer> server = new ObjectHolder<>();
 
 }

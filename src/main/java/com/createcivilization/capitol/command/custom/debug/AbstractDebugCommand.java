@@ -11,7 +11,7 @@ import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 public class AbstractDebugCommand extends AbstractTeamCommand {
 
-	protected ObjectHolder<ArgumentBuilder<CommandSourceStack, ?>> subSubCommand = new ObjectHolder<>();
+	protected final ObjectHolder<ArgumentBuilder<CommandSourceStack, ?>> subSubCommand = new ObjectHolder<>();
 
 	protected AbstractDebugCommand() {
 		super("debug");

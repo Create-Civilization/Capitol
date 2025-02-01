@@ -43,7 +43,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 		super.init();
 
 		int i = 0;
-		for(Map.Entry<String, List<UUID>> entry : ClientConstants.playerTeam.getOrThrow().getPlayers().entrySet()) {
+		for(Map.Entry<String, List<UUID>> entry : ClientConstants.playerTeam.getOrThrow().getMembers().entrySet()) {
 			Component roleComponent = Component.literal(entry.getKey());
 			playerScene.addRenderableWidget(
 				new StringWidget(

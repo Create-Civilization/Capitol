@@ -31,13 +31,12 @@ public class ServerPacketHandler {
     }
 
 	public static void claimCurrentPlayerChunk(ServerPlayer sender) {
-		if (TeamUtils.isInClaimedChunk(sender) || !TeamUtils.nearClaimedChunk(sender.chunkPosition(), 1, sender)) return;
-
+		if (TeamUtils.isInClaimedChunk(sender) || !TeamUtils.chunkIsNearChildChunk(sender.chunkPosition(), 1, sender)) return;
 		TeamUtils.claimCurrentChunk(sender);
 	}
 
 	public static void claimChunk(ResourceLocation dimension, ChunkPos pos, Team team) {
-		if (TeamUtils.allowedInChunk(team, dimension, pos) || !TeamUtils.nearClaimedChunk(pos, 1, dimension, team)) return;
+		if (TeamUtils.isChunkParent(team, dimension, pos) || !TeamUtils.chunkIsNearChildChunk(pos, 1, dimension, team)) return;
 
 		TeamUtils.claimChunk(team, dimension, pos);
 	}
@@ -89,7 +88,7 @@ public class ServerPacketHandler {
 	}
 
 	public static void unclaimChunk(ResourceLocation dimension, ChunkPos pos, Team team) {
-		if (!TeamUtils.allowedInChunk(team, dimension, pos)) return;
+		if (!TeamUtils.isChunkParent(team, dimension, pos)) return;
 
 		TeamUtils.unclaimChunkAndUpdate(team, dimension, pos);
 	}

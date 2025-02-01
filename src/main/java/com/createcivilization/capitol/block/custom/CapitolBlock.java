@@ -2,7 +2,6 @@ package com.createcivilization.capitol.block.custom;
 
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.event.custom.CapitolBlockEvent;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
@@ -22,8 +21,6 @@ import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
-
-import net.minecraftforge.common.MinecraftForge;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -67,48 +64,20 @@ public class CapitolBlock extends BaseEntityBlock {
 	// onDestroyedByPlayer --> forge
 	@Override
 	public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
-		if (level.isClientSide()) return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
+		if (level.isClientSide) return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
 		ResourceLocation dimension = level.dimension().location();
 		ChunkPos chunkPos = new ChunkPos(pos);
 		ObjectHolder<Team> team = TeamUtils.getTeam(chunkPos, dimension);
-		if (!team.isEmpty()) {
-			var team1 = team.getOrThrow();
-			MinecraftForge.EVENT_BUS.post(
-				new CapitolBlockEvent.CapitolBlockDestroyedOrPlaced.CapitolBlockDestroyedEvent.PreUnclaimEvent(
-					this,
-					team1,
-					player,
-					pos,
-					level
-				)
-			);
-			team1.getCapitolBlocks().get(dimension).remove(chunkPos);
-			TeamUtils.unclaimChunkAndUpdate(
-				team1,
-				dimension,
-				chunkPos
-			);
-			MinecraftForge.EVENT_BUS.post(
-				new CapitolBlockEvent.CapitolBlockDestroyedOrPlaced.CapitolBlockDestroyedEvent.PostUnclaimEvent(
-					this,
-					team1,
-					player,
-					pos,
-					level
-				)
-			);
-		} else if (
-			MinecraftForge.EVENT_BUS.post(
-				new CapitolBlockEvent.CapitolBlockDestroyedOrPlaced.CapitolBlockDestroyedEvent.FailedToDestroy(
-					this,
-					player,
-					pos,
-					level
-				)
-			)
-		) {
-			throw new RuntimeException("Failed to destroy capitol block, and no events to handle the issue were executed and invoked setCanceled(true)");
-		}
+		team.ifPresent(
+			team1 ->
+				team.getOrThrow().getDimensionalData(dimension)
+					.getParentOfChunk(chunkPos)
+					.ifPresent(
+						capitolData ->
+							capitolData.getChildChunks().forEach(capitolData::removeChunk)
+					)
+		);
+
 
 		return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
 	}
@@ -122,58 +91,30 @@ public class CapitolBlock extends BaseEntityBlock {
 	// Else:
 	// Break block
 	@Override
-	@SuppressWarnings("resource")
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
 		super.setPlacedBy(world, pos, state, placer, stack);
 
-		if ((placer instanceof Player player)) {
-			if (
-				!world.isClientSide()
-					&& world.getBlockEntity(pos) instanceof CapitolBlockEntity
-					&& TeamUtils.hasTeam(player)
-					&& !TeamUtils.hasCapitolBlock(new ChunkPos(pos), player.level().dimension().location())
-					&& !TeamUtils.isInClaimedChunk(player, pos)
-			) {
-				Team team = TeamUtils.getTeam(player).getOrThrow();
-				ResourceLocation dimension = world.dimension().location();
-				ChunkPos chunk = new ChunkPos(pos);
-				MinecraftForge.EVENT_BUS.post(
-					new CapitolBlockEvent.CapitolBlockDestroyedOrPlaced.CapitolBlockPlacedEvent.PreClaimEvent(
-						this,
-						team,
-						player,
-						pos,
-						world
-					)
-				);
-				team.addCapitolBlock(dimension, chunk);
-				TeamUtils.claimChunkRadius(
-					team,
-					dimension,
-					chunk,
-					CapitolConfig.SERVER.claimRadius.get()
-				);
-				MinecraftForge.EVENT_BUS.post(
-					new CapitolBlockEvent.CapitolBlockDestroyedOrPlaced.CapitolBlockPlacedEvent.PostClaimEvent(
-						this,
-						team,
-						player,
-						pos,
-						world
-					)
-				);
-			} else if (
-				!MinecraftForge.EVENT_BUS.post(
-					new CapitolBlockEvent.CapitolBlockDestroyedOrPlaced.CapitolBlockPlacedEvent.FailedToPlaceEvent(
-						this,
-						player,
-						pos,
-						world
-					)
-				)
-			) { // Only break block if nobody cancelled the FailedToPlaceEvent (shouldn't affect us by default, only custom integrations will change this)
-				world.destroyBlock(pos, true);
-			}
+		if (
+			!world.isClientSide
+				&& world.getBlockEntity(pos) instanceof CapitolBlockEntity // Safety check
+				&& placer instanceof Player player // Make sure nothing else is placing it
+				&& TeamUtils.hasTeam(player) // Make sure player has a team
+				&& !TeamUtils.chunkHasCapitolBlock(new ChunkPos(pos), TeamUtils.getPlayerDimension(player))
+				&& !TeamUtils.isInClaimedChunk(player, pos)
+		) {
+			Team team = TeamUtils.getTeam(player).getOrThrow();
+			ResourceLocation dimension = world.dimension().location();
+			ChunkPos chunk = new ChunkPos(pos);
+			TeamUtils.claimChunk(team, dimension, chunk);
+			TeamUtils.claimChunkRadius(
+				team,
+				dimension,
+				chunk,
+				CapitolConfig.SERVER.claimRadius.get()
+			);
+		} else {
+			// Conditions not met, destroy
+			world.destroyBlock(pos, true);
 		}
 	}
 

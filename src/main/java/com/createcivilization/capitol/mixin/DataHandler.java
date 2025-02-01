@@ -4,10 +4,12 @@ import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerLevel;
 
+import net.minecraft.world.level.ChunkPos;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -78,10 +80,10 @@ public final class DataHandler {
 		@Inject(at = @At(value = "HEAD"), method = "tickServer")
 		private void updateTakeOverProgress(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
 			for (Team team : TeamUtils.loadedTeams) {
-				for (var recLoc : team.getClaimedChunks().keySet()) {
+				for (ResourceLocation recLoc : team.getDimensionDataMap().keySet()) {
 					for (ServerLevel level : this.getAllLevels()) {
 						if (level.dimension().location().equals(recLoc)) {
-							for (var chunkPos : team.getClaimedChunks().get(recLoc)) {
+							for (ChunkPos chunkPos : team.getDimensionalData(recLoc).getAllChildChunks()) {
 								((IChunkData) level.getChunk(chunkPos.getWorldPosition())).updateTakeOverProgress((MinecraftServer) (Object) this);
 							}
 						}

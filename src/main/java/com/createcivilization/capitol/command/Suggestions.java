@@ -27,7 +27,7 @@ public class Suggestions {
 		var player = context.getSource().getPlayer();
 		assert player != null;
 		Team team = TeamUtils.getTeam(player).getOrThrow();
-		String playerRole = team.getPlayerRole(player.getUUID());
+		String playerRole = team.getRole(player.getUUID());
 		Arrays.stream(team.getRoles())
 			.filter(role -> !TeamUtils.isRoleHigher(team, playerRole, role))
 			.forEach(builder::suggest);

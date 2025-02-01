@@ -31,9 +31,9 @@ public class C2SClaimChunk {
 
 	public void handle(NetworkEvent.Context context) {
 		ServerPlayer sender = context.getSender();
-		assert sender != null;
+		if (sender == null) return;
 		ObjectHolder<Team> holder = TeamUtils.getTeam(sender);
 		if (holder.isEmpty()) return;
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.claimChunk(sender.level().dimension().location(), this.pos, holder.getOrThrow()), context);
+		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.claimChunk(TeamUtils.getPlayerDimension(sender), this.pos, holder.getOrThrow()), context);
 	}
 }

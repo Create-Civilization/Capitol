@@ -16,7 +16,7 @@ public class ClientConstants {
 
 	public static final Minecraft INSTANCE = Minecraft.getInstance();
 	public static boolean viewChunks;
-	public static ObjectHolder<Team> playerTeam = new ObjectHolder<>();
+	public static final ObjectHolder<Team> playerTeam = new ObjectHolder<>();
 	public static boolean teamChat = false;
 
 	// JourneyMap Integration use ONLY

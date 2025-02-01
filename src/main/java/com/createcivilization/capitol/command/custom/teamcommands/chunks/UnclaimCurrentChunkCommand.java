@@ -26,13 +26,13 @@ public class UnclaimCurrentChunkCommand extends AbstractTeamCommand {
 			return -1;
 		}
 		ResourceLocation dimension = player.level().dimension().location();
-		if (!TeamUtils.allowedInChunk(player, dimension, chunkPos)) {
+		if (!TeamUtils.isChunkParent(player, dimension, chunkPos)) {
 
 			// Player is not allowed to unclaim chunk
 			player.sendSystemMessage(Component.literal("You are not allowed to unclaim this chunk"));
 			return -1;
 		}
-		if (TeamUtils.hasCapitolBlock(chunkPos, dimension)) {
+		if (TeamUtils.chunkHasCapitolBlock(chunkPos, dimension)) {
 			// Claim has capitol block
 			player.sendSystemMessage(Component.literal("You are not allowed to unclaim a chunk with a Capitol in it"));
 			return -1;

@@ -64,7 +64,7 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 		}
 		for (String currRole : team.getRoles()) if (Objects.equals(currRole.toLowerCase(), finalRole)) role = currRole;
 		assert player != null;
-		if (TeamUtils.isRoleHigher(team, team.getPlayerRole(player.getUUID()), role)) {
+		if (TeamUtils.isRoleHigher(team, team.getRole(player.getUUID()), role)) {
 			source.sendFailure(Component.literal("Cannot reassign player to a higher role than yours"));
 			return -1;
 		}

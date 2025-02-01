@@ -9,8 +9,6 @@ import net.minecraft.client.gui.components.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import java.awt.Color;
-
 public class CreateTeamScreen extends GuiMenu {
 
 	private static final Component TITLE = Component.translatable("gui." + Capitol.MOD_ID + ".create_team");

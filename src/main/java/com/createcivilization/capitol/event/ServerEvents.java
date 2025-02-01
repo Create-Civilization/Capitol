@@ -4,6 +4,7 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -35,7 +36,7 @@ public class ServerEvents {
 			teamId = team.getTeamId();
 			claimName = team.getName();
 		}
-		var data = player.getPersistentData();
+		CompoundTag data = player.getPersistentData();
 		if (!teamId.equals(data.getString(LAST_CHUNK_TEAM_ID))) player.displayClientMessage(Component.literal("Now entering " + claimName), true);
 		data.putString(LAST_CHUNK_TEAM_ID, teamId);
 	}

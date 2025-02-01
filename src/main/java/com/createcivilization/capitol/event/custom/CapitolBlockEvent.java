@@ -34,7 +34,7 @@ public abstract class CapitolBlockEvent extends Event {
 		private final BlockPos pos;
 		private final Level level;
 		private final ResourceLocation dimension;
-		public boolean isPlacedEvent;
+		public final boolean isPlacedEvent;
 
 		@Internal
 		public CapitolBlockDestroyedOrPlaced(

@@ -1,29 +1,29 @@
 package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
 import com.google.gson.stream.*;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.*;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
+import org.jetbrains.annotations.Nullable;
 import wiiu.mavity.wiiu_lib.util.*;
 
 import java.awt.Color;
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
+import java.util.function.Predicate;
 
 /**
  * Utilities related to teams.
@@ -68,7 +68,7 @@ public class TeamUtils {
 	 * @return If the {@link UUID} is in a team or not
 	 */
 	public static boolean hasTeam(UUID playerUUID) {
-		return loadedTeams.stream().anyMatch(team -> team.getPlayers().values().stream().anyMatch(list -> list.contains(playerUUID)));
+		return loadedTeams.stream().anyMatch(team -> team.getMembers().values().stream().anyMatch(list -> list.contains(playerUUID)));
 	}
 
 	/**
@@ -77,8 +77,7 @@ public class TeamUtils {
 	 * @return If the player is the owner of his team
 	 */
 	public static boolean isTeamOwner(Player player) {
-		Team team = TeamUtils.getTeam(player).getOrThrow();
-		return team.getPlayers().get("owner").stream().anyMatch(player.getUUID()::equals);
+		return TeamUtils.getTeam(player).getOrThrow().getMembers().get("owner").stream().anyMatch(player.getUUID()::equals);
 	}
 
 	/**
@@ -92,23 +91,19 @@ public class TeamUtils {
 	 * @return If the {@link Player}'s current position is in a claimed chunk.
 	 */
 	public static boolean isInClaimedChunk(Player player) {
-		return isClaimedChunk(player.level().dimension().location(), player.chunkPosition());
+		return isChildChunk(getPlayerDimension(player), player.chunkPosition());
 	}
 
 	public static boolean isInClaimedChunk(Player player, BlockPos pos) {
-		return isClaimedChunk(player.level().dimension().location(), player.level().getChunk(pos).getPos());
+		Level level = player.level();
+		return isChildChunk(level.dimension().location(), level.getChunk(pos).getPos());
 	}
 
 	/**
 	 * @return If the given {@link ChunkPos} is representative of the location of a claimed chunk.
 	 */
-	public static boolean isClaimedChunk(ResourceLocation dimension, ChunkPos pos) {
-		boolean result = false;
-		for (Team team : loadedTeams) {
-			var chunks = team.getClaimedChunks().get(dimension);
-			if (chunks != null && chunks.stream().anyMatch(pos::equals)) result = true;
-		}
-		return result;
+	public static boolean isChildChunk(ResourceLocation dimension, ChunkPos pos) {
+		return loadedTeams.stream().anyMatch(team -> team.hasChunkPos(dimension, pos));
 	}
 
 	/**
@@ -123,7 +118,7 @@ public class TeamUtils {
 	 * @return The Permission map the {@link Player} has in the chunk at the {@link BlockPos} specified in the parameters.
 	 */
 	public static Map<String, Boolean> getPermissionInChunk(BlockPos pos, Player player) {
-		return getPermissionInChunk(player.level().getChunkAt(pos).getPos(), player);
+		return getPermissionInChunk(new ChunkPos(pos), player);
 	}
 
 	/**
@@ -157,8 +152,7 @@ public class TeamUtils {
 
 	public static ObjectHolder<Team> getTeam(ChunkPos pos, ResourceLocation dimension) {
 		for (Team team : loadedTeams) {
-			List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
-			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) return new ObjectHolder<>(team);
+			if (team.hasChunkPos(dimension, pos)) return new ObjectHolder<>(team);
 		}
 		return new ObjectHolder<>();
 	}
@@ -173,7 +167,6 @@ public class TeamUtils {
 			FileUtils.setContentsIfEmpty(file, "[" + System.lineSeparator() + "]");
 		} finally {
 			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
-			TeamUtils.loadChunksForTeams();
 			LogToDiscord.postIfAllowed("Capitol", "Loaded teams and chunks");
 		}
     }
@@ -182,7 +175,7 @@ public class TeamUtils {
 		for (String currRole : team.getRoleRanking()) {
 			if (Objects.equals(currRole, possiblyBiggerRole)) return true;
 			else if (Objects.equals(currRole, role)) return false;
-		};
+		}
 		return false;
 	}
 
@@ -191,13 +184,11 @@ public class TeamUtils {
 	 */
     public static void saveTeams() throws IOException {
         System.out.println("Saving teams...");
+
 		File teamDataFile = TeamUtils.getTeamDataFile();
-        JsonWriter writer = new JsonWriter(new FileWriter(teamDataFile));
-        writer.beginArray();
-        for (Team team : loadedTeams) team.toString(writer);
-        writer.endArray();
-        writer.close();
-		TeamUtils.saveChunks();
+
+		GsonUtil.saveToFile(loadedTeams, teamDataFile.getPath());
+
 		LogToDiscord.postIfAllowed("Capitol", "Saved teams and claimed chunks");
     }
 
@@ -205,64 +196,14 @@ public class TeamUtils {
 	 * @return A list of {@link Team}s parsed from the given {@link String}.
 	 */
     public static List<Team> parseTeams(String str) throws IOException {
-        JsonReader reader = new JsonReader(new StringReader(str));
-        List<Team> teams = new ArrayList<>();
-        reader.beginArray();
-        while (reader.hasNext()) teams.add(parseTeam(reader));
-        reader.endArray();
-		reader.close();
-        return teams;
+        return GsonUtil.loadFromFile(TeamUtils.getTeamDataFile().getPath());
     }
 
 	/**
 	 * @return An individual {@link Team} object parsed from json.
 	 */
-    public static Team parseTeam(JsonReader reader) throws IOException {
-        String name = null, teamId = null;
-        Map<String, List<UUID>> players = new LinkedHashMap<>();
-		Map<String, Map<String, Boolean>> rolePermissions = new HashMap<>();
-		List<Tuple<UUID, String>> teamMessages = new ArrayList<>();
-        Color color = null;
-		List<String> allies = new ArrayList<>();
-        reader.beginObject();
-        while (reader.hasNext()) {
-            switch (reader.nextName()) {
-                case "name" -> name = reader.nextString();
-                case "teamId" -> teamId = reader.nextString();
-                case "color" -> color = new Color(reader.nextInt());
-                case "players" -> {
-                    reader.beginObject();
-                    while (reader.hasNext()) players.put(reader.nextName(), getListOfUUIDs(reader));
-                    reader.endObject();
-                }
-				case "rolePermissions" -> {
-					reader.beginObject();
-					while (reader.hasNext()) {
-						String role = reader.nextName();
-						Map<String, Boolean> permissions = new HashMap<>();
-						reader.beginObject();
-						while (reader.hasNext()) permissions.put(reader.nextName(), reader.nextBoolean());
-						reader.endObject();
-						rolePermissions.put(role, permissions);
-					}
-					reader.endObject();
-				}
-				case "allies" -> {
-					reader.beginArray();
-					while (reader.hasNext()) allies.add(reader.nextString());
-					reader.endArray();
-				}
-            }
-        }
-        reader.endObject();
-        return Team.TeamBuilder.create()
-                .setName(name)
-                .setTeamId(teamId)
-                .setPlayers(players)
-				.setRolePermissions(rolePermissions)
-                .setColor(color)
-				.setAllies(allies)
-                .build();
+    public static Team parseTeam(String json) {
+        return GsonUtil.deserialize(json);
     }
 
     private static List<UUID> getListOfUUIDs(JsonReader reader) throws IOException {
@@ -271,10 +212,6 @@ public class TeamUtils {
         while (reader.hasNext()) UUIDs.add(UUID.fromString(reader.nextString()));
         reader.endArray();
         return UUIDs;
-    }
-
-    public static Team parseTeam(String str) throws IOException {
-        return parseTeam(new JsonReader(new StringReader(str)));
     }
 
     public static boolean teamExists(String teamName) {
@@ -361,126 +298,11 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Loads the claimed chunks from the chunk data file and applies them to the relevant teams.
-	 */
-	public static void loadChunksForTeams() throws IOException {
-		var file = TeamUtils.getChunkDataFile();
-		JsonReader reader = new JsonReader(new FileReader(file));
-		reader.beginArray();
-		while (reader.hasNext()) loadChunksForTeam(reader);
-		reader.endArray();
-		reader.close();
-	}
-
-	/**
-	 * See {@link #loadChunksForTeams()}
-	 */
-	@SuppressWarnings("deprecation")
-	public static void loadChunksForTeam(JsonReader reader) throws IOException {
-		if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Loading chunk for team...");
-		reader.beginObject();
-		ObjectHolder<Team> team = new ObjectHolder<>();
-		String[] coords;
-		while (reader.hasNext()) {
-			switch (reader.nextName()) {
-				case "teamId" -> team.setFrom(TeamUtils.getTeam(reader.nextString()));
-				case "claimedChunks" -> {
-					reader.beginObject();
-					while (reader.hasNext()) {
-						String dimension = reader.nextName();
-						reader.beginArray();
-						while (reader.hasNext()) {
-							coords = reader.nextString().split(Pattern.quote(","));
-							if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Loading chunk... " + Arrays.toString(coords));
-							final String[] finalCoords = coords;
-							final int x = Integer.parseInt(finalCoords[0]);
-							final int z = Integer.parseInt(finalCoords[1]);
-							if (CapitolConfig.SERVER.debugLogs.get()) System.out.println(ServerConstants.server.getAsString());
-							ServerConstants.server.ifPresent((server) -> team.ifPresent((t) -> {
-								for (var entrySet : server.forgeGetWorldMap().entrySet()) {
-									ResourceLocation resourceLoc = new ResourceLocation(dimension);
-									if (entrySet.getKey().equals(ResourceKey.create(Registries.DIMENSION, resourceLoc))) claimChunk(t, resourceLoc, entrySet.getValue().getChunk(x, z).getPos());
-								}
-							}));
-						}
-						reader.endArray();
-					}
-					reader.endObject();
-				}
-				// this is an afront to god. -Orion
-				// Good thing god (McArctic) isn't watching -Matty
-				case "chunksWithCapitolBlock" -> {
-					reader.beginObject();
-					while (reader.hasNext()) {
-						String dimension = reader.nextName();
-						reader.beginArray();
-						while (reader.hasNext()) {
-							coords = reader.nextString().split(Pattern.quote(","));
-							final int x = Integer.parseInt(coords[0]);
-							final int z = Integer.parseInt(coords[1]);
-							ServerConstants.server.ifPresent((server) -> team.ifPresent((t) -> {
-								for (var entrySet : server.forgeGetWorldMap().entrySet()) {
-									ResourceLocation resourceLoc = new ResourceLocation(dimension);
-									if (entrySet.getKey().equals(ResourceKey.create(Registries.DIMENSION, resourceLoc))) t.addCapitolBlock(resourceLoc, entrySet.getValue().getChunk(x, z).getPos());
-								}
-							}));
-						}
-						reader.endArray();
-					}
-					reader.endObject();
-				}
-			}
-		}
-		reader.endObject();
-	}
-
-	public static void saveChunks() throws IOException {
-		JsonWriter writer = new JsonWriter(new FileWriter(TeamUtils.getChunkDataFile()));
-		writer.beginArray();
-		for (Team team : loadedTeams) {
-			writer.beginObject();
-			writer.name("teamId").value(team.getTeamId());
-			JsonUtils.advancedSaveJsonMapHoldingList(
-					writer,
-					"claimedChunks",
-					team.getClaimedChunks(),
-					ResourceLocation::toString, // Transforms the ResourceLocation into namespace:path
-					TeamUtils::chunksToStringArray,
-					false
-			);
-			JsonUtils.advancedSaveJsonMapHoldingList(
-				writer,
-				"chunksWithCapitolBlock",
-				team.getCapitolBlocks(),
-				ResourceLocation::toString, // Transforms the ResourceLocation into namespace:path
-				TeamUtils::chunksToStringArray,
-				false
-			);
-			writer.endObject();
-		}
-		writer.endArray();
-		writer.close();
-	}
-
-	public static String[] chunksToStringArray(List<ChunkPos> positions) {
-		String[] result = new String[positions.size()];
-		for (int i = 0; i < positions.size(); i++) {
-			var pos = positions.get(i);
-			result[i] = pos.x + "," + pos.z;
-		}
-		return result;
-	}
-
-	/**
 	 * Claims the current chunk for the given player's team.
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int claimCurrentChunk(Player player) {
 		return getTeam(player).ifPresentOrElse(team -> claimChunk(team, getPlayerDimension(player), player.chunkPosition()), () -> -1);
-	}
-
-	public static void claimChunk(Player player, BlockPos pos) {
-		TeamUtils.getTeam(player).ifPresent(team -> claimChunk(team, getPlayerDimension(player), new ChunkPos(pos)));
 	}
 
 	/**
@@ -497,13 +319,14 @@ public class TeamUtils {
 	 * @param dimension The dimension.
 	 * @return boolean
 	 */
-	public static boolean hasCapitolBlock(ChunkPos pos, ResourceLocation dimension) {
-		boolean result = false;
+	public static boolean chunkHasCapitolBlock(ChunkPos pos, ResourceLocation dimension) {
+		AtomicBoolean result = new AtomicBoolean(false);
 		for (Team team : loadedTeams) {
-			List<ChunkPos> chunks = team.getCapitolBlocks().get(dimension);
-			if (chunks != null && chunks.stream().anyMatch(chunkPos -> chunkPos.equals(pos))) result = true;
+			team.getDimensionalData(dimension).getParentOfChunk(pos).ifPresent(
+				capitolData -> result.set(capitolData.CAPITOL_BLOCK_CHUNK == pos)
+			);
 		}
-		return result;
+		return result.get();
 	}
 
 	/**
@@ -512,9 +335,9 @@ public class TeamUtils {
 	 * @param radius The chunk radius around the player to check
 	 */
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, Player player) {
+	public static boolean chunkIsNearChildChunk(ChunkPos chunkPos, int radius, Player player) {
 		ObjectHolder<Team> holder = getTeam(player);
-		return holder.isPresent() && nearClaimedChunk(chunkPos, radius, player.level().dimension().location(), holder.getOrThrow());
+		return holder.isPresent() && chunkIsNearChildChunk(chunkPos, radius, player.level().dimension().location(), holder.getOrThrow());
 	}
 
 	/**
@@ -525,27 +348,54 @@ public class TeamUtils {
 	 * @param team the team to check
 	 * @return wether any were found
 	 */
-	public static boolean nearClaimedChunk(ChunkPos chunkPos, int radius, ResourceLocation dimension, Team team) {
+	public static boolean chunkIsNearChildChunk(ChunkPos chunkPos, int radius, ResourceLocation dimension, Team team) {
+		AtomicBoolean toReturn = new AtomicBoolean(false);
+		chunkRadiusOperation(chunkPos, radius, inputChunk -> team.hasChunkPos(dimension, inputChunk), inputChunk -> toReturn.set(inputChunk != null));
+		return toReturn.get();
+	}
+
+	public static ChunkPos parseChunkPosFromString(String toParse) {
+		toParse = toParse.substring(1, toParse.indexOf("]"));
+		int splitPoint = toParse.indexOf(",");
+		return new ChunkPos(Integer.parseInt(toParse.substring(0, splitPoint)),Integer.parseInt(toParse.substring(splitPoint+2)));
+	}
+
+	public static List<ChunkPos> parseChunkPosListFromString(String toParseRaw) {
+		String[] toParse = toParseRaw.split(", ");
+		return Arrays.stream(toParse).map(TeamUtils::parseChunkPosFromString).toList();
+	}
+
+	public static void chunkRadiusOperation(ChunkPos chunkPos, int radius, Predicate<ChunkPos> filter, Consumer<@Nullable ChunkPos> processor) {
 		radius++;
 		for (int x = -1; x < radius; x++) {
 			for (int z = -1; z < radius; z++) {
 				ChunkPos currentChunkPos = new ChunkPos(chunkPos.x - x, chunkPos.z - z);
-				if (allowedInChunk(team, dimension, currentChunkPos)) return true;
-				else if (TeamUtils.isClaimedChunk(dimension, chunkPos)) return true;
+				if (filter.test(currentChunkPos)) {
+					processor.accept(currentChunkPos);
+				}
 			}
 		}
-		return false;
 	}
 
+	public static boolean canPlayerNotDoInChunk(BlockPos blockPos, Player player, String action) {
+		return canPlayerNotDoInChunk(new ChunkPos(blockPos), player, action);
+	}
+
+	public static boolean canPlayerNotDoInChunk(ChunkPos chunkPos, Player player, String action) {
+		ObjectHolder<Team> team = getTeam(chunkPos, getPlayerDimension(player));
+		if (team.isPresent()) return !canPlayerDo(team.getOrThrow(), player, action);
+		return false;
+	}
 	/**
 	 * Returns whether player can do X action based on their permission
 	 */
 	public static boolean canPlayerDo(Team team, Player player, String action) {
+		System.out.println(getPlayerPermission(team, player));
 		return getPlayerPermission(team, player).get(action);
 	}
 
 	public static Map<String, Boolean> getPlayerPermission(Team team, Player player) {
-		return team.getPermission(team.getPlayerRole(player.getUUID()));
+		return team.getPermission(team.getRole(player.getUUID()));
 	}
 
 	/**
@@ -553,10 +403,9 @@ public class TeamUtils {
 	 * @param player the player on which the team shall be checked.
 	 * @param chunkPos the position of the chunk.
 	 */
-	public static boolean allowedInChunk(Player player, ResourceLocation dimension, ChunkPos chunkPos) {
+	public static boolean isChunkParent(Player player, ResourceLocation dimension, ChunkPos chunkPos) {
 		ObjectHolder<Team> holder = TeamUtils.getTeam(chunkPos, dimension);
-		if (holder.isEmpty()) return false;
-		return !Objects.equals(holder.getOrThrow().getPlayerRole(player.getUUID()), "non-member");
+		return holder.isPresent() && !Objects.equals(holder.getOrThrow().getRole(player.getUUID()), "non-member");
 	}
 
 	/**
@@ -564,11 +413,8 @@ public class TeamUtils {
 	 * @param team the team on which the team shall be checked.
 	 * @param chunkPos the position of the chunk.
 	 */
-	public static boolean allowedInChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
-		if (!TeamUtils.isClaimedChunk(dimension, chunkPos)) return false;
-		List<ChunkPos> chunks = team.getClaimedChunks().get(dimension);
-		if (chunks == null) return false;
-		else return chunks.contains(chunkPos);
+	public static boolean isChunkParent(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
+		return TeamUtils.isChildChunk(dimension, chunkPos) && team.getDimensionalData(dimension).getAllChildChunks().contains(chunkPos);
 	}
 
 	/**
@@ -579,8 +425,7 @@ public class TeamUtils {
 	 * @param radius The radius itself
 	 */
 	public static void claimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
-		radius++;
-		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.claimChunkIfNotClaimed(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
+		chunkRadiusOperation(chunkPos, radius, inputChunk -> !isChildChunk(dimension, inputChunk), inputChunk -> claimChunk(team, dimension, inputChunk));
 	}
 
 	/**
@@ -591,18 +436,35 @@ public class TeamUtils {
 	 * @param radius The radius itself
 	 */
 	public static void unclaimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
-		radius++;
-		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++) TeamUtils.unclaimChunkIfFromTeam(team, dimension, new ChunkPos(chunkPos.x - x, chunkPos.z - z));
+		chunkRadiusOperation(chunkPos, radius, inputChunk -> isChildChunk(dimension, inputChunk), inputChunk -> unclaimChunk(team, dimension, inputChunk));
+	}
+
+	public static Optional<Team.CapitolData> getNearestParent(ResourceLocation dimension, ChunkPos chunkPos) {
+		AtomicReference<Optional<Team.CapitolData>> optional = new AtomicReference<>(Optional.empty());
+		TeamUtils.chunkRadiusOperation(chunkPos, 1, inputChunk -> optional.get().isEmpty(),
+inputChunk -> {
+			ObjectHolder<Team> team = getTeam(inputChunk, dimension);
+			if (team.isPresent()) optional.set(team.getOrThrow().getDimensionalData(dimension).getParentOfChunk(inputChunk));
+		});
+		return optional.get();
 	}
 
 	/**
-	 * Claims the given chunk for the given team.
+	 * Claims the given chunk for the given team,
+	 * If the chunk has no near chunks nearby to take ownership,
+	 * it will default to create a capitolblock claim, please check before to avoid this effect
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
 		if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
 
-		team.getClaimedChunks().computeIfAbsent(dimension, k -> new ArrayList<>()).add(pos);
+		Team.CapitolData parent = getNearestParent(dimension, pos).orElseGet(() -> {
+			Team.CapitolData def = new Team.CapitolData(pos);
+			team.getDimensionalData(dimension).addCapitolData(def);
+			return def;
+		});
+
+		parent.addChunk(pos);
 
 		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CAddChunk(team.getTeamId(), pos, dimension)));
 
@@ -614,9 +476,7 @@ public class TeamUtils {
 	}
 
 	public static int unclaimChunkAndUpdate(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
-		int toReturn = unclaimChunk(team, dimension, chunkPos);
-//		updateChunks(team, dimension);
-		return toReturn;
+		return unclaimChunk(team, dimension, chunkPos);
 	}
 
 	/**
@@ -629,53 +489,21 @@ public class TeamUtils {
 	public static int unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
 		if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
 
-		List<ChunkPos> claimedChunks = team.getClaimedChunks().get(dimension);
-		claimedChunks.remove(chunkPos);
+		System.out.println(dimension);
+		System.out.println(chunkPos);
+		team.getDimensionalData(dimension).removeChildChunk(chunkPos);
 
 		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllClients(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension)));
 
 		return 1;
 	}
 
-	public static void updateChunks(Team team, ResourceLocation dimension) {
-		updateChunks(team, team.getCapitolBlocks().getOrDefault(dimension, new ArrayList<>()), dimension, team.getClaimedChunksOfDimension(dimension));
-	}
-
-	private static void updateChunks(Team team, List<ChunkPos> capitolBlocks, ResourceLocation dimension, List<ChunkPos> claimedChunks) {
-		List<ChunkPos> connectedChunks = new ArrayList<>();
-		for (ChunkPos chunkPos : capitolBlocks) {
-			// Limit is temporary until optimized
-			connectedChunks.addAll(checkConnection(team, chunkPos, connectedChunks, claimedChunks, 20));
-		}
-		for (ChunkPos chunkPos : claimedChunks) {
-			if (!connectedChunks.contains(chunkPos)) unclaimChunk(team, dimension, chunkPos);
-		}
-	}
-
-	private static List<ChunkPos> checkConnection(Team team, ChunkPos chunkPos, List<ChunkPos> toVerify, List<ChunkPos> claimedChunks, int limit) {
-		ChunkPos left = new ChunkPos(chunkPos.x - 1, chunkPos.z);
-		ChunkPos right = new ChunkPos(chunkPos.x + 1, chunkPos.z);
-		ChunkPos top = new ChunkPos(chunkPos.x, chunkPos.z - 1);
-		ChunkPos bottom = new ChunkPos(chunkPos.x, chunkPos.z + 1);
-		Consumer<ChunkPos> verifyAndAdd = pos -> {
-			if (limit > 0 && !toVerify.contains(pos) && claimedChunks.contains(pos)) {
-				toVerify.add(pos);
-				toVerify.addAll(checkConnection(team, pos, toVerify, claimedChunks, limit - 1));
-			}
-		};
-		verifyAndAdd.accept(left);
-		verifyAndAdd.accept(right);
-		verifyAndAdd.accept(top);
-		verifyAndAdd.accept(bottom);
-		return toVerify;
-	}
-
 	public static void claimChunkIfNotClaimed(Team team, ResourceLocation dimension, ChunkPos pos) {
-		if (!TeamUtils.isClaimedChunk(dimension, pos)) TeamUtils.claimChunk(team, dimension, pos);
+		if (!TeamUtils.isChildChunk(dimension, pos)) TeamUtils.claimChunk(team, dimension, pos);
 	}
 
 	public static void unclaimChunkIfFromTeam(Team team, ResourceLocation dimension, ChunkPos pos) {
-		if (TeamUtils.isClaimedChunk(dimension, pos) && TeamUtils.getTeam(pos, dimension).getOrThrow().equals(team)) TeamUtils.unclaimChunk(team, dimension, pos);
+		if (TeamUtils.isChildChunk(dimension, pos) && TeamUtils.getTeam(pos, dimension).getOrThrow().equals(team)) TeamUtils.unclaimChunk(team, dimension, pos);
 	}
 
 	public static List<Team> getTeamAndAllies(Team team) {
@@ -688,22 +516,22 @@ public class TeamUtils {
 	public static void synchronizeServerDataWithPlayer(ServerPlayer player) {
 		for (Team team : TeamUtils.loadedTeams) {
 			PacketHandler.sendToPlayer(new S2CAddTeam(team), player);
-			for (Map.Entry<ResourceLocation, List<ChunkPos>> chunkEntry : team.getClaimedChunks().entrySet()) {
-				for (ChunkPos chunkPos : chunkEntry.getValue()) {
-					PacketHandler.sendToPlayer(new S2CAddChunk(team.getTeamId(), chunkPos, chunkEntry.getKey()), player);
+			for (Map.Entry<ResourceLocation, Team.TeamDimensionData> chunkEntry : team.getDimensionDataMap().entrySet()) {
+				for (Team.CapitolData capitolData : chunkEntry.getValue().getCapitolDataList()) {
+					capitolData.getChildChunks().forEach(childChunk -> PacketHandler.sendToPlayer(new S2CAddChunk(team.getTeamId(), childChunk, chunkEntry.getKey()), player));
 				}
 			}
 		}
 	}
 
 	public static boolean isChunkEdgeOfClaims(ChunkAccess chunk) {
-		var world = (Level) chunk.getWorldForge();
-		assert world != null;
-		var pos = chunk.getPos();
+		Level world = (Level) chunk.getWorldForge(); // If you're reading this, how can you still put var despite legit stating the type with (Level)?
+		if (world == null) return false; // I was told never to keep assert on shipping
+		ChunkPos pos = chunk.getPos();
 		int radius = 1;
 		radius++;
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++)
-			if (!TeamUtils.isClaimedChunk(world.dimension().location(), new ChunkPos(pos.x - x, pos.z - z)))
+			if (!TeamUtils.isChildChunk(world.dimension().location(), new ChunkPos(pos.x - x, pos.z - z)))
 				return true;
 		return false;
 	}
