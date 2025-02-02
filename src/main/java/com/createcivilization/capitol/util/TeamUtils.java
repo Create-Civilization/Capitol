@@ -12,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import wiiu.mavity.wiiu_lib.util.*;
@@ -504,20 +503,18 @@ public class TeamUtils {
 
 	/**
 	 * Unclaims the given chunk from the given team.
-	 * @param team The team to unclaim for.
+	 * @param team      The team to unclaim for.
 	 * @param dimension The dimension of the chunk.
-	 * @param chunkPos The position of the chunk.
-	 * @return 1 if successful, -1 if failed
+	 * @param chunkPos  The position of the chunk.
 	 */
 	// TODO: ChunkUnclaimedEvent?
-	public static int unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
+	public static void unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
 		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
 
 		team.getDimensionalData(dimension).removeChildChunk(chunkPos);
 
 		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension)));
 
-		return 1;
 	}
 
 	public static void claimChunkIfNotClaimed(Team team, ResourceLocation dimension, ChunkPos pos) {
