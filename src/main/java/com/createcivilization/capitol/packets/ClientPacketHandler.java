@@ -11,6 +11,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraftforge.api.distmarker.*;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.List;
+
 @OnlyIn(Dist.CLIENT)
 public class ClientPacketHandler {
 
@@ -29,8 +31,14 @@ public class ClientPacketHandler {
 		ClientConstants.chunksDirty = true;
 	}
 
-	public static void removeChunk(String teamId, ChunkPos pos, ResourceLocation dimension) {
+	public static void removeChunks(String teamId, ChunkPos pos, ResourceLocation dimension) {
 		TeamUtils.unclaimChunk(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
+		ClientConstants.toResetChunksTeamIds.add(teamId);
+		ClientConstants.chunksDirty = true;
+	}
+
+	public static void removeChunks(String teamId, List<ChunkPos> pos, ResourceLocation dimension) {
+		TeamUtils.unclaimChunks(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
 		ClientConstants.toResetChunksTeamIds.add(teamId);
 		ClientConstants.chunksDirty = true;
 	}

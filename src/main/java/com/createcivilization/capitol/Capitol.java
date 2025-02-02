@@ -6,6 +6,7 @@ import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.item.CapitolItems;
 import com.createcivilization.capitol.util.PacketHandler;
 
+import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -14,12 +15,15 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import org.slf4j.Logger;
+
 // git push origin main
 // git pull
 @Mod(Capitol.MOD_ID)
 public class Capitol {
 
     public static final String MOD_ID = "capitol";
+	public static final Logger LOGGER = LogUtils.getLogger();
 
     @SuppressWarnings("removal") // Putting FMLJavaModLoadingContext in the constructor is incompatible with versions below 47.3.10
     public Capitol() {

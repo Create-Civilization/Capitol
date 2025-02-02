@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.util;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import wiiu.mavity.wiiu_lib.util.*;
@@ -161,7 +163,7 @@ public class TeamUtils {
 	 * Loads all the {@link Team}s from the team data file.
 	 */
     public static void loadTeams() throws IOException {
-        System.out.println("Loading teams...");
+		Capitol.LOGGER.info("Loading teams...");
         var file = TeamUtils.getTeamDataFile();
 		try {
 			FileUtils.setContentsIfEmpty(file, "[" + System.lineSeparator() + "]");
@@ -428,7 +430,19 @@ public class TeamUtils {
 	 * @param radius The radius itself
 	 */
 	public static void unclaimChunkRadius(Team team, ResourceLocation dimension, ChunkPos chunkPos, int radius) {
-		chunkRadiusOperation(chunkPos, radius, inputChunk -> isChildChunk(dimension, inputChunk), inputChunk -> unclaimChunk(team, dimension, inputChunk));
+		List<ChunkPos> toRemove = new ArrayList<>();
+		chunkRadiusOperation(chunkPos, radius, inputChunk -> isChildChunk(dimension, inputChunk), toRemove::add);
+		unclaimChunks(team, dimension, toRemove);
+	}
+
+	public static int unclaimChunks(Team team, ResourceLocation dimension, List<ChunkPos> chunkPosList) {
+		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Unclaiming chunk " + chunkPosList + " in dimension " + dimension + " from team '" + team.getName() + "'");
+
+		team.getDimensionalData(dimension).removeChildChunks(chunkPosList);
+
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveChunks(team.getTeamId(), chunkPosList, dimension)));
+
+		return 1;
 	}
 
 	// Don't name atomic variables as optional, that makes no sense
@@ -448,7 +462,7 @@ public class TeamUtils {
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
-		if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
+		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
 
 		Team.CapitolData parent = getNearestParent(dimension, pos).orElseGet(() -> {
 			Team.CapitolData def = new Team.CapitolData(pos);
@@ -468,7 +482,24 @@ public class TeamUtils {
 	}
 
 	public static int unclaimChunkAndUpdate(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
-		return unclaimChunk(team, dimension, chunkPos);
+		team.getDimensionalData(dimension).getParentOfChunk(chunkPos).ifPresent(
+			capitolData -> {
+				List<ChunkPos> childChunks = capitolData.getChildChunks();
+				List<ChunkPos> connectedChunks = getConnectedChunks(capitolData, childChunks, new ArrayList<>()).stream().distinct().toList();
+
+				unclaimChunks(team, dimension, childChunks.stream().filter(chunkPos1 -> !connectedChunks.contains(chunkPos1)).toList());
+			}
+		);
+		return 1;
+	}
+
+	private static List<ChunkPos> getConnectedChunks(Team.CapitolData capitolData, List<ChunkPos> childChunks, List<ChunkPos> collected) {
+		chunkRadiusOperation(capitolData.capitolBlockChunk, 1, chunkPos -> !collected.contains(chunkPos) && childChunks.contains(chunkPos),
+			chunkPos -> {
+			collected.add(chunkPos);
+			collected.addAll(getConnectedChunks(capitolData, childChunks, collected));
+		});
+		return collected;
 	}
 
 	/**
@@ -480,10 +511,8 @@ public class TeamUtils {
 	 */
 	// TODO: ChunkUnclaimedEvent?
 	public static int unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
-		if (CapitolConfig.SERVER.debugLogs.get()) System.out.println("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
+		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
 
-		System.out.println(dimension);
-		System.out.println(chunkPos);
 		team.getDimensionalData(dimension).removeChildChunk(chunkPos);
 
 		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension)));

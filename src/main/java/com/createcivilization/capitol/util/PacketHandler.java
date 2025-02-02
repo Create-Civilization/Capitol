@@ -91,6 +91,7 @@ public class PacketHandler {
 		serverAddPacket(S2CRemoveChunk.class, id++, S2CRemoveChunk::encode, S2CRemoveChunk::new, S2CRemoveChunk::handle);
 		serverAddPacket(S2CRemoveTeam.class, id++, S2CRemoveTeam::encode, S2CRemoveTeam::new, S2CRemoveTeam::handle);
 		serverAddPacket(S2CRemoveCapitol.class, id++, S2CRemoveCapitol::encode, S2CRemoveCapitol::new, S2CRemoveCapitol::handle);
+		serverAddPacket(S2CRemoveChunks.class, id++, S2CRemoveChunks::encode, S2CRemoveChunks::new, S2CRemoveChunks::handle);
 
 		// C2S packets
 		clientAddPacket(C2SRequestSync.class, id++, C2SRequestSync::encode, C2SRequestSync::new, C2SRequestSync::handle);
