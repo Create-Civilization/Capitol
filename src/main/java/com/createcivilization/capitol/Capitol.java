@@ -17,8 +17,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import org.slf4j.Logger;
 
-// git push origin main
-// git pull
 @Mod(Capitol.MOD_ID)
 public class Capitol {
 
@@ -40,7 +38,9 @@ public class Capitol {
 
         MinecraftForge.EVENT_BUS.register(this);
 
-		// I'm sorry but that was annoying me.
+		@SuppressWarnings("PointlessBooleanExpression") // nuh uh
+		boolean cake = true & false;
+		System.out.println(cake);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
