@@ -181,12 +181,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		} else {
-			if (lastClickOverlay != null) {
-				this.api.remove(lastClickOverlay);
-				lastClickOverlay = null;
-			}
-		}
+		} else this.removeLastClickOverlayIfPresent();
 	}
 
 	public void onKey(InputEvent.Key event) {
