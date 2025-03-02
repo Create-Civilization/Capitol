@@ -27,7 +27,7 @@ public class TeamClaimManagerScreen extends GuiMenu {
 		super(TITLE);
 		this.imageWidth = 176;
 		this.imageHeight = 166;
-		this.backgroundTexture = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
+		this.backgroundTexture = ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
 	}
 
 	@Override

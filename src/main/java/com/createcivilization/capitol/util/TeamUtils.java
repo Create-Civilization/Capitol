@@ -553,7 +553,7 @@ public class TeamUtils {
 		int radius = 1;
 		radius++;
 		for (int x = -1; x < radius; x++) for (int z = -1; z < radius; z++)
-			if (!TeamUtils.isChildChunk(((Level) chunk.getWorldForge()).dimension().location(), new ChunkPos(pos.x - x, pos.z - z)))
+			if (!TeamUtils.isChildChunk((chunk.getLevel()).dimension().location(), new ChunkPos(pos.x - x, pos.z - z)))
 				return true;
 		return false;
 	}

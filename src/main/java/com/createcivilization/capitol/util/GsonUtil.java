@@ -97,7 +97,7 @@ public class GsonUtil {
 
 		@Override
 		public ResourceLocation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-			return new ResourceLocation(json.getAsString());
+			return ResourceLocation.parse(json.getAsString());
 		}
 	}
 

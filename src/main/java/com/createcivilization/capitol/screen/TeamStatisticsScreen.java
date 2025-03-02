@@ -28,7 +28,7 @@ public class TeamStatisticsScreen extends GuiMenu {
 		this.menuTeam = team;
 		this.imageWidth = 176;
 		this.imageHeight = 166;
-		this.backgroundTexture = new ResourceLocation(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
+		this.backgroundTexture = ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID,  "textures/gui/capitol_block_screen.png");
 		CHUNK_AMOUNT = Component.literal("Amount of claimed chunks: " + chunkAmount + " / " + CapitolConfig.SERVER.maxChunks.get());
 		MEMBER_COUNT = Component.literal("Member count: " + playerAmount + " / " + CapitolConfig.SERVER.maxMembers.get());
 	}

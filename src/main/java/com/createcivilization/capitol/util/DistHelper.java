@@ -1,14 +1,15 @@
 package com.createcivilization.capitol.util;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLLoader;
 
 import java.util.function.Supplier;
 
 public class DistHelper {
 
 	public static void runWhenOn(Dist dist, Supplier<Runnable> toRun) {
-		DistExecutor.unsafeRunWhenOn(dist, toRun);
+		if (FMLLoader.getDist() != dist) return;
+		toRun.get().run();
 	}
 
 	public static void runWhenOnClient(Supplier<Runnable> toRun) {

@@ -59,8 +59,8 @@ public abstract class GuiMenu extends Screen {
 		}
 	}
 
-	public void renderBackgroundBoiler(GuiGraphics guiGraphics){
-		this.renderBackground(guiGraphics);
+	public void renderBackgroundBoiler(GuiGraphics guiGraphics) {
+		this.renderBackground(guiGraphics, Integer.MIN_VALUE, Integer.MIN_VALUE, 1);
 
 		guiGraphics.blit(backgroundTexture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
 

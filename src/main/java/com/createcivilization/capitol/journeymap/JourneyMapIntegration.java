@@ -20,6 +20,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.*;
 import net.minecraft.world.level.ChunkPos;
 
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
@@ -60,9 +62,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 	}
 
 	public void updateChunks(LevelTickEvent event) {
-		// IntelliJ is wrong.
-		//noinspection ConstantValue
-		if (Minecraft.getInstance() == null) return;
+		if (FMLLoader.getDist() != Dist.CLIENT) return;
 		if (System.currentTimeMillis() / 1000f % 5f != 0 && !ClientConstants.chunksDirty) return;
 
 		// Cleanup old overlays from chunks that are no longer claimed
