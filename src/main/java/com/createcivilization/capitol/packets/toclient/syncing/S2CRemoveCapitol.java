@@ -3,11 +3,14 @@ package com.createcivilization.capitol.packets.toclient.syncing;
 import com.createcivilization.capitol.packets.ClientPacketHandler;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.GsonUtil;
+
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+
 import net.minecraftforge.network.NetworkEvent;
 
 public class S2CRemoveCapitol {
+
 	private final Team.CapitolData capitolData;
 	private final ResourceLocation dimension;
 	private final String teamId;

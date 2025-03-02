@@ -10,8 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
-import net.minecraftforge.common.MinecraftForge;
-
+import net.neoforged.neoforge.common.NeoForge;
 import org.spongepowered.asm.mixin.*;
 
 import javax.annotation.Nullable;
@@ -22,7 +21,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 
 	@Shadow
 	@Nullable
-	public abstract LevelAccessor getWorldForge();
+	public abstract Level getLevel();
 
 	@Shadow
 	public abstract ChunkPos getPos();
@@ -67,6 +66,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 	}
 
 	@Override
+	@SuppressWarnings("DataFlowIssue")
 	public void updateTakeOverProgress(MinecraftServer server) {
 		for (War war : TeamUtils.wars) {
 			if (TeamUtils.isChunkEdgeOfClaims((ChunkAccess) (Object) this)) {
@@ -81,7 +81,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 				}
 
 				var players = server.getPlayerList().getPlayers();
-				var team = TeamUtils.getTeam(this.getPos(), this.getThisLevel().dimension().location()).getOrThrow();
+				var team = TeamUtils.getTeam(this.getPos(), this.getLevel().dimension().location()).getOrThrow();
 				boolean isThisChunkClaimedByDeclaringTeam = team.equals(war.getDeclaringTeam());
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
 					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
@@ -89,12 +89,12 @@ public abstract class ChunkDataImpl implements IChunkData {
 						var thisTeam = isThisChunkClaimedByDeclaringTeam ? war.getReceivingTeam() : war.getDeclaringTeam();
 						TeamUtils.unclaimChunkAndUpdate(
 							thisTeam,
-							this.getThisLevel().dimension().location(),
+							this.getLevel().dimension().location(),
 							this.getPos()
 						);
 						this.resetTakeOverProgress();
 						//noinspection DataFlowIssue
-						MinecraftForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(war, (ChunkAccess)(Object)this, thisTeam));
+						NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(war, (ChunkAccess)(Object)this, thisTeam));
 						LogToDiscord.postIfAllowed(
 							team,
 							"Chunk taken over in war " + war + ", at ChunkPos " + this.getPos()
@@ -103,11 +103,6 @@ public abstract class ChunkDataImpl implements IChunkData {
 				} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
 			}
 		}
-	}
-
-	@Unique
-	public Level getThisLevel() {
-		return (Level) this.getWorldForge();
 	}
 
 	@Unique

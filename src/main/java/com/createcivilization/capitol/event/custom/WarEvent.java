@@ -4,7 +4,8 @@ import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
 
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraftforge.eventbus.api.Event;
+
+import net.neoforged.bus.api.Event;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 

@@ -10,9 +10,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
-import net.minecraftforge.network.*;
-import net.minecraftforge.network.simple.SimpleChannel;
-
 import java.util.function.*;
 
 public class PacketHandler {
@@ -32,7 +29,7 @@ public class PacketHandler {
 		BiConsumer<T, NetworkEvent.Context> packetHandler
 	) {
 		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(() -> packetHandler.accept(packet,ctx));
+		ctx.enqueueWork(() -> packetHandler.accept(packet, ctx));
 		ctx.setPacketHandled(true);
 	}
 

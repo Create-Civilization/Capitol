@@ -6,26 +6,23 @@ import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
-import journeymap.client.api.*;
-import journeymap.client.api.display.*;
-import journeymap.client.api.event.*;
-import journeymap.client.api.event.forge.PopupMenuEvent;
-import journeymap.client.api.model.ShapeProperties;
-import journeymap.client.api.util.PolygonHelper;
+import journeymap.api.v2.client.*;
+import journeymap.api.v2.client.display.PolygonOverlay;
+import journeymap.api.v2.client.event.*;
+import journeymap.api.v2.client.fullscreen.ModPopupMenu;
+import journeymap.api.v2.client.model.ShapeProperties;
+import journeymap.api.v2.client.util.PolygonHelper;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.*;
 import net.minecraft.world.level.ChunkPos;
 
-import net.minecraftforge.api.distmarker.*;
-import net.minecraftforge.client.event.*;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import org.jetbrains.annotations.*;
 
@@ -33,8 +30,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
-@OnlyIn(Dist.CLIENT)
-@ClientPlugin
+@JourneyMapPlugin(apiVersion = "2.0.0")
 public class JourneyMapIntegration implements IClientPlugin {
 
 	private IClientAPI api;
@@ -43,11 +39,10 @@ public class JourneyMapIntegration implements IClientPlugin {
 	public void initialize(@NotNull IClientAPI iClientAPI) {
 		System.out.println("Capitol initializing JourneyMap integration...");
 		this.api = iClientAPI;
-		this.api.subscribe(this.getModId(), EnumSet.of(ClientEvent.Type.MAP_CLICKED));
-		MinecraftForge.EVENT_BUS.addListener(this::onPopupMenuEvent);
-		MinecraftForge.EVENT_BUS.addListener(this::updateChunks);
-		MinecraftForge.EVENT_BUS.addListener(this::onKey);
-		MinecraftForge.EVENT_BUS.addListener(this::clearCache);
+		//NeoForge.EVENT_BUS.addListener(this::onPopupMenuEvent);
+		NeoForge.EVENT_BUS.addListener(this::updateChunks);
+		NeoForge.EVENT_BUS.addListener(this::onKey);
+		NeoForge.EVENT_BUS.addListener(this::clearCache);
 	}
 
 	@Override
@@ -64,8 +59,10 @@ public class JourneyMapIntegration implements IClientPlugin {
 		ClientConstants.chunksDirty = false;
 	}
 
-	public void updateChunks(TickEvent.LevelTickEvent event) {
-		if (event.side != LogicalSide.CLIENT) return;
+	public void updateChunks(LevelTickEvent event) {
+		// IntelliJ is wrong.
+		//noinspection ConstantValue
+		if (Minecraft.getInstance() == null) return;
 		if (System.currentTimeMillis() / 1000f % 5f != 0 && !ClientConstants.chunksDirty) return;
 
 		// Cleanup old overlays from chunks that are no longer claimed
@@ -92,7 +89,6 @@ public class JourneyMapIntegration implements IClientPlugin {
 					@Nullable PolygonOverlay prevOverlay = overlays.get(teamId);
 					PolygonOverlay overlay = new PolygonOverlay(
 						this.getModId(),
-						teamId,
 						ResourceKey.create(Registries.DIMENSION, claimedChunks.getKey()),
 						new ShapeProperties()
 							.setFillColor(team.getColor().getRGB())
@@ -155,21 +151,20 @@ public class JourneyMapIntegration implements IClientPlugin {
 
 	private final Map<String, PolygonOverlay> overlays = new HashMap<>();
 
-	@Override
-	public void onEvent(ClientEvent clientEvent) {
-		if (clientEvent.type == ClientEvent.Type.MAP_CLICKED) handleMapClicked((FullscreenMapEvent.ClickEvent.Post) clientEvent);
-	}
+//	@Override
+//	public void onEvent(ClientEvent clientEvent) {
+//		if (clientEvent.type == ClientEvent.Type.MAP_CLICKED) handleMapClicked((FullscreenMapEvent.ClickEvent) clientEvent);
+//	}
 
 	private PolygonOverlay lastClickOverlay;
 
-	public void handleMapClicked(FullscreenMapEvent.ClickEvent.Post event) {
+	public void handleMapClicked(FullscreenMapEvent.ClickEvent event) {
 		if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
 			var pos = event.getLocation();
 			var displaySelector = PolygonHelper.createChunkPolygonForWorldCoords(pos.getX(), pos.getY(), pos.getZ());
 			try {
 				PolygonOverlay clickOverlay = new PolygonOverlay(
 					this.getModId(),
-					"capitolMouseSelector",
 					event.getLevel(),
 					new ShapeProperties()
 						.setFillColor(-8388480) // Purple

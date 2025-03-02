@@ -3,7 +3,7 @@ package com.createcivilization.capitol.team;
 import com.createcivilization.capitol.event.custom.WarEvent;
 import com.createcivilization.capitol.util.*;
 
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.*;
 
@@ -16,7 +16,7 @@ public class War {
 	public War(Team declare, Team receive) {
 		this.declare = declare;
 		this.receive = receive;
-		MinecraftForge.EVENT_BUS.post(new WarEvent.WarCreatedEvent(this));
+		NeoForge.EVENT_BUS.post(new WarEvent.WarCreatedEvent(this));
 		LogToDiscord.postIfAllowed(this.declare, "War started! " + this);
 	}
 

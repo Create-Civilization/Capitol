@@ -13,11 +13,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.*;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.*;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.*;
 
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
@@ -25,7 +24,7 @@ import java.util.*;
 
 import static com.createcivilization.capitol.constants.ClientConstants.playerTeam;
 
-@Mod.EventBusSubscriber(modid = Capitol.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Capitol.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientEvents {
 
 	@SubscribeEvent
@@ -42,7 +41,7 @@ public class ClientEvents {
 	}
 
 	@SubscribeEvent
-	public static void clientTick(TickEvent.ClientTickEvent event) {
+	public static void clientTick(ClientTickEvent event) {
 		final LocalPlayer player = ClientConstants.INSTANCE.player;
 		if (player == null) return;
 		final long timeStamp = System.currentTimeMillis() / 1000L;

@@ -7,11 +7,11 @@ import com.createcivilization.capitol.command.custom.teamcommands.chunks.*;
 import com.createcivilization.capitol.command.custom.teamcommands.roles.*;
 import com.createcivilization.capitol.command.custom.teamcommands.team.*;
 
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-@Mod.EventBusSubscriber(modid = Capitol.MOD_ID)
+@EventBusSubscriber(modid = Capitol.MOD_ID)
 public class CapitolCommands {
 
     @SubscribeEvent

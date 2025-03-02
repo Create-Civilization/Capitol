@@ -13,10 +13,12 @@ import net.minecraft.world.item.*;
 
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.Map;
 
@@ -115,12 +117,22 @@ public class PlayerInteractionEvents {
 	public static void cancelIfPlayerHasInsufficientPermission(PlayerInteractEvent event, boolean cancelIfTrue, String details) {
 		if (cancelIfTrue && event.getEntity() instanceof ServerPlayer player) {
 			player.displayClientMessage(Component.literal("You do not have permission to " + details + " in this chunk!"), true);
-			event.setCancellationResult(InteractionResult.FAIL);
-			event.setCanceled(true);
+			setCancelled0(event);
 		}
 	}
 
 	public static boolean hasAdminPermission(Player player) {
 		return player.getPersistentData().contains("capitolTeamsAdminMode") && player.getPersistentData().getBoolean("capitolTeamsAdminMode");
+	}
+
+	public static void setCancelled0(PlayerInteractEvent event) {
+		try {
+			var setCancellationResult = event.getClass().getMethod("setCancellationResult", InteractionResult.class);
+			setCancellationResult.invoke(event, InteractionResult.FAIL);
+			if (event instanceof ICancellableEvent cancellableEvent) cancellableEvent.setCanceled(true);
+			else throw new IllegalStateException("Non cancellable event!");
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to cancel event!", e);
+		}
 	}
 }

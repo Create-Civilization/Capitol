@@ -5,13 +5,10 @@ import com.createcivilization.capitol.team.Team;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
-import net.minecraftforge.api.distmarker.*;
-
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 import java.util.*;
 
-@OnlyIn(Dist.CLIENT)
 public class ClientConstants {
 
 	public static final Minecraft INSTANCE = Minecraft.getInstance();

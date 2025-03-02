@@ -7,6 +7,8 @@ import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveCapitol;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
+import com.mojang.serialization.MapCodec;
+
 import net.minecraft.core.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,7 +39,12 @@ public class CapitolBlock extends BaseEntityBlock {
 		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
-    @Override
+	@Override
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return simpleCodec(CapitolBlock::new);
+	}
+
+	@Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
@@ -123,7 +130,7 @@ public class CapitolBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	public InteractionResult use(BlockState pState, Level level, BlockPos pos, Player player, InteractionHand pHand, BlockHitResult pHit) {
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
 		ObjectHolder<Team> team = TeamUtils.getTeam(new ChunkPos(pos), level.dimension().location());
 		if (team.isEmpty()) return InteractionResult.FAIL;
 

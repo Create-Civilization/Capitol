@@ -19,7 +19,7 @@ import java.util.function.BooleanSupplier;
 
 /**
  * Class for saving and loading Team data and claimed chunks.<br>
- * The data is loaded before {@link net.minecraftforge.event.server.ServerStartingEvent}, and the teams are stored in {@link TeamUtils#loadedTeams}.<br>
+ * The data is loaded before {@link net.neoforged.neoforge.event.server.ServerStartingEvent}, and the teams are stored in {@link TeamUtils#loadedTeams}.<br>
  * The data is saved regularly on the autosave (/save-all), and saved and cleared when the server stops, right before the player list is saved and cleared.
  */
 @SuppressWarnings("DiscouragedShift")
@@ -32,7 +32,7 @@ public final class DataHandler {
 		 * Loads the teams when the server starts.<br>
 		 * This mixin also sets {@link ServerConstants#server} to be the server instance.
 		 */
-        @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
+        @Inject(at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/common/ModConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) {
 			ServerConstants.server.set((MinecraftServer) (Object) this);
 			try {

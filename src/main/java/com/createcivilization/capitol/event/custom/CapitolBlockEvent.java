@@ -8,7 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.eventbus.api.*;
+import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Nullable;
@@ -158,8 +159,7 @@ public abstract class CapitolBlockEvent extends Event {
 				}
 			}
 
-			@Cancelable
-			public static class FailedToPlaceEvent extends CapitolBlockPlacedEvent {
+			public static class FailedToPlaceEvent extends CapitolBlockPlacedEvent implements ICancellableEvent {
 
 				@Internal
 				public FailedToPlaceEvent(
@@ -250,8 +250,7 @@ public abstract class CapitolBlockEvent extends Event {
 				}
 			}
 
-			@Cancelable
-			public static class FailedToDestroy extends CapitolBlockPlacedEvent {
+			public static class FailedToDestroy extends CapitolBlockPlacedEvent implements ICancellableEvent {
 
 				@Internal
 				public FailedToDestroy(

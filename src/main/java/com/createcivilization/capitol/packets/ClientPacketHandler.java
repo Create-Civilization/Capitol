@@ -8,8 +8,7 @@ import com.createcivilization.capitol.util.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
-import net.minecraftforge.api.distmarker.*;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.*;
 
 import java.util.List;
 

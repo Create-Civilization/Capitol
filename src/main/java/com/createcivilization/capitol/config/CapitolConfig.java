@@ -2,41 +2,41 @@ package com.createcivilization.capitol.config;
 
 import com.createcivilization.capitol.Capitol;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.function.Consumer;
 
 public class CapitolConfig {
 
-	public static final ForgeConfigSpec SERVER_SPEC;
+	public static final ModConfigSpec SERVER_SPEC;
 	public static final CapitolConfig SERVER;
 
 	static {
-		var specPair = new ForgeConfigSpec.Builder().configure(CapitolConfig::new);
+		var specPair = new ModConfigSpec.Builder().configure(CapitolConfig::new);
 		SERVER = specPair.getLeft();
 		SERVER_SPEC = specPair.getRight();
 	}
 
-	public final ForgeConfigSpec.IntValue claimRadius;
-	public final ForgeConfigSpec.IntValue inviteTimeout;
-	public final ForgeConfigSpec.BooleanValue nonMemberUseItems;
-	public final ForgeConfigSpec.BooleanValue nonMemberInteractEntities;
-	public final ForgeConfigSpec.BooleanValue nonMemberInteractBlocks;
-	public final ForgeConfigSpec.IntValue maxChunks;
-	public final ForgeConfigSpec.IntValue maxMembers;
+	public final ModConfigSpec.IntValue claimRadius;
+	public final ModConfigSpec.IntValue inviteTimeout;
+	public final ModConfigSpec.BooleanValue nonMemberUseItems;
+	public final ModConfigSpec.BooleanValue nonMemberInteractEntities;
+	public final ModConfigSpec.BooleanValue nonMemberInteractBlocks;
+	public final ModConfigSpec.IntValue maxChunks;
+	public final ModConfigSpec.IntValue maxMembers;
 
-	public final ForgeConfigSpec.BooleanValue debugLogs;
-	public final ForgeConfigSpec.BooleanValue offlineMode;
-	public final ForgeConfigSpec.BooleanValue logCapitolActions;
-	public final ForgeConfigSpec.ConfigValue<String> logUrl;
+	public final ModConfigSpec.BooleanValue debugLogs;
+	public final ModConfigSpec.BooleanValue offlineMode;
+	public final ModConfigSpec.BooleanValue logCapitolActions;
+	public final ModConfigSpec.ConfigValue<String> logUrl;
 
-	public final ForgeConfigSpec.IntValue warTakeoverIncrement;
-	public final ForgeConfigSpec.IntValue warTakeoverDecrement;
-	public final ForgeConfigSpec.IntValue maxWarTakeoverAmount;
+	public final ModConfigSpec.IntValue warTakeoverIncrement;
+	public final ModConfigSpec.IntValue warTakeoverDecrement;
+	public final ModConfigSpec.IntValue maxWarTakeoverAmount;
 
-	private final ForgeConfigSpec.Builder builder;
+	private final ModConfigSpec.Builder builder;
 
-	private CapitolConfig(final ForgeConfigSpec.Builder pBuilder) {
+	private CapitolConfig(final ModConfigSpec.Builder pBuilder) {
 		this.builder = pBuilder;
 
 		this.builder.push("Teams");
@@ -120,39 +120,39 @@ public class CapitolConfig {
 	}
 
 	@SafeVarargs
-	public final ForgeConfigSpec.IntValue positiveInteger(String comment, String name, int defaultValue, Consumer<ForgeConfigSpec.Builder>... additions) {
+	public final ModConfigSpec.IntValue positiveInteger(String comment, String name, int defaultValue, Consumer<ModConfigSpec.Builder>... additions) {
 		return this.integer(comment, name, defaultValue, 0, Integer.MAX_VALUE, additions);
 	}
 
 	@SafeVarargs
-	public final ForgeConfigSpec.IntValue limitlessInteger(String comment, String name, int defaultValue, Consumer<ForgeConfigSpec.Builder>... additions) {
+	public final ModConfigSpec.IntValue limitlessInteger(String comment, String name, int defaultValue, Consumer<ModConfigSpec.Builder>... additions) {
 		return this.integer(comment, name, defaultValue, Integer.MIN_VALUE, Integer.MAX_VALUE, additions);
 	}
 
 	@SafeVarargs
-	public final ForgeConfigSpec.IntValue integer(String comment, String name, int defaultValue, int min, int max, Consumer<ForgeConfigSpec.Builder>... additions) {
+	public final ModConfigSpec.IntValue integer(String comment, String name, int defaultValue, int min, int max, Consumer<ModConfigSpec.Builder>... additions) {
 		try {
 			return this.builder.comment(comment).translation(this.translate(name)).defineInRange(name, defaultValue, min, max);
 		} finally {
-			for (Consumer<ForgeConfigSpec.Builder> addition : additions) addition.accept(this.builder);
+			for (Consumer<ModConfigSpec.Builder> addition : additions) addition.accept(this.builder);
 		}
 	}
 
 	@SafeVarargs
-	public final ForgeConfigSpec.BooleanValue boolean0(String comment, String name, boolean defaultValue, Consumer<ForgeConfigSpec.Builder>... additions) {
+	public final ModConfigSpec.BooleanValue boolean0(String comment, String name, boolean defaultValue, Consumer<ModConfigSpec.Builder>... additions) {
 		try {
 			return this.builder.comment(comment).translation(this.translate(name)).define(name, defaultValue);
 		} finally {
-			for (Consumer<ForgeConfigSpec.Builder> addition : additions) addition.accept(this.builder);
+			for (Consumer<ModConfigSpec.Builder> addition : additions) addition.accept(this.builder);
 		}
 	}
 
 	@SafeVarargs
-	public final ForgeConfigSpec.ConfigValue<String> string(String comment, String name, String defaultValue, Consumer<ForgeConfigSpec.Builder>... additions) {
+	public final ModConfigSpec.ConfigValue<String> string(String comment, String name, String defaultValue, Consumer<ModConfigSpec.Builder>... additions) {
 		try {
 			return this.builder.comment(comment).translation(this.translate(name)).define(name, defaultValue);
 		} finally {
-			for (Consumer<ForgeConfigSpec.Builder> addition : additions) addition.accept(this.builder);
+			for (Consumer<ModConfigSpec.Builder> addition : additions) addition.accept(this.builder);
 		}
 	}
 
