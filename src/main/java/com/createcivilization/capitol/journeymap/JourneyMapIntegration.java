@@ -119,20 +119,11 @@ public class JourneyMapIntegration implements IClientPlugin {
 			if (ClientEvents.getTeamOrDisplayClientMessage(player).isEmpty()) return;
 			ChunkPos chunkPos = new ChunkPos(pos);
 			if (!TeamUtils.chunkIsNearChildChunk(chunkPos, 1, player))
-				player.displayClientMessage(
-					ClientConstants.NOT_NEAR_CHUNK,
-					true
-				);
+				player.displayClientMessage(ClientConstants.NOT_NEAR_CHUNK, true);
 			else if (TeamUtils.isInClaimedChunk(player, pos))
-				player.displayClientMessage(
-					ClientConstants.CHUNK_ALREADY_CLAIMED,
-					true
-				);
+				player.displayClientMessage(ClientConstants.CHUNK_ALREADY_CLAIMED, true);
 			else {
-				player.displayClientMessage(
-					ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED,
-					true
-				);
+				player.displayClientMessage(ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED, true);
 				PacketHandler.sendToServer(new C2SClaimChunk(chunkPos));
 			}
 			this.removeLastClickOverlayIfPresent();

@@ -10,8 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
-import net.minecraftforge.api.distmarker.*;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.*;
 
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
@@ -63,13 +62,13 @@ public class ServerPacketHandler {
 	}
 
 
-	public static void handlePacket(Runnable run, NetworkEvent.Context ctx) {
-		ctx.enqueueWork(
-			() -> DistHelper.runWhenOnServer(
-				() -> run
-			)
-		);
-		ctx.setPacketHandled(true);
+	public static void handlePacket(Runnable run, Object ctx) {
+//		ctx.enqueueWork(
+//			() -> DistHelper.runWhenOnServer(
+//				() -> run
+//			)
+//		);
+//		ctx.setPacketHandled(true);
 	}
 
 	public static void sendTeamMessage(ServerPlayer sender, String message) {
