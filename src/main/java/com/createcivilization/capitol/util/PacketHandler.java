@@ -1,7 +1,9 @@
 package com.createcivilization.capitol.util;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 
+import com.createcivilization.capitol.team.Team;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,6 +22,20 @@ public class PacketHandler {
 		StreamCodec.composite(
 			ByteBufCodecs.VAR_LONG, ChunkPos::toLong,
 			ChunkPos::new
+		);
+
+	public static final StreamCodec<FriendlyByteBuf, Team> TEAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8,
+			GsonUtil::serialize,
+			GsonUtil::deserializeTeam
+		);
+
+	public static final StreamCodec<FriendlyByteBuf, Team.CapitolData> CAPITOL_DATA_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8,
+			GsonUtil::serializeCapitol,
+			GsonUtil::deserializeCapitol
 		);
 
 	public static void register(PayloadRegistrar registrar) {

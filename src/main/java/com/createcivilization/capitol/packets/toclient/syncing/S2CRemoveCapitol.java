@@ -1,40 +1,39 @@
 package com.createcivilization.capitol.packets.toclient.syncing;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.ClientPacketHandler;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.GsonUtil;
 
+import com.createcivilization.capitol.util.PacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.network.NetworkEvent;
-
-public class S2CRemoveCapitol {
-
-	private final Team.CapitolData capitolData;
-	private final ResourceLocation dimension;
-	private final String teamId;
+import org.jetbrains.annotations.NotNull;
+public record S2CRemoveCapitol(Team.CapitolData capitolData, ResourceLocation dimension, String teamID) implements CustomPacketPayload {
 
 	public S2CRemoveCapitol(Team.CapitolData capitolData, ResourceLocation dimension, Team team) {
-		this.capitolData = capitolData;
-		this.dimension = dimension;
-		this.teamId = team.getTeamId();
+		this(capitolData, dimension, team.getTeamId());
 	}
 
-	public S2CRemoveCapitol(FriendlyByteBuf friendlyByteBuf) {
-		// Decode
-		this.capitolData = GsonUtil.deserializeCapitol(friendlyByteBuf.readUtf());
-		this.dimension = friendlyByteBuf.readResourceLocation();
-		this.teamId = friendlyByteBuf.readUtf();
-	}
+	public static final Type<S2CRemoveCapitol> TYPE = new Type<>(
+		ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "remove_capitol")
+	);
 
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(GsonUtil.serializeCapitol(this.capitolData));
-		friendlyByteBuf.writeResourceLocation(dimension);
-		friendlyByteBuf.writeUtf(this.teamId);
-	}
+	public static final StreamCodec<FriendlyByteBuf, S2CRemoveCapitol> STREAM_CODEC =
+		StreamCodec.composite(
+			PacketHandler.CAPITOL_DATA_CODEC, S2CRemoveCapitol::capitolData,
+			ResourceLocation.STREAM_CODEC, S2CRemoveCapitol::dimension,
+			ByteBufCodecs.STRING_UTF8, S2CRemoveCapitol::teamID,
+			S2CRemoveCapitol::new
+		);
 
-	public void handle(NetworkEvent.Context context) {
-		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.removeCapitol(this.capitolData, this.dimension, this.teamId), context);
+	@NotNull
+	@Override
+	public Type<S2CRemoveCapitol> type() {
+		return TYPE;
 	}
 }

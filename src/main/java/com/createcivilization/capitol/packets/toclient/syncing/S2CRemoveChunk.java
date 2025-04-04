@@ -1,39 +1,37 @@
 package com.createcivilization.capitol.packets.toclient.syncing;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.ClientPacketHandler;
 
+import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.PacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
-import net.minecraftforge.network.NetworkEvent;
+import org.jetbrains.annotations.NotNull;
 
-public class S2CRemoveChunk {
+public record S2CRemoveChunk(String teamId, ChunkPos chunkPos, ResourceLocation dim) implements CustomPacketPayload {
 
-	private final String claimingTeamId;
-	private final ChunkPos chunkToAdd;
-	private final ResourceLocation dimension;
+	public static final Type<S2CRemoveChunk> TYPE = new Type<>(
+		ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "remove_chunk")
+	);
 
-	public S2CRemoveChunk(String teamId, ChunkPos chunkPos, ResourceLocation dim) {
-		this.claimingTeamId = teamId;
-		this.chunkToAdd = chunkPos;
-		this.dimension = dim;
-	}
+	public static final StreamCodec<FriendlyByteBuf, S2CRemoveChunk> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, S2CRemoveChunk::teamId,
+			PacketHandler.CHUNK_POS_CODEC, S2CRemoveChunk::chunkPos,
+			ResourceLocation.STREAM_CODEC, S2CRemoveChunk::dim,
+			S2CRemoveChunk::new
+		);
 
-	public S2CRemoveChunk(FriendlyByteBuf friendlyByteBuf) {
-		// Decode
-		this.claimingTeamId = friendlyByteBuf.readUtf();
-		this.chunkToAdd = friendlyByteBuf.readChunkPos();
-		this.dimension = friendlyByteBuf.readResourceLocation();
-	}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(this.claimingTeamId);
-		friendlyByteBuf.writeChunkPos(this.chunkToAdd);
-		friendlyByteBuf.writeResourceLocation(this.dimension);
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.removeChunks(this.claimingTeamId, this.chunkToAdd, this.dimension), context);
+	@NotNull
+	@Override
+	public Type<S2CRemoveChunk> type() {
+		return TYPE;
 	}
 }
+

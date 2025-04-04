@@ -1,33 +1,31 @@
 package com.createcivilization.capitol.packets.toclient.syncing;
 
-import com.createcivilization.capitol.packets.ClientPacketHandler;
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.PacketHandler;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
+public record S2CAddTeam(Team team) implements CustomPacketPayload {
 
-public class S2CAddTeam {
+	public static final Type<S2CAddTeam> TYPE = new Type<>(
+		ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "add_team")
+	);
 
-	private final Team toAdd;
+	public static final StreamCodec<FriendlyByteBuf, S2CAddTeam> STREAM_CODEC =
+		StreamCodec.composite(
+			PacketHandler.TEAM_CODEC, S2CAddTeam::team,
+			S2CAddTeam::new
+		);
 
-	public S2CAddTeam(Team team) {
-		this.toAdd = team;
-	}
-
-	public S2CAddTeam(FriendlyByteBuf friendlyByteBuf) {
-		// Decode
-		this.toAdd = TeamUtils.parseTeam(friendlyByteBuf.readUtf());
-	}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(this.toAdd.toString());
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.addTeam(this.toAdd), context);
+	@NotNull
+	@Override
+	public Type<S2CAddTeam> type() {
+		return TYPE;
 	}
 }
