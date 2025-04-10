@@ -1,38 +1,25 @@
 package com.createcivilization.capitol.packets.toserver;
 
-import com.createcivilization.capitol.packets.ServerPacketHandler;
-import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.Capitol;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
-import net.minecraftforge.network.NetworkEvent;
+public record C2SUnclaimChunk (ChunkPos pos) implements CustomPacketPayload {
+	public static final Type<C2SUnclaimChunk> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "unclaim_chunk"));
 
-import wiiu.mavity.wiiu_lib.util.ObjectHolder;
+	public static final StreamCodec<FriendlyByteBuf, C2SUnclaimChunk> STREAM_CODEC =
+		StreamCodec.composite(
+			NeoForgeStreamCodecs.CHUNK_POS, C2SUnclaimChunk::pos,
+			C2SUnclaimChunk::new
+		);
 
-public class C2SUnclaimChunk {
-
-	private final ChunkPos pos;
-
-	public C2SUnclaimChunk(ChunkPos pos) {
-		this.pos = pos;
-	}
-
-	public C2SUnclaimChunk(FriendlyByteBuf friendlyByteBuf) {
-		this.pos = friendlyByteBuf.readChunkPos();
-	}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		if (pos != null) friendlyByteBuf.writeChunkPos(this.pos);
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ServerPlayer sender = context.getSender();
-		if (sender == null) return;
-		ObjectHolder<Team> holder = TeamUtils.getTeam(sender);
-		if (holder.isEmpty()) return;
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.unclaimChunk(TeamUtils.getPlayerDimension(sender), this.pos, holder.getOrThrow()), context);
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

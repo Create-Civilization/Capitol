@@ -1,21 +1,23 @@
 package com.createcivilization.capitol.packets.toserver.syncing;
 
-import com.createcivilization.capitol.packets.ServerPacketHandler;
-
+import com.createcivilization.capitol.Capitol;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.network.NetworkEvent;
+public record C2SRequestSync(int toIgnore) implements CustomPacketPayload {
 
-@SuppressWarnings("EmptyMethod")
-public class C2SRequestSync {
+	public static final Type<C2SRequestSync> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "request_sync"));
 
-	public C2SRequestSync() {}
+	public static final StreamCodec<FriendlyByteBuf, C2SRequestSync> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.INT, C2SRequestSync::toIgnore,
+		C2SRequestSync::new
+	);
 
-	public C2SRequestSync(FriendlyByteBuf friendlyByteBuf) {}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {}
-
-	public void handle(NetworkEvent.Context context) {
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.syncDataWithPlayer(context.getSender()), context);
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

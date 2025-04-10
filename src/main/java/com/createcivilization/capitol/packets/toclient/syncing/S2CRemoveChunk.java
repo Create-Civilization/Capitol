@@ -12,6 +12,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import org.jetbrains.annotations.NotNull;
 
 public record S2CRemoveChunk(String teamId, ChunkPos chunkPos, ResourceLocation dim) implements CustomPacketPayload {
@@ -23,7 +24,7 @@ public record S2CRemoveChunk(String teamId, ChunkPos chunkPos, ResourceLocation 
 	public static final StreamCodec<FriendlyByteBuf, S2CRemoveChunk> STREAM_CODEC =
 		StreamCodec.composite(
 			ByteBufCodecs.STRING_UTF8, S2CRemoveChunk::teamId,
-			PacketHandler.CHUNK_POS_CODEC, S2CRemoveChunk::chunkPos,
+			NeoForgeStreamCodecs.CHUNK_POS, S2CRemoveChunk::chunkPos,
 			ResourceLocation.STREAM_CODEC, S2CRemoveChunk::dim,
 			S2CRemoveChunk::new
 		);

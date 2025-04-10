@@ -83,7 +83,7 @@ public class ClientEvents {
 					ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED,
 					true
 				);
-				PacketHandler.sendToServer(new C2SClaimCurrentChunk());
+				PacketHandler.sendToServer(new C2SClaimCurrentChunk(0));
 			}
 		}
 

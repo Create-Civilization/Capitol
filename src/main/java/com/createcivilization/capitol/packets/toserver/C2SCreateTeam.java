@@ -1,40 +1,30 @@
 package com.createcivilization.capitol.packets.toserver;
 
-import com.createcivilization.capitol.packets.ServerPacketHandler;
+import com.createcivilization.capitol.Capitol;
 
+import com.createcivilization.capitol.util.PacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
 import java.awt.*;
 
-public class C2SCreateTeam {
+public record C2SCreateTeam (String teamName, Color teamColor) implements CustomPacketPayload {
 
-	private final String teamName;
-	private final Color teamColor;
+	public static final Type<C2SCreateTeam> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "create_team"));
 
-	public C2SCreateTeam(String name, Color chosenColor) {
-		this.teamName = name;
-		this.teamColor = chosenColor;
-	}
+	public static final StreamCodec<FriendlyByteBuf, C2SCreateTeam> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, C2SCreateTeam::teamName,
+			PacketHandler.COLOR_CODEC, C2SCreateTeam::teamColor,
+			C2SCreateTeam::new
+		);
 
-	public C2SCreateTeam(FriendlyByteBuf friendlyByteBuf) {
-		// Decode
-		this.teamName = friendlyByteBuf.readUtf();
-		int r = friendlyByteBuf.readInt();
-		int g = friendlyByteBuf.readInt();
-		int b = friendlyByteBuf.readInt();
-		this.teamColor = new Color(r,g,b);
-	}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(this.teamName);
-		friendlyByteBuf.writeInt(teamColor.getRed());
-		friendlyByteBuf.writeInt(teamColor.getGreen());
-		friendlyByteBuf.writeInt(teamColor.getBlue());
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.createTeam(this.teamName, context.getSender(), this.teamColor), context);
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

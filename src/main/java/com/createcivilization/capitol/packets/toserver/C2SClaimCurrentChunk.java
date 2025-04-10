@@ -1,30 +1,25 @@
 package com.createcivilization.capitol.packets.toserver;
 
-import com.createcivilization.capitol.packets.ServerPacketHandler;
-import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.Capitol;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.network.NetworkEvent;
+public record C2SClaimCurrentChunk(int toIgnore) implements CustomPacketPayload {
 
-import wiiu.mavity.wiiu_lib.util.ObjectHolder;
+	public static final CustomPacketPayload.Type<C2SClaimCurrentChunk> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "claim_current_chunk"));
 
-@SuppressWarnings("EmptyMethod")
-public class C2SClaimCurrentChunk {
+	public static final StreamCodec<FriendlyByteBuf, C2SClaimCurrentChunk> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.INT, C2SClaimCurrentChunk::toIgnore,
+		C2SClaimCurrentChunk::new
+	);
 
-	public C2SClaimCurrentChunk() {}
 
-	public C2SClaimCurrentChunk(FriendlyByteBuf friendlyByteBuf){}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {}
-
-	public void handle(NetworkEvent.Context context) {
-		ServerPlayer sender = context.getSender();
-		if (sender == null) return;
-		ObjectHolder<Team> holder = TeamUtils.getTeam(sender);
-		if (holder.isEmpty()) return;
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.claimChunk(TeamUtils.getPlayerDimension(sender), sender.chunkPosition(), holder.getOrThrow()), context);
+	@Override
+	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

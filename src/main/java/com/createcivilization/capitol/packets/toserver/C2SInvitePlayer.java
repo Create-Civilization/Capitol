@@ -1,29 +1,26 @@
 package com.createcivilization.capitol.packets.toserver;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.ServerPacketHandler;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.network.NetworkEvent;
+public record C2SInvitePlayer (String playerToInvite) implements CustomPacketPayload {
 
-public class C2SInvitePlayer {
+	public static final Type<C2SInvitePlayer> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "invite_player"));
 
-	private final String playerToInvite;
+	public static final StreamCodec<FriendlyByteBuf, C2SInvitePlayer> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, C2SInvitePlayer::playerToInvite,
+			C2SInvitePlayer::new
+		);
 
-	public C2SInvitePlayer(String playerToInvite) {
-		this.playerToInvite = playerToInvite;
-	}
-
-	public C2SInvitePlayer(FriendlyByteBuf friendlyByteBuf) {
-		// Decode
-		this.playerToInvite = friendlyByteBuf.readUtf();
-	}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(this.playerToInvite);
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.invitePlayerToTeam(context.getSender(), this.playerToInvite), context);
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

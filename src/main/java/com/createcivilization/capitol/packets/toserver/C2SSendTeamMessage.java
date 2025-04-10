@@ -1,27 +1,25 @@
 package com.createcivilization.capitol.packets.toserver;
 
-import com.createcivilization.capitol.packets.ServerPacketHandler;
+import com.createcivilization.capitol.Capitol;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-public class C2SSendTeamMessage {
+public record C2SSendTeamMessage (String message) implements CustomPacketPayload {
 
-	private final String message;
+	public static final Type<C2SSendTeamMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "send_team_message"));
 
-	public C2SSendTeamMessage(String message) {
-		this.message = message;
-	}
+	public static final StreamCodec<FriendlyByteBuf, C2SSendTeamMessage> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, C2SSendTeamMessage::message,
+			C2SSendTeamMessage::new
+		);
 
-	public C2SSendTeamMessage(FriendlyByteBuf friendlyByteBuf) {
-		this.message = friendlyByteBuf.readUtf();
-	}
-
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(this.message);
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ServerPacketHandler.handlePacket(() -> ServerPacketHandler.sendTeamMessage(context.getSender(), this.message), context);
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }
