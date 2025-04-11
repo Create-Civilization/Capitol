@@ -14,13 +14,17 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.awt.*;
 
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 public class PacketHandler {
 
 	public static final StreamCodec<FriendlyByteBuf, Color> COLOR_CODEC =
@@ -42,6 +46,11 @@ public class PacketHandler {
 			GsonUtil::serializeCapitol,
 			GsonUtil::deserializeCapitol
 		);
+
+	@SubscribeEvent
+	private void registerPackets(RegisterPayloadHandlersEvent event) {
+		PacketHandler.register(event.registrar("1"));
+	}
 
 	public static void register(PayloadRegistrar registrar) {
 		registrar.playToClient(
