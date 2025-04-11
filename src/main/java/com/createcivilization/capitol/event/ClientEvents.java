@@ -2,7 +2,8 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.packets.toserver.*;
+import com.createcivilization.capitol.packets.toserver.requests.C2SClaimCurrentChunk;
+import com.createcivilization.capitol.packets.toserver.requests.C2SSendTeamMessage;
 import com.createcivilization.capitol.screen.*;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;

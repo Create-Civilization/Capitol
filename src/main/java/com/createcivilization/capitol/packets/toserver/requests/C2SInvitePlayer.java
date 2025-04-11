@@ -1,6 +1,7 @@
-package com.createcivilization.capitol.packets.toserver.syncing;
+package com.createcivilization.capitol.packets.toserver.requests;
 
 import com.createcivilization.capitol.Capitol;
+
 import com.createcivilization.capitol.packets.DirectionalPayload;
 import com.createcivilization.capitol.packets.toserver.ServerPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,18 +11,20 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
-public record C2SRequestSync(int toIgnore) implements DirectionalPayload.Server {
+public record C2SInvitePlayer (String playerToInvite) implements DirectionalPayload.Server {
 
-	public static final Type<C2SRequestSync> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "request_sync"));
+	public static final Type<C2SInvitePlayer> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "invite_player"));
 
-	public static final StreamCodec<FriendlyByteBuf, C2SRequestSync> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.INT, C2SRequestSync::toIgnore,
-		C2SRequestSync::new
-	);
+	public static final StreamCodec<FriendlyByteBuf, C2SInvitePlayer> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, C2SInvitePlayer::playerToInvite,
+			C2SInvitePlayer::new
+		);
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public @NotNull Type<? extends CustomPacketPayload> type() {
 		return TYPE;
 	}
 
@@ -31,6 +34,6 @@ public record C2SRequestSync(int toIgnore) implements DirectionalPayload.Server 
 	}
 
 	public static void server(Object payload, IPayloadContext context) {
-		ServerPacketHandler.syncDataWithPlayer((ServerPlayer) context.player());
+		ServerPacketHandler.invitePlayerToTeam( (ServerPlayer) context.player(), ((C2SInvitePlayer) payload).playerToInvite());
 	}
 }

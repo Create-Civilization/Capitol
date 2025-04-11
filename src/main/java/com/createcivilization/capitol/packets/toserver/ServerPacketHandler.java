@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.packets;
+package com.createcivilization.capitol.packets.toserver;
 
 import com.createcivilization.capitol.constants.ServerConstants;
 import com.createcivilization.capitol.team.Team;

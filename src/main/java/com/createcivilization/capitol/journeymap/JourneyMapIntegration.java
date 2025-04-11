@@ -2,7 +2,7 @@ package com.createcivilization.capitol.journeymap;
 
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.event.ClientEvents;
-import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
+import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -124,7 +124,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 				player.displayClientMessage(ClientConstants.CHUNK_ALREADY_CLAIMED, true);
 			else {
 				player.displayClientMessage(ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED, true);
-				PacketHandler.sendToServer(new C2SClaimChunk(chunkPos));
+				PacketHandler.sendToServer(new BiAddChunk(chunkPos, null, null));
 			}
 			this.removeLastClickOverlayIfPresent();
 		});

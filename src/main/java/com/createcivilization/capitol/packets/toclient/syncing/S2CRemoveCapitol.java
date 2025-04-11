@@ -1,19 +1,19 @@
 package com.createcivilization.capitol.packets.toclient.syncing;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.ClientPacketHandler;
+import com.createcivilization.capitol.packets.DirectionalPayload;
+import com.createcivilization.capitol.packets.toclient.ClientPacketHandler;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.GsonUtil;
 
 import com.createcivilization.capitol.util.PacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
-public record S2CRemoveCapitol(Team.CapitolData capitolData, ResourceLocation dimension, String teamID) implements CustomPacketPayload {
+public record S2CRemoveCapitol(Team.CapitolData capitolData, ResourceLocation dimension, String teamID) implements DirectionalPayload.Client {
 
 	public S2CRemoveCapitol(Team.CapitolData capitolData, ResourceLocation dimension, Team team) {
 		this(capitolData, dimension, team.getTeamId());
@@ -35,5 +35,14 @@ public record S2CRemoveCapitol(Team.CapitolData capitolData, ResourceLocation di
 	@Override
 	public Type<S2CRemoveCapitol> type() {
 		return TYPE;
+	}
+
+	@Override
+	public StreamCodec codec() {
+		return STREAM_CODEC;
+	}
+
+	public static void client(Object payload, IPayloadContext context) {
+		ClientPacketHandler.removeCapitol(((S2CRemoveCapitol) payload).capitolData(), ((S2CRemoveCapitol) payload).dimension(), ((S2CRemoveCapitol) payload).teamID());
 	}
 }

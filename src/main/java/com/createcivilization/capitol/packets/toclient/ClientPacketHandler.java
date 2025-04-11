@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.packets;
+package com.createcivilization.capitol.packets.toclient;
 
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.screen.TeamStatisticsScreen;
@@ -30,15 +30,10 @@ public class ClientPacketHandler {
 		ClientConstants.chunksDirty = true;
 	}
 
-	public static void removeChunks(String teamId, ChunkPos pos, ResourceLocation dimension) {
-		TeamUtils.unclaimChunk(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
-		ClientConstants.toResetChunksTeamIds.add(teamId);
-		ClientConstants.chunksDirty = true;
-	}
-
-	public static void removeChunks(String teamId, List<ChunkPos> pos, ResourceLocation dimension) {
-		TeamUtils.unclaimChunks(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
-		ClientConstants.toResetChunksTeamIds.add(teamId);
+	public static void removeChunks(ResourceLocation dimension, List<ChunkPos> pos) {
+		Team team = TeamUtils.getTeam(pos.getFirst(), dimension).getOrThrow();
+		TeamUtils.unclaimChunks(team, dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
+		ClientConstants.toResetChunksTeamIds.add(team.getTeamId());
 		ClientConstants.chunksDirty = true;
 	}
 

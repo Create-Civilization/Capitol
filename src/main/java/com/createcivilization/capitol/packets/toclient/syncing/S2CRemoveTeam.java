@@ -2,14 +2,17 @@ package com.createcivilization.capitol.packets.toclient.syncing;
 
 import com.createcivilization.capitol.Capitol;
 
+import com.createcivilization.capitol.packets.DirectionalPayload;
+import com.createcivilization.capitol.packets.toclient.ClientPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-public record S2CRemoveTeam(String toRemoveId) implements CustomPacketPayload {
+public record S2CRemoveTeam(String toRemoveId) implements DirectionalPayload.Client {
 
 	public static final Type<S2CRemoveTeam> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "remove_team"));
 
@@ -23,5 +26,14 @@ public record S2CRemoveTeam(String toRemoveId) implements CustomPacketPayload {
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;
+	}
+
+	@Override
+	public StreamCodec codec() {
+		return STREAM_CODEC;
+	}
+
+	public static void client(Object payload, IPayloadContext context) {
+		ClientPacketHandler.removeTeam(((S2CRemoveTeam) payload).toRemoveId());
 	}
 }
