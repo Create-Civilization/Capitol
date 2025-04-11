@@ -29,8 +29,8 @@ public class PacketHandler {
 
 	public static final StreamCodec<FriendlyByteBuf, Color> COLOR_CODEC =
 		StreamCodec.composite(
-			ByteBufCodecs.STRING_UTF8, Color::toString,
-			Color::decode
+			ByteBufCodecs.INT, Color::getRGB,
+			(integer) -> new Color(integer, true)
 		);
 
 	public static final StreamCodec<FriendlyByteBuf, Team> TEAM_CODEC =
