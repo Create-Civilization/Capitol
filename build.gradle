@@ -79,7 +79,7 @@ repositories {
 
 dependencies {
     compileOnly(group: 'info.journeymap', name: 'journeymap-api-neoforge', version: '2.0.0-1.21.1-SNAPSHOT', changing: true)
-    runtimeOnly("curse.maven:journeymap-32274:6213329")
+    //runtimeOnly("curse.maven:journeymap-32274:6383889")
 
     implementation('curse.maven:wiiu-lib-1182545:6253600')
 }
