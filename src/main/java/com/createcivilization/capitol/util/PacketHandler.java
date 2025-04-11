@@ -30,7 +30,7 @@ public class PacketHandler {
 	public static final StreamCodec<FriendlyByteBuf, Color> COLOR_CODEC =
 		StreamCodec.composite(
 			ByteBufCodecs.INT, Color::getRGB,
-			(integer) -> new Color(integer, true)
+			Color::new
 		);
 
 	public static final StreamCodec<FriendlyByteBuf, Team> TEAM_CODEC =
