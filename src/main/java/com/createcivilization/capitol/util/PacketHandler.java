@@ -48,7 +48,7 @@ public class PacketHandler {
 		);
 
 	@SubscribeEvent
-	private void registerPackets(RegisterPayloadHandlersEvent event) {
+	private static void registerPackets(RegisterPayloadHandlersEvent event) {
 		PacketHandler.register(event.registrar("1"));
 	}
 

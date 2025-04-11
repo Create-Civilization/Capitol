@@ -41,7 +41,7 @@ public class ClientEvents {
 	}
 
 	@SubscribeEvent
-	public static void clientTick(ClientTickEvent event) {
+	public static void clientTick(ClientTickEvent.Post event) {
 		final LocalPlayer player = ClientConstants.INSTANCE.player;
 		if (player == null) return;
 		final long timeStamp = System.currentTimeMillis() / 1000L;
