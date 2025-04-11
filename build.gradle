@@ -79,12 +79,12 @@ repositories {
 
 dependencies {
     compileOnly(group: 'info.journeymap', name: 'journeymap-api-neoforge', version: '2.0.0-1.21.1-SNAPSHOT', changing: true)
-    //runtimeOnly("curse.maven:journeymap-32274:6383889")
+    runtimeOnly("curse.maven:journeymap-32274:6383889")
 
     implementation('curse.maven:wiiu-lib-1182545:6253600')
 }
 
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+tasks.withType(ProcessResources).configureEach {
     var replaceProperties = [
             minecraft_version: minecraft_version,
             minecraft_version_range: minecraft_version_range,
@@ -99,13 +99,11 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_description: mod_description
     ]
     inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
-}
 
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
+    }
+}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
