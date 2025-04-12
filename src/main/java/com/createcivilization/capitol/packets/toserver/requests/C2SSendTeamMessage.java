@@ -1,6 +1,7 @@
-package com.createcivilization.capitol.packets.toserver.syncing;
+package com.createcivilization.capitol.packets.toserver.requests;
 
 import com.createcivilization.capitol.Capitol;
+
 import com.createcivilization.capitol.packets.DirectionalPayload;
 import com.createcivilization.capitol.packets.toserver.ServerPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,14 +12,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record C2SRequestSync(int toIgnore) implements DirectionalPayload.Server {
+public record C2SSendTeamMessage (String message) implements DirectionalPayload.Server {
 
-	public static final Type<C2SRequestSync> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "request_sync"));
+	public static final Type<C2SSendTeamMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "send_team_message"));
 
-	public static final StreamCodec<FriendlyByteBuf, C2SRequestSync> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.INT, C2SRequestSync::toIgnore,
-		C2SRequestSync::new
-	);
+	public static final StreamCodec<FriendlyByteBuf, C2SSendTeamMessage> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, C2SSendTeamMessage::message,
+			C2SSendTeamMessage::new
+		);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
@@ -31,6 +33,6 @@ public record C2SRequestSync(int toIgnore) implements DirectionalPayload.Server 
 	}
 
 	public static void server(Object payload, IPayloadContext context) {
-		ServerPacketHandler.syncDataWithPlayer((ServerPlayer) context.player());
+		ServerPacketHandler.sendTeamMessage( (ServerPlayer) context.player(), ((C2SSendTeamMessage) payload).message());
 	}
 }

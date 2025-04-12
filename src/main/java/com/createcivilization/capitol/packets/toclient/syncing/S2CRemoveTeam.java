@@ -1,29 +1,39 @@
 package com.createcivilization.capitol.packets.toclient.syncing;
 
-import com.createcivilization.capitol.packets.ClientPacketHandler;
+import com.createcivilization.capitol.Capitol;
 
+import com.createcivilization.capitol.packets.DirectionalPayload;
+import com.createcivilization.capitol.packets.toclient.ClientPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
-import net.minecraftforge.network.NetworkEvent;
+public record S2CRemoveTeam(String toRemoveId) implements DirectionalPayload.Client {
 
-public class S2CRemoveTeam {
+	public static final Type<S2CRemoveTeam> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "remove_team"));
 
-	private final String toRemoveId;
+	public static final StreamCodec<FriendlyByteBuf, S2CRemoveTeam> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, S2CRemoveTeam::toRemoveId,
+			S2CRemoveTeam::new
+		);
 
-	public S2CRemoveTeam(String teamId) {
-		this.toRemoveId = teamId;
+	@NotNull
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 
-	public S2CRemoveTeam(FriendlyByteBuf friendlyByteBuf) {
-		// Decode
-		this.toRemoveId = friendlyByteBuf.readUtf();
+	@Override
+	public StreamCodec codec() {
+		return STREAM_CODEC;
 	}
 
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(this.toRemoveId);
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.removeTeam(this.toRemoveId), context);
+	public static void client(Object payload, IPayloadContext context) {
+		ClientPacketHandler.removeTeam(((S2CRemoveTeam) payload).toRemoveId());
 	}
 }

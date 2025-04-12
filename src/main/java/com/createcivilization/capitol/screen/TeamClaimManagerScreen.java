@@ -3,7 +3,7 @@ package com.createcivilization.capitol.screen;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.packets.toserver.C2SInvitePlayer;
+import com.createcivilization.capitol.packets.toserver.requests.C2SInvitePlayer;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.client.gui.components.*;

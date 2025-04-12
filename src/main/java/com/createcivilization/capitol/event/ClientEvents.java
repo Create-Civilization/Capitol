@@ -2,7 +2,8 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.packets.toserver.*;
+import com.createcivilization.capitol.packets.toserver.requests.C2SClaimCurrentChunk;
+import com.createcivilization.capitol.packets.toserver.requests.C2SSendTeamMessage;
 import com.createcivilization.capitol.screen.*;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
@@ -41,7 +42,7 @@ public class ClientEvents {
 	}
 
 	@SubscribeEvent
-	public static void clientTick(ClientTickEvent event) {
+	public static void clientTick(ClientTickEvent.Post event) {
 		final LocalPlayer player = ClientConstants.INSTANCE.player;
 		if (player == null) return;
 		final long timeStamp = System.currentTimeMillis() / 1000L;
@@ -83,7 +84,7 @@ public class ClientEvents {
 					ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED,
 					true
 				);
-				PacketHandler.sendToServer(new C2SClaimCurrentChunk());
+				PacketHandler.sendToServer(new C2SClaimCurrentChunk(0));
 			}
 		}
 

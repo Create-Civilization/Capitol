@@ -185,7 +185,7 @@ public class Team {
 			getParentOfChunk(chunkPos).ifPresent(capitolData -> capitolData.childChunks.remove(chunkPos));
 		}
 		public void removeChildChunks(List<ChunkPos> chunkPos) {
-			getParentOfChunk(chunkPos.get(0)).ifPresent(capitolData -> capitolData.childChunks.removeAll(chunkPos));
+			getParentOfChunk(chunkPos.getFirst()).ifPresent(capitolData -> capitolData.childChunks.removeAll(chunkPos));
 		}
 
 		public Optional<CapitolData> getParentOfChunk(ChunkPos chunkPos) {

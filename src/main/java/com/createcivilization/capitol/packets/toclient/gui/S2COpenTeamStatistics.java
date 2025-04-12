@@ -1,29 +1,42 @@
 package com.createcivilization.capitol.packets.toclient.gui;
 
-import com.createcivilization.capitol.packets.ClientPacketHandler;
+import com.createcivilization.capitol.Capitol;
 
+import com.createcivilization.capitol.packets.DirectionalPayload;
+import com.createcivilization.capitol.packets.toclient.ClientPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
-public class S2COpenTeamStatistics {
+public record S2COpenTeamStatistics(String teamID) implements DirectionalPayload.Client {
 
-	private final String teamId;
+	public static final Type<S2COpenTeamStatistics> TYPE = new Type<>(
+		ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "open_team_statistics")
+	);
 
-	public S2COpenTeamStatistics(String teamId) {
-		this.teamId = teamId;
+	public static final StreamCodec<FriendlyByteBuf, S2COpenTeamStatistics> STREAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8,
+			S2COpenTeamStatistics::teamID,
+			S2COpenTeamStatistics::new
+		);
+
+	@NotNull
+	@Override
+	public Type<S2COpenTeamStatistics> type() {
+		return TYPE;
 	}
 
-	public S2COpenTeamStatistics(FriendlyByteBuf friendlyByteBuf) {
-		// Decode
-		this.teamId = friendlyByteBuf.readUtf();
+	@Override
+	public StreamCodec codec() {
+		return STREAM_CODEC;
 	}
 
-	public void encode(FriendlyByteBuf friendlyByteBuf) {
-		friendlyByteBuf.writeUtf(this.teamId);
-	}
-
-	public void handle(NetworkEvent.Context context) {
-		ClientPacketHandler.handlePacket(() -> ClientPacketHandler.openTeamStatistics(this.teamId), context);
+	public static void client(Object payload, IPayloadContext context) {
+		ClientPacketHandler.openTeamStatistics(((S2COpenTeamStatistics) payload).teamID());
 	}
 }

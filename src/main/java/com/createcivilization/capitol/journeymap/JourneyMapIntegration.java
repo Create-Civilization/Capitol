@@ -2,7 +2,7 @@ package com.createcivilization.capitol.journeymap;
 
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.event.ClientEvents;
-import com.createcivilization.capitol.packets.toserver.C2SClaimChunk;
+import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -119,21 +119,12 @@ public class JourneyMapIntegration implements IClientPlugin {
 			if (ClientEvents.getTeamOrDisplayClientMessage(player).isEmpty()) return;
 			ChunkPos chunkPos = new ChunkPos(pos);
 			if (!TeamUtils.chunkIsNearChildChunk(chunkPos, 1, player))
-				player.displayClientMessage(
-					ClientConstants.NOT_NEAR_CHUNK,
-					true
-				);
+				player.displayClientMessage(ClientConstants.NOT_NEAR_CHUNK, true);
 			else if (TeamUtils.isInClaimedChunk(player, pos))
-				player.displayClientMessage(
-					ClientConstants.CHUNK_ALREADY_CLAIMED,
-					true
-				);
+				player.displayClientMessage(ClientConstants.CHUNK_ALREADY_CLAIMED, true);
 			else {
-				player.displayClientMessage(
-					ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED,
-					true
-				);
-				PacketHandler.sendToServer(new C2SClaimChunk(chunkPos));
+				player.displayClientMessage(ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED, true);
+				PacketHandler.sendToServer(new BiAddChunk(chunkPos, null, null));
 			}
 			this.removeLastClickOverlayIfPresent();
 		});

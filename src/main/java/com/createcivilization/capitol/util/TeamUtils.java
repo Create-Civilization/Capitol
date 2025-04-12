@@ -2,6 +2,9 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
+import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
+import com.createcivilization.capitol.packets.bidirectional.BiAddTeam;
+import com.createcivilization.capitol.packets.bidirectional.BiRemoveChunk;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
@@ -243,7 +246,7 @@ public class TeamUtils {
                 .setColor(color)
                 .build();
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CAddTeam(created)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new BiAddTeam(created)));
 
 		return created;
     }
@@ -439,7 +442,7 @@ public class TeamUtils {
 
 		team.getDimensionalData(dimension).removeChildChunks(chunkPosList);
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveChunks(team.getTeamId(), chunkPosList, dimension)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new BiRemoveChunk(dimension, chunkPosList)));
 
 		return 1;
 	}
@@ -471,7 +474,7 @@ public class TeamUtils {
 
 		parent.addChild(pos);
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CAddChunk(team.getTeamId(), pos, dimension)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new BiAddChunk(pos, team.getTeamId(), dimension)));
 
 		return 1;
 	}
@@ -513,7 +516,7 @@ public class TeamUtils {
 
 		team.getDimensionalData(dimension).removeChildChunk(chunkPos);
 
-		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveChunk(team.getTeamId(), chunkPos, dimension)));
+		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new BiRemoveChunk(dimension, List.of(chunkPos))));
 
 	}
 
@@ -534,10 +537,10 @@ public class TeamUtils {
 
 	public static void synchronizeServerDataWithPlayer(ServerPlayer player) {
 		for (Team team : TeamUtils.loadedTeams) {
-			PacketHandler.sendToPlayer(new S2CAddTeam(team), player);
+			PacketHandler.sendToPlayer(new BiAddTeam(team), player);
 			for (Map.Entry<ResourceLocation, Team.TeamDimensionData> chunkEntry : team.getDimensionDataMap().entrySet()) {
 				for (Team.CapitolData capitolData : chunkEntry.getValue().getCapitolDataList()) {
-					capitolData.getChildChunks().forEach(childChunk -> PacketHandler.sendToPlayer(new S2CAddChunk(team.getTeamId(), childChunk, chunkEntry.getKey()), player));
+					capitolData.getChildChunks().forEach(childChunk -> PacketHandler.sendToPlayer(new BiAddChunk(childChunk, team.getTeamId(), chunkEntry.getKey()), player));
 				}
 			}
 		}

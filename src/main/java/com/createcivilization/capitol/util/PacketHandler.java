@@ -1,114 +1,146 @@
 package com.createcivilization.capitol.util;
 
-import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
+import com.createcivilization.capitol.packets.bidirectional.BiAddTeam;
+import com.createcivilization.capitol.packets.bidirectional.BiRemoveChunk;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
-import com.createcivilization.capitol.packets.toserver.*;
+import com.createcivilization.capitol.packets.toserver.requests.*;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
-
+import com.createcivilization.capitol.team.Team;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.*;
+import net.minecraft.world.level.ChunkPos;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.apache.logging.log4j.util.TriConsumer;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 public class PacketHandler {
 
-	private static final String PROTOCOL_VERSION = "1";
+	public static final StreamCodec<FriendlyByteBuf, java.util.List<ChunkPos>> CHUNK_POS_LIST_CODEC =
+		StreamCodec.of(
+			(buf, chunkPosList) -> {
+				buf.writeInt(chunkPosList.size());
+				for (ChunkPos chunkPos : chunkPosList) {
+					NeoForgeStreamCodecs.CHUNK_POS.encode(buf, chunkPos);
+				}
+			},
+			(buf) -> {
+				int size = buf.readInt();
+				List<ChunkPos> chunkPosList = new ArrayList<>(size);
+				for (int i = 0; i < size; i++) {
+					ChunkPos chunkPos = NeoForgeStreamCodecs.CHUNK_POS.decode(buf);
+					chunkPosList.add(chunkPos);
+				}
 
-	private static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-		new ResourceLocation(Capitol.MOD_ID, "info_channel"),
-		() -> PROTOCOL_VERSION,
-		PROTOCOL_VERSION::equals,
-		PROTOCOL_VERSION::equals
-	);
+				return chunkPosList;
+			}
+		);
 
-	public static <T> void handlePacketWithContext(
-		T packet,
-		Supplier<NetworkEvent.Context> contextSupplier,
-		BiConsumer<T, NetworkEvent.Context> packetHandler
-	) {
-		NetworkEvent.Context ctx = contextSupplier.get();
-		ctx.enqueueWork(() -> packetHandler.accept(packet, ctx));
-		ctx.setPacketHandled(true);
+	public static final StreamCodec<FriendlyByteBuf, Team> TEAM_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8,
+			GsonUtil::serialize,
+			GsonUtil::deserializeTeam
+		);
+
+	public static final StreamCodec<FriendlyByteBuf, Team.CapitolData> CAPITOL_DATA_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8,
+			GsonUtil::serializeCapitol,
+			GsonUtil::deserializeCapitol
+		);
+
+	@SubscribeEvent
+	private static void registerPackets(RegisterPayloadHandlersEvent event) {
+		PacketHandler.register(event.registrar("1"));
 	}
 
-	public static void handleSyncedPacket(Runnable toRun) {
-		try {
-			toRun.run();
-		} catch (NullPointerException e) {
-			System.out.println("Exception encountered on " + toRun.getClass().getCanonicalName() + " packet handling, dumping data and requesting synchronization.");
-			TeamUtils.loadedTeams.clear();
-			PacketHandler.sendToServer(new C2SRequestSync());
-		}
+	public static void register(PayloadRegistrar registrar) {
+		PentaConsumer<TriConsumer<CustomPacketPayload.Type, StreamCodec, IPayloadHandler>, CustomPacketPayload.Type, StreamCodec, BiConsumer<Object,IPayloadContext>, BiConsumer<Object,IPayloadContext>> directionalRegister = (direction, type, codec, client, server) -> direction.accept(
+			type,
+			codec,
+			new DirectionalPayloadHandler<>(
+				client::accept,
+				server::accept
+			)
+		);
+
+		QuadConsumer<CustomPacketPayload.Type, StreamCodec, BiConsumer<Object,IPayloadContext>, BiConsumer<Object,IPayloadContext>> registerBiDirectional = (type, codec, client, server) -> directionalRegister.accept(
+			registrar::playBidirectional,
+			type,
+			codec,
+			client,
+			server
+		);
+
+		TriConsumer<CustomPacketPayload.Type, StreamCodec, BiConsumer<Object,IPayloadContext>> registerToClient = (type, codec, client) -> directionalRegister.accept(
+			registrar::playToClient,
+			type,
+			codec,
+			client,
+			PacketHandler::empty
+		);
+
+		TriConsumer<CustomPacketPayload.Type, StreamCodec, BiConsumer<Object,IPayloadContext>> registerToServer = (type, codec, server) -> directionalRegister.accept(
+			registrar::playToServer,
+			type,
+			codec,
+			PacketHandler::empty,
+			server
+		);
+
+		registerBiDirectional.accept(BiAddChunk.TYPE, BiAddChunk.STREAM_CODEC, BiAddChunk::client, BiAddChunk::server);
+		registerBiDirectional.accept(BiAddTeam.TYPE, BiAddTeam.STREAM_CODEC, BiAddTeam::client, BiAddTeam::server);
+		registerBiDirectional.accept(BiRemoveChunk.TYPE, BiRemoveChunk.STREAM_CODEC, BiRemoveChunk::client, BiRemoveChunk::server);
+
+		registerToClient.accept(S2COpenTeamStatistics.TYPE, S2COpenTeamStatistics.STREAM_CODEC, S2COpenTeamStatistics::client);
+		registerToClient.accept(S2CRemoveCapitol.TYPE, S2CRemoveCapitol.STREAM_CODEC, S2CRemoveCapitol::client);
+		registerToClient.accept(S2CRemoveTeam.TYPE, S2CRemoveTeam.STREAM_CODEC, S2CRemoveTeam::client);
+
+		registerToServer.accept(C2SClaimCurrentChunk.TYPE, C2SClaimCurrentChunk.STREAM_CODEC, C2SClaimCurrentChunk::server);
+		registerToServer.accept(C2SInvitePlayer.TYPE, C2SInvitePlayer.STREAM_CODEC, C2SInvitePlayer::server);
+		registerToServer.accept(C2SSendTeamMessage.TYPE, C2SSendTeamMessage.STREAM_CODEC, C2SSendTeamMessage::server);
+		registerToServer.accept(C2SRequestSync.TYPE, C2SRequestSync.STREAM_CODEC, C2SRequestSync::server);
 	}
 
-	public static <T> void generalAddPacket(
-		Class<T> packet,
-		int id,
-		BiConsumer<T, FriendlyByteBuf> encoder,
-		Function<FriendlyByteBuf, T> decoder,
-		BiConsumer<T,NetworkEvent.Context> handler,
-		NetworkDirection direction
-	) {
-		INSTANCE.messageBuilder(packet, id, direction)
-			.encoder(encoder)
-			.decoder(decoder)
-			.consumerMainThread((packett, supplier) -> handlePacketWithContext(packett, supplier, handler))
-			.add();
+	@FunctionalInterface
+	public interface QuadConsumer<A, B, C, D> {
+		void accept(A a, B b, C c, D d);
 	}
 
-	public static <T> void clientAddPacket(
-		Class<T> packet,
-		int id,
-		BiConsumer<T, FriendlyByteBuf> encoder,
-		Function<FriendlyByteBuf, T> decoder,
-		BiConsumer<T,NetworkEvent.Context> handler
-	) {
-		generalAddPacket(packet, id, encoder, decoder, (packett, context) -> handleSyncedPacket(() -> handler.accept(packett, context)), NetworkDirection.PLAY_TO_SERVER);
+	@FunctionalInterface
+	public interface PentaConsumer<A, B, C, D, E> {
+		void accept(A a, B b, C c, D d, E e);
 	}
 
-	public static <T> void serverAddPacket(
-		Class<T> packet,
-		int id,
-		BiConsumer<T, FriendlyByteBuf> encoder,
-		Function<FriendlyByteBuf, T> decoder,
-		BiConsumer<T,NetworkEvent.Context> handler
-	) {
-		generalAddPacket(packet, id, encoder, decoder, handler, NetworkDirection.PLAY_TO_CLIENT);
-	}
-
-	public static void register() {
-		int id = 0;
-
-		// S2C packets
-		serverAddPacket(S2COpenTeamStatistics.class, id++, S2COpenTeamStatistics::encode, S2COpenTeamStatistics::new, S2COpenTeamStatistics::handle);
-		serverAddPacket(S2CAddChunk.class, id++, S2CAddChunk::encode, S2CAddChunk::new, S2CAddChunk::handle);
-		serverAddPacket(S2CAddTeam.class, id++, S2CAddTeam::encode, S2CAddTeam::new, S2CAddTeam::handle);
-		serverAddPacket(S2CRemoveChunk.class, id++, S2CRemoveChunk::encode, S2CRemoveChunk::new, S2CRemoveChunk::handle);
-		serverAddPacket(S2CRemoveTeam.class, id++, S2CRemoveTeam::encode, S2CRemoveTeam::new, S2CRemoveTeam::handle);
-		serverAddPacket(S2CRemoveCapitol.class, id++, S2CRemoveCapitol::encode, S2CRemoveCapitol::new, S2CRemoveCapitol::handle);
-		serverAddPacket(S2CRemoveChunks.class, id++, S2CRemoveChunks::encode, S2CRemoveChunks::new, S2CRemoveChunks::handle);
-
-		// C2S packets
-		clientAddPacket(C2SRequestSync.class, id++, C2SRequestSync::encode, C2SRequestSync::new, C2SRequestSync::handle);
-		clientAddPacket(C2SCreateTeam.class, id++, C2SCreateTeam::encode, C2SCreateTeam::new, C2SCreateTeam::handle);
-		clientAddPacket(C2SClaimChunk.class, id++, C2SClaimChunk::encode, C2SClaimChunk::new, C2SClaimChunk::handle);
-		clientAddPacket(C2SUnclaimChunk.class, id++, C2SUnclaimChunk::encode, C2SUnclaimChunk::new, C2SUnclaimChunk::handle);
-		clientAddPacket(C2SClaimCurrentChunk.class, id++, C2SClaimCurrentChunk::encode, C2SClaimCurrentChunk::new, C2SClaimCurrentChunk::handle);
-		clientAddPacket(C2SInvitePlayer.class, id++, C2SInvitePlayer::encode, C2SInvitePlayer::new, C2SInvitePlayer::handle);
-		clientAddPacket(C2SSendTeamMessage.class, id, C2SSendTeamMessage::encode, C2SSendTeamMessage::new, C2SSendTeamMessage::handle);
-	}
+	public static void empty(Object payload, IPayloadContext context) {}
 
 	public static void sendToServer(Object msg) {
-		INSTANCE.sendToServer(msg);
+		PacketDistributor.sendToServer((CustomPacketPayload) msg);
 	}
 
 	public static void sendToPlayer(Object msg, ServerPlayer player) {
-		INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), msg);
+		PacketDistributor.sendToPlayer(player, (CustomPacketPayload) msg);
 	}
 
 	public static void sendToAllPlayers(Object msg) {
-		INSTANCE.send(PacketDistributor.ALL.noArg(), msg);
+		PacketDistributor.sendToAllPlayers((CustomPacketPayload) msg);
 	}
 }

@@ -2,12 +2,17 @@ package com.createcivilization.capitol.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.CommonConstants;
-import com.createcivilization.capitol.packets.toserver.C2SCreateTeam;
+import com.createcivilization.capitol.packets.bidirectional.BiAddTeam;
+import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+
+import java.awt.*;
+import java.util.ArrayList;
 
 public class CreateTeamScreen extends GuiMenu {
 
@@ -97,7 +102,13 @@ public class CreateTeamScreen extends GuiMenu {
 				button -> {
 					String value = teamName.getValue();
 					if (TeamUtils.teamExists(value)) return;
-					PacketHandler.sendToServer(new C2SCreateTeam(value, CommonConstants.Colors.get(colorName.getValue())));
+					Team created = Team.TeamBuilder.create()
+						.setName(value)
+						.setTeamId(TeamUtils.createRandomTeamId())
+						.addPlayer("owner", new ArrayList<>())
+						.setColor(CommonConstants.Colors.colors.getOrDefault(colorName.getValue(), Color.BLACK))
+						.build();
+					PacketHandler.sendToServer(new BiAddTeam(created));
 					// TODO: SUCCESS SCREEN
 					minecraft.player.displayClientMessage(TEAM_SUCCESS, true);
 					this.onClose();

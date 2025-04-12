@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.packets;
+package com.createcivilization.capitol.packets.toclient;
 
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.screen.TeamStatisticsScreen;
@@ -30,15 +30,10 @@ public class ClientPacketHandler {
 		ClientConstants.chunksDirty = true;
 	}
 
-	public static void removeChunks(String teamId, ChunkPos pos, ResourceLocation dimension) {
-		TeamUtils.unclaimChunk(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
-		ClientConstants.toResetChunksTeamIds.add(teamId);
-		ClientConstants.chunksDirty = true;
-	}
-
-	public static void removeChunks(String teamId, List<ChunkPos> pos, ResourceLocation dimension) {
-		TeamUtils.unclaimChunks(TeamUtils.getTeam(teamId).getOrThrow(), dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
-		ClientConstants.toResetChunksTeamIds.add(teamId);
+	public static void removeChunks(ResourceLocation dimension, List<ChunkPos> pos) {
+		Team team = TeamUtils.getTeam(pos.getFirst(), dimension).getOrThrow();
+		TeamUtils.unclaimChunks(team, dimension, pos); // DO NOT SWITCH THIS METHOD OUT. It is handled already.
+		ClientConstants.toResetChunksTeamIds.add(team.getTeamId());
 		ClientConstants.chunksDirty = true;
 	}
 
@@ -49,21 +44,18 @@ public class ClientPacketHandler {
 		ClientConstants.INSTANCE.setScreen(new TeamStatisticsScreen(team));
 	}
 
-	public static void handlePacket(Runnable run, NetworkEvent.Context ctx) {
-		ctx.enqueueWork(
-			() -> DistHelper.runWhenOnClient(
-				() -> run
-			)
-		);
-		ctx.setPacketHandled(true);
+	public static void handlePacket(Runnable run, Object ctx) {
+//		ctx.enqueueWork(
+//			() -> DistHelper.runWhenOnClient(
+//				() -> run
+//			)
+//		);
+//		ctx.setPacketHandled(true);
 	}
 
 	public static void removeCapitol(Team.CapitolData capitolData, ResourceLocation dimension, String teamId) {
 		Team team = TeamUtils.getTeam(teamId).getOrThrow();
-		System.out.println(team.getDimensionalData(dimension).getCapitolDataList().size());
-		System.out.println(team.getDimensionalData(dimension).getCapitolDataList().contains(capitolData));
 		team.getDimensionalData(dimension).removeCapitolData(capitolData);
-		System.out.println(team.getDimensionalData(dimension).getCapitolDataList().size());
 		ClientConstants.toResetChunksTeamIds.add(teamId);
 		ClientConstants.chunksDirty = true;
 	}
