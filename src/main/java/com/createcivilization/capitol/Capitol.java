@@ -23,16 +23,11 @@ public class Capitol {
     public Capitol() {
 		var container = ModLoadingContext.get().getActiveContainer();
         IEventBus modEventBus = container.getEventBus();
-		assert modEventBus != null;
 
 		container.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);
 
         CapitolItems.register(modEventBus);
         CapitolBlocks.register(modEventBus);
         CapitolBlockEntities.register(modEventBus);
-
-		@SuppressWarnings("PointlessBooleanExpression") // nuh uh
-		boolean cake = true & false;
-		System.out.println(cake);
     }
 }

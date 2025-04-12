@@ -14,23 +14,23 @@ public class CommonConstants {
 			return String.format("#%02x%02x%02x", color.getRed(), color.getBlue(), color.getGreen());
 		}
 
-		public static Color get(String color) {
+		public static Color getString(String color) {
 			return colors.get(color.toUpperCase());
 		}
 
-		public static Color get0(String hex) {
+		public static Color getHexString(String hex) {
 			return getColorsStream()
 				.filter(color -> getHex(color).equals(hex))
 				.findFirst().orElse(Color.decode(hex));
 		}
 
-		public static Color get(int rgb) {
+		public static Color getInt(int rgb) {
 			return getColorsStream()
 				.filter(color -> color.getRGB() == rgb)
 				.findFirst().orElse(new Color(rgb));
 		}
 
-		public static Color get(int[] rgb) {
+		public static Color getArray(int[] rgb) {
 			int
 				red = rgb[0],
 				green = rgb[1],
@@ -41,15 +41,16 @@ public class CommonConstants {
 		}
 
 		public static Color get(Object o) {
-			if (o == null) return null;
-			if (o instanceof int[]) return get((int[]) o);
-			if (o instanceof Integer) return get((int) o);
-			if (o instanceof String) return get((String) o);
-			return null;
+			return switch (o) {
+				case int[] ints -> getArray(ints);
+				case Integer i -> getInt(i);
+				case String s -> getString(s);
+				case null, default -> null;
+			};
 		}
 
-		public static List<Color> getColors() {
-			return new ArrayList<>(colors.values());
+		public static Collection<Color> getColors() {
+			return colors.values();
 		}
 
 		public static Stream<Color> getColorsStream() {

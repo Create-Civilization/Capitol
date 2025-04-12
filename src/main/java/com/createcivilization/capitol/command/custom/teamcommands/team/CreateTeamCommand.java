@@ -73,12 +73,12 @@ public class CreateTeamCommand extends AbstractTeamCommand {
     }
 
 	public int executeColorName(CommandContext<CommandSourceStack> command) {
-		return executeAllParams(command, CommonConstants.Colors.get(StringArgumentType.getString(command, "color")));
+		return executeAllParams(command, CommonConstants.Colors.getString(StringArgumentType.getString(command, "color")));
 	}
 
 	public int executeColorRGBInt(CommandContext<CommandSourceStack> command) {
 		int rgb = IntegerArgumentType.getInteger(command, "color");
-		return executeAllParams(command, CommonConstants.Colors.get(rgb));
+		return executeAllParams(command, CommonConstants.Colors.getInt(rgb));
 	}
 
 	public int executeColorRGBArray(CommandContext<CommandSourceStack> command) {
@@ -87,11 +87,11 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 			IntegerArgumentType.getInteger(command, "green"),
 			IntegerArgumentType.getInteger(command, "blue")
 		};
-		return executeAllParams(command, CommonConstants.Colors.get(rgb));
+		return executeAllParams(command, CommonConstants.Colors.getArray(rgb));
 	}
 
 	public int executeColorHex(CommandContext<CommandSourceStack> command) {
-		return executeAllParams(command, CommonConstants.Colors.get0(StringArgumentType.getString(command, "color")));
+		return executeAllParams(command, CommonConstants.Colors.getHexString(StringArgumentType.getString(command, "color")));
 	}
 
 	public int executeAllParams(CommandContext<CommandSourceStack> command, Color color) {

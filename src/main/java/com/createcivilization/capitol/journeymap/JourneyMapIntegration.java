@@ -12,6 +12,7 @@ import journeymap.api.v2.client.event.*;
 import journeymap.api.v2.client.fullscreen.ModPopupMenu;
 import journeymap.api.v2.client.model.ShapeProperties;
 import journeymap.api.v2.client.util.PolygonHelper;
+import journeymap.api.v2.common.event.FullscreenEventRegistry;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -41,7 +42,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 	public void initialize(@NotNull IClientAPI iClientAPI) {
 		System.out.println("Capitol initializing JourneyMap integration...");
 		this.api = iClientAPI;
-		//NeoForge.EVENT_BUS.addListener(this::onPopupMenuEvent);
+		FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(this.getModId(), this::handleMapClicked);
 		NeoForge.EVENT_BUS.addListener(this::updateChunks);
 		NeoForge.EVENT_BUS.addListener(this::onKey);
 		NeoForge.EVENT_BUS.addListener(this::clearCache);
@@ -63,7 +64,7 @@ public class JourneyMapIntegration implements IClientPlugin {
 
 	public void updateChunks(LevelTickEvent event) {
 		if (FMLLoader.getDist() != Dist.CLIENT) return;
-		if (System.currentTimeMillis() / 1000f % 5f != 0 && !ClientConstants.chunksDirty) return;
+		if (!ClientConstants.chunksDirty) return;
 
 		// Cleanup old overlays from chunks that are no longer claimed
 		this.overlays.keySet().stream()
@@ -141,11 +142,6 @@ public class JourneyMapIntegration implements IClientPlugin {
 	}
 
 	private final Map<String, PolygonOverlay> overlays = new HashMap<>();
-
-//	@Override
-//	public void onEvent(ClientEvent clientEvent) {
-//		if (clientEvent.type == ClientEvent.Type.MAP_CLICKED) handleMapClicked((FullscreenMapEvent.ClickEvent) clientEvent);
-//	}
 
 	private PolygonOverlay lastClickOverlay;
 

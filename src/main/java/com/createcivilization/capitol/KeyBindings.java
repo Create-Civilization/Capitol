@@ -67,9 +67,11 @@ public class KeyBindings {
 	);
 
 	@SubscribeEvent
-	public static void register(RegisterKeyMappingsEvent event) throws IllegalAccessException {
+	public static void register(RegisterKeyMappingsEvent event) {
 		for (Field field : KeyBindings.class.getDeclaredFields()) {
-			if (field.getType() == KeyMapping.class) event.register((KeyMapping) field.get(null));
+			if (field.getType() == KeyMapping.class) {
+				try { event.register((KeyMapping) field.get(null)); } catch (IllegalAccessException ignored) {}
+			}
 		}
 	}
 }
