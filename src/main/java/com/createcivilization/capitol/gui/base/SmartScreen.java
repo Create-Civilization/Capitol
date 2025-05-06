@@ -60,7 +60,7 @@ public abstract class SmartScreen extends Screen {
 		if (button == 0) {
 			interactableList.forEach(interactable -> {
 				if (!interactable.getBoundingBox().isPositionInside((int) mouseX, (int) mouseY)) return;
-				interactable.clickStart();
+				interactable.clickStart((int) mouseX, (int) mouseY);
 				lastClick = interactable;
 			});
 		}
@@ -69,12 +69,9 @@ public abstract class SmartScreen extends Screen {
 
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
-		if (button == 0) {
-			interactableList.forEach(interactable -> {
-				if (!interactable.getBoundingBox().isPositionInside((int) mouseX, (int) mouseY) && lastClick != interactable) return;
-				interactable.clickRelease();
-				lastClick = null;
-			});
+		if (button == 0 && lastClick != null) {
+			lastClick.clickRelease((int) mouseX, (int) mouseY);
+			lastClick = null;
 		}
 		return super.mouseReleased(mouseX, mouseY, button);
 	}

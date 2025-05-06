@@ -37,6 +37,11 @@ public class Asset {
 			startY = y == null ? startY : y;
 		}
 
+		public void setSize(@Nullable Integer width, @Nullable Integer height) {
+			blitWidth = width == null ? blitWidth : width;
+			blitHeight = height == null ? blitHeight : height;
+		}
+
 		public int getBlitWidth() {
 			return blitWidth;
 		}

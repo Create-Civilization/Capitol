@@ -1,14 +1,12 @@
 package com.createcivilization.capitol.gui.interactables;
 
 import com.createcivilization.capitol.gui.base.Asset;
-import com.createcivilization.capitol.gui.base.BoundingBox;
 import com.createcivilization.capitol.gui.base.Interactable;
-import com.createcivilization.capitol.gui.base.SmartScreen;
 
-public class ButtonInteractable implements Interactable.BlitInteractable {
+public abstract class ButtonInteractable implements Interactable.BlitInteractable {
 
 	private final Asset.Blit blit;
-	private final int x, y;
+	private int x, y;
 
 	public ButtonInteractable(Asset.Blit blit, int x, int y) {
 		this.blit = blit;
@@ -32,12 +30,13 @@ public class ButtonInteractable implements Interactable.BlitInteractable {
 	}
 
 	@Override
-	public void clickStart() {
-		this.blit.setPosition(148, null);
+	public void setX(int x) {
+		this.x = x;
 	}
 
 	@Override
-	public void clickRelease() {
-		this.blit.setPosition(42, null);
+	public void setY(int y) {
+		this.y = y;
 	}
+
 }
