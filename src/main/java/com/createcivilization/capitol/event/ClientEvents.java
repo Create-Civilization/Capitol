@@ -2,7 +2,7 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.gui.screen.TestScreen;
+import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.packets.toserver.requests.C2SClaimCurrentChunk;
 import com.createcivilization.capitol.packets.toserver.requests.C2SSendTeamMessage;
 import com.createcivilization.capitol.screen.*;
@@ -51,7 +51,7 @@ public class ClientEvents {
 		if (KeyBindings.openStatistics.consumeClick()) {
 //		if (KeyBindings.openStatistics.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
 //			ClientConstants.INSTANCE.setScreen(new TeamStatisticsScreen(playerTeam.getOrThrow()));
-			ClientConstants.INSTANCE.setScreen(new TestScreen());
+			ClientConstants.INSTANCE.setScreen(new BookMenu(0));
 		}
 
 		if (KeyBindings.viewChunks.consumeClick()) {

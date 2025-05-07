@@ -23,12 +23,17 @@ public interface Interactable {
 	default void hoverLeave() {};
 	default void scroll() {};
 
+	default boolean isHidden() {
+		return false;
+	};
+
 	interface BlitInteractable extends Interactable{
 
 		Asset.Blit getBlit();
 
 		@Override
 		default void render(GuiGraphics guiGraphics) {
+			if (isHidden()) return;
 			getBlit().renderBlit(guiGraphics, getX(), getY());
 		}
 
@@ -80,6 +85,7 @@ public interface Interactable {
 		}
 
 		public void render(GuiGraphics guiGraphics) {
+			if (isHidden()) return;
 			getInteractableList().forEach(interactable -> interactable.render(guiGraphics));
 		}
 

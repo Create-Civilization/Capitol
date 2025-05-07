@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.gui.base.book;
+package com.createcivilization.capitol.gui.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.gui.base.Asset;
@@ -8,20 +8,22 @@ import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.List;
 import java.util.stream.IntStream;
 
-public abstract class BookMenu extends SmartScreen {
+public class BookMenu extends SmartScreen {
 
 	private static final Asset ASSET = new Asset(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "textures/gui/book_gui.png"), 421, 212);
 	private static final Asset.Blit BACKGROUND = ASSET.blit(0, 0, 295, 179);
 	Tabs tabs = new Tabs();
+	int startingTab;
+	Tabs.Tab currentTab;
 	int leftPos, rightPos, topPos;
 
 
-	protected BookMenu(Component title) {
-		super(title);
+	public BookMenu(int startingTab) {
+		super(Component.literal("Book"));
 		addInteractable(tabs);
+		this.startingTab = startingTab;
 	}
 
 	@Override
@@ -38,6 +40,7 @@ public abstract class BookMenu extends SmartScreen {
 		this.topPos = (this.height - BACKGROUND.getBlitHeight()) / 2;
 		this.tabs.setX(this.rightPos + 20);
 		this.tabs.setY(this.topPos - 16);
+		this.tabs.getInteractableList().get(this.startingTab).clickStart(0,0);
 	}
 
 	private class Tabs extends Interactable.InteractableBundle {
@@ -46,6 +49,11 @@ public abstract class BookMenu extends SmartScreen {
 
 		private Tabs() {
 			this.setInteractableList(IntStream.range(0, 5).boxed().map(integer -> (Interactable) new Tab(296 + (integer * 23), (integer * 23), 0)).toList());
+		}
+
+		@Override
+		public void init(SmartScreen smartScreen) {
+			this.getInteractableList().forEach(interactable -> interactable.init(smartScreen));
 		}
 
 		@Override
@@ -72,18 +80,26 @@ public abstract class BookMenu extends SmartScreen {
 
 		private class Tab extends ButtonInteractable {
 
+			BookMenu bookMenu;
+
 			public Tab(int off, int x, int y) {
 				super(ASSET.blit(off, 0, 15, 23), x, y);
 			}
 
 			@Override
-			public void clickStart(int x, int y) {
-				getBlit().setSize(null, 28);
-				setY(getY() - 5);
+			public void init(SmartScreen smartScreen) {
+				this.bookMenu = (BookMenu) smartScreen;
 			}
 
 			@Override
-			public void clickRelease(int x, int y) {
+			public void clickStart(int x, int y) {
+				if (bookMenu.currentTab != null) bookMenu.currentTab.lower();
+				getBlit().setSize(null, 28);
+				setY(getY() - 5);
+				bookMenu.currentTab = this;
+			}
+
+			public void lower() {
 				getBlit().setSize(null, 23);
 				setY(getY() + 5);
 			}
