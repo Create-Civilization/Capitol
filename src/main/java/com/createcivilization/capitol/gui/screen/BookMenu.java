@@ -40,7 +40,7 @@ public class BookMenu extends SmartScreen {
 		this.topPos = (this.height - BACKGROUND.getBlitHeight()) / 2;
 		this.tabs.setX(this.rightPos + 20);
 		this.tabs.setY(this.topPos - 16);
-		this.tabs.getInteractableList().get(this.startingTab).clickStart(0,0);
+		((Tabs.Tab) this.tabs.getInteractableList().get(this.startingTab)).select();
 	}
 
 	private class Tabs extends Interactable.InteractableBundle {
@@ -81,9 +81,11 @@ public class BookMenu extends SmartScreen {
 		private class Tab extends ButtonInteractable {
 
 			BookMenu bookMenu;
+			InteractableBundle toActivate;
 
 			public Tab(int off, int x, int y) {
 				super(ASSET.blit(off, 0, 15, 23), x, y);
+//				this.toActivate = toActivate;
 			}
 
 			@Override
@@ -93,13 +95,36 @@ public class BookMenu extends SmartScreen {
 
 			@Override
 			public void clickStart(int x, int y) {
-				if (bookMenu.currentTab != null) bookMenu.currentTab.lower();
+				if (bookMenu.currentTab == this) return;
+				if (bookMenu.currentTab != null) bookMenu.currentTab.deactivate();
+//				toActivate.show();
+				getBlit().setSize(null, 28);
+				setY(getY() - 2);
+				bookMenu.currentTab = this;
+			}
+
+			public void select() {
 				getBlit().setSize(null, 28);
 				setY(getY() - 5);
 				bookMenu.currentTab = this;
 			}
 
-			public void lower() {
+			@Override
+			public void hovered(int x, int y) {
+				if (bookMenu.currentTab == this) return;
+				getBlit().setSize(null, 26);
+				setY(getY() - 3);
+			}
+
+			@Override
+			public void hoverLeave(int x, int y) {
+				if (bookMenu.currentTab == this) return;
+				getBlit().setSize(null, 23);
+				setY(getY() + 3);
+			}
+
+			public void deactivate() {
+//				toActivate.hide();
 				getBlit().setSize(null, 23);
 				setY(getY() + 5);
 			}

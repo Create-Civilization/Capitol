@@ -46,11 +46,28 @@ public abstract class SmartScreen extends Screen {
 		interactableList.forEach(interactable -> interactable.init(this));
 	}
 
+	public Interactable hovering;
+
 	@Override
 	public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.render(guiGraphics, mouseX, mouseY, partialTick);
 		if (getBackgroundBlit() instanceof Asset.Blit backgroundBlit) backgroundBlit.renderBlit(guiGraphics, getBackgroundX(), getBackgroundY());
 		interactableList.forEach(interactable -> interactable.render(guiGraphics));
+		Interactable currentHover = null;
+		for (Interactable interactable : getInteractableList()) {
+			if (!interactable.getBoundingBox().isPositionInside(mouseX, mouseY)) continue;
+			interactable.hovered(mouseX, mouseY);
+			currentHover = interactable;
+		}
+
+		if (currentHover == null && hovering != null) {
+			hovering.hoverLeave(mouseX, mouseY);
+			hovering = null;
+		} else if (currentHover != null && currentHover != hovering) {
+			if (hovering != null) hovering.hoverLeave(mouseX, mouseY);
+			hovering = currentHover;
+		}
+
 	}
 
 	Interactable lastClick;

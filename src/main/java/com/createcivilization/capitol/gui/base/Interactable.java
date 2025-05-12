@@ -19,13 +19,14 @@ public interface Interactable {
 
 	default void clickStart(int x, int y) {};
 	default void clickRelease(int x, int y) {};
-	default void hovered() {};
-	default void hoverLeave() {};
+	default void hovered(int x, int y) {};
+	default void hoverLeave(int x, int y) {};
 	default void scroll() {};
 
-	default boolean isHidden() {
-		return false;
-	};
+	void hide();
+	void show();
+
+	boolean isHidden();
 
 	interface BlitInteractable extends Interactable{
 
@@ -48,6 +49,24 @@ public interface Interactable {
 	abstract class InteractableBundle implements Interactable{
 
 		public List<Interactable> interactableList = new ArrayList<>();
+		private boolean isHidden;
+
+		@Override
+		public boolean isHidden() {
+			return isHidden;
+		}
+
+		@Override
+		public void show() {
+			isHidden = false;
+			getInteractableList().forEach(Interactable::show);
+		}
+
+		@Override
+		public void hide() {
+			isHidden = true;
+			getInteractableList().forEach(Interactable::hide);
+		}
 
 		@Override
 		public BoundingBox getBoundingBox() {
@@ -107,14 +126,23 @@ public interface Interactable {
 			lastClick = null;
 		}
 
+		Interactable lastHover;
+
 		@Override
-		public void hovered() {
-			Interactable.super.hovered();
+		public void hovered(int x, int y) {
+			getInteractableList().forEach(interactable -> {
+				if (interactable.isHidden() || !interactable.getBoundingBox().isPositionInside(x,y)) return;
+				if (lastHover != null) lastHover.hoverLeave(x,y);
+				lastHover = interactable;
+				interactable.hovered(x,y);
+			});
 		}
 
 		@Override
-		public void hoverLeave() {
-			Interactable.super.hoverLeave();
+		public void hoverLeave(int x, int y) {
+			if (lastHover == null) return;
+			lastHover.hoverLeave(x,y);
+			lastHover = null;
 		}
 
 		@Override

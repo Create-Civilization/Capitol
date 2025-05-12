@@ -14,6 +14,23 @@ public abstract class ButtonInteractable implements Interactable.BlitInteractabl
 		this.y = y;
 	}
 
+	private boolean isHidden;
+
+	@Override
+	public boolean isHidden() {
+		return isHidden;
+	}
+
+	@Override
+	public void show() {
+		isHidden = false;
+	}
+
+	@Override
+	public void hide() {
+		isHidden = true;
+	}
+
 	@Override
 	public Asset.Blit getBlit() {
 		return blit;
