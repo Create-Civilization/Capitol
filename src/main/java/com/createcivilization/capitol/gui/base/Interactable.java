@@ -1,8 +1,12 @@
 package com.createcivilization.capitol.gui.base;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.constants.ClientConstants;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,16 +16,16 @@ public interface Interactable {
 	void setX(int x);
 	void setY(int y);
 
-	default void init(SmartScreen smartScreen) {};
+	default void init(SmartScreen smartScreen) {}
 	void render(GuiGraphics guiGraphics);
 
 	BoundingBox getBoundingBox();
 
-	default void clickStart(int x, int y) {};
-	default void clickRelease(int x, int y) {};
-	default void hovered(int x, int y) {};
-	default void hoverLeave(int x, int y) {};
-	default void scroll() {};
+	default void clickStart(int x, int y) {}
+	default void clickRelease(int x, int y) {}
+	default void hovered(int x, int y) {}
+	default void hoverLeave(int x, int y) {}
+	default void scroll() {}
 
 	void hide();
 	void show();
@@ -43,7 +47,70 @@ public interface Interactable {
 			int x = getX();
 			int y = getY();
 			return new BoundingBox(x, y, x + getBlit().getBlitWidth(), y + getBlit().getBlitHeight());
-		};
+		}
+	}
+
+	class TextInteractable implements Interactable {
+
+		boolean isHidden = false;
+		int x, y;
+		Component title;
+		int color;
+		boolean dropShadow;
+
+		public TextInteractable(Component title, int x, int y, @Nullable Color color, @Nullable Boolean dropShadow) {
+			this.title = title;
+			this.color = color == null ? Color.WHITE.getRGB() : color.getRGB();
+			this.dropShadow = dropShadow == null || dropShadow;
+			this.x = x;
+			this.y = y;
+		}
+
+		@Override
+		public int getX() {
+			return x;
+		}
+
+		@Override
+		public int getY() {
+			return y;
+		}
+
+		@Override
+		public void setX(int x) {
+			this.x = x;
+		}
+
+		@Override
+		public void setY(int y) {
+			this.y = y;
+		}
+
+		@Override
+		public void render(GuiGraphics guiGraphics) {
+			if (isHidden()) return;
+			guiGraphics.drawString(ClientConstants.INSTANCE.font, this.title, this.x, this.y, this.color, this.dropShadow);
+		}
+
+		@Override
+		public BoundingBox getBoundingBox() {
+			return new BoundingBox(this.x, this.y, this.x + (ClientConstants.INSTANCE.font.width(this.title.getString())), this.y + (ClientConstants.INSTANCE.font.lineHeight));
+		}
+
+		@Override
+		public void hide() {
+			isHidden = true;
+		}
+
+		@Override
+		public void show() {
+			isHidden = false;
+		}
+
+		@Override
+		public boolean isHidden() {
+			return isHidden;
+		}
 	}
 
 	abstract class InteractableBundle implements Interactable{
@@ -149,5 +216,7 @@ public interface Interactable {
 		public void scroll() {
 			Interactable.super.scroll();
 		}
+
+
 	}
 }

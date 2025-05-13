@@ -10,6 +10,8 @@ import java.util.List;
 
 public abstract class SmartScreen extends Screen {
 
+	int leftPos;
+
 	private List<Interactable> interactableList = new ArrayList<>();
 
 	public List<Interactable> getInteractableList() {

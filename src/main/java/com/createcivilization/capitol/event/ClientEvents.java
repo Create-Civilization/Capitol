@@ -51,7 +51,7 @@ public class ClientEvents {
 		if (KeyBindings.openStatistics.consumeClick()) {
 //		if (KeyBindings.openStatistics.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
 //			ClientConstants.INSTANCE.setScreen(new TeamStatisticsScreen(playerTeam.getOrThrow()));
-			ClientConstants.INSTANCE.setScreen(new BookMenu(0));
+			ClientConstants.INSTANCE.setScreen(new BookMenu(0, 0));
 		}
 
 		if (KeyBindings.viewChunks.consumeClick()) {
