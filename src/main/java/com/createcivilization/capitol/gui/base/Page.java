@@ -4,6 +4,7 @@ import com.createcivilization.capitol.constants.ClientConstants;
 import net.minecraft.network.chat.Component;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Page extends Interactable.InteractableBundle {
@@ -11,7 +12,18 @@ public abstract class Page extends Interactable.InteractableBundle {
 	int x,y;
 
 	public Page(Component title) {
-		setInteractableList(List.of(new TextInteractable(title, 74 - ClientConstants.INSTANCE.font.width(title.getString()) / 2, 14, null, null)));
+		setInteractableList(List.of(new TextInteractable(title, 72 - ClientConstants.INSTANCE.font.width(title.getString()) / 2, 14, null, null)));
+	}
+
+	public void addInteractableList(Interactable interactable) {
+		List<Interactable> interactables = new ArrayList<>(getInteractableList());
+		interactables.add(interactable);
+		setInteractableList(interactables);
+	}
+
+	@Override
+	public void init(SmartScreen smartScreen) {
+		super.init(smartScreen);
 	}
 
 	@Override

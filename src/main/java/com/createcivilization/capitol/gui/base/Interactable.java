@@ -137,12 +137,15 @@ public interface Interactable {
 
 		@Override
 		public BoundingBox getBoundingBox() {
-			int startX = 0;
-			int startY = 0;
+			List<Interactable> list = getInteractableList();
+			if (list.isEmpty()) return new BoundingBox(0,0,0,0);
+			BoundingBox firstBoundingBox = list.getFirst().getBoundingBox();
+			int startX = firstBoundingBox.startX;
+			int startY = firstBoundingBox.startY;
 			int endX = 0;
 			int endY = 0;
 
-			for (Interactable interactable : getInteractableList()) {
+			for (Interactable interactable : list) {
 				BoundingBox boundingBox = interactable.getBoundingBox();
 				startX = Math.min(boundingBox.startX, startX);
 				startY = Math.min(boundingBox.startY, startY);
