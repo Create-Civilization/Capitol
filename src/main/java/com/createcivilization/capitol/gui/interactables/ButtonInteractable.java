@@ -1,9 +1,7 @@
 package com.createcivilization.capitol.gui.interactables;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.Asset;
-import com.createcivilization.capitol.gui.base.BoundingBox;
 import com.createcivilization.capitol.gui.base.Interactable;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -41,12 +39,15 @@ public abstract class ButtonInteractable implements Interactable.BlitInteractabl
 	}
 
 	@Override
-	public void clickStart(int x, int y) {
+	public Interactable clickStart(int x, int y) {
+		if (isHidden()) return null;
 		if (activeBlit != null) this.currentBlit = activeBlit;
+		return this;
 	}
 
 	@Override
 	public void clickRelease(int x, int y) {
+		BlitInteractable.super.clickRelease(x,y);
 		if (activeBlit != null) this.currentBlit = idleBlit;
 	}
 

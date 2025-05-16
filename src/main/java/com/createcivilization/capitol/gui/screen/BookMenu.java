@@ -2,14 +2,15 @@ package com.createcivilization.capitol.gui.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.gui.base.Asset;
-import com.createcivilization.capitol.gui.base.BoundingBox;
 import com.createcivilization.capitol.gui.base.Interactable;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
+import com.createcivilization.capitol.gui.interactables.TextInputInteractable;
 import com.createcivilization.capitol.gui.pages.CreateTeamPage;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -99,7 +100,7 @@ public class BookMenu extends SmartScreen {
 			this.getInteractableList().forEach(tab -> tab.setY(tab.getY() + getY()));
 		}
 
-		private class Tab extends ButtonInteractable {
+		private static class Tab extends ButtonInteractable {
 
 			BookMenu bookMenu;
 
@@ -116,14 +117,15 @@ public class BookMenu extends SmartScreen {
 			}
 
 			@Override
-			public void clickStart(int x, int y) {
-				if (bookMenu.currentTab == this) return;
+			public Interactable clickStart(int x, int y) {
+				if (bookMenu.currentTab == this) return null;
 				if (bookMenu.currentTab != null) bookMenu.currentTab.deactivate();
 				bookMenu.currentPage = 0;
 				getBlit().setSize(null, 28);
 				setY(getY() - 2);
 				bookMenu.currentTab = this;
 				bookMenu.pageHandlers.get(this.index).show();
+				return this;
 			}
 
 			public void select() {
@@ -212,6 +214,11 @@ public class BookMenu extends SmartScreen {
 		}
 
 		@Override
+		public Interactable clickStart(int x, int y) {
+			return super.clickStart(x, y);
+		}
+
+		@Override
 		public int getX() {
 			return x;
 		}
@@ -235,6 +242,12 @@ public class BookMenu extends SmartScreen {
 	public static class Button extends ButtonInteractable {
 		public Button(int x, int y, Component text) {
 			super(ASSET.blit(42, 180, 106, 13), ASSET.blit(148, 180, 106, 13), text, x, y, null, true);
+		}
+	}
+
+	public static class TextInput extends TextInputInteractable {
+		public TextInput(@Nullable Component placeHolderText, int x, int y) {
+			super(ASSET.blit(148, 193, 106, 13), placeHolderText, x, y, null, true);
 		}
 	}
 }

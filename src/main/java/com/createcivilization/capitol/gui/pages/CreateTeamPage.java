@@ -9,5 +9,6 @@ public class CreateTeamPage extends Page {
 	public CreateTeamPage() {
 		super(Component.literal("Test"));
 		addInteractableList(new BookMenu.Button(20,143, Component.literal("Create")));
+		addInteractableList(new BookMenu.TextInput(Component.literal("test"), 20, 120));
 	}
 }

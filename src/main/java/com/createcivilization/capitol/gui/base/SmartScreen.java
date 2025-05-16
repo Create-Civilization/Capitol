@@ -72,16 +72,17 @@ public abstract class SmartScreen extends Screen {
 
 	}
 
-	Interactable lastClick;
+	public Interactable lastClick;
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		Interactable currentClick = null;
 		if (button == 0) {
-			interactableList.forEach(interactable -> {
-				if (!interactable.getBoundingBox().isPositionInside((int) mouseX, (int) mouseY)) return;
-				interactable.clickStart((int) mouseX, (int) mouseY);
-				lastClick = interactable;
-			});
+			for (Interactable interactable : interactableList) {
+				if (!interactable.getBoundingBox().isPositionInside((int) mouseX, (int) mouseY)) continue;
+				currentClick = interactable.clickStart((int) mouseX, (int) mouseY);
+			}
+			lastClick = currentClick;
 		}
 		return super.mouseClicked(mouseX, mouseY, button);
 	}
@@ -90,8 +91,13 @@ public abstract class SmartScreen extends Screen {
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
 		if (button == 0 && lastClick != null) {
 			lastClick.clickRelease((int) mouseX, (int) mouseY);
-			lastClick = null;
 		}
 		return super.mouseReleased(mouseX, mouseY, button);
+	}
+
+	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		interactableList.forEach(interactable -> interactable.input(keyCode, scanCode, modifiers));
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 }

@@ -21,11 +21,25 @@ public interface Interactable {
 
 	BoundingBox getBoundingBox();
 
-	default void clickStart(int x, int y) {}
-	default void clickRelease(int x, int y) {}
-	default void hovered(int x, int y) {}
-	default void hoverLeave(int x, int y) {}
-	default void scroll() {}
+ 	default Interactable clickStart(int x, int y) {
+		 if (isHidden()) return null;
+		 return this;
+	}
+	default void clickRelease(int x, int y) {
+		if (isHidden()) return;
+	}
+	default void hovered(int x, int y) {
+		if (isHidden()) return;
+	}
+	default void hoverLeave(int x, int y) {
+		if (isHidden()) return;
+	}
+	default void input(int keyCode, int scanCode, int modifiers) {
+		if (isHidden()) return;
+	}
+	default void scroll() {
+		if (isHidden()) return;
+	}
 
 	void hide();
 	void show();
@@ -181,12 +195,13 @@ public interface Interactable {
 		Interactable lastClick;
 
 		@Override
-		public void clickStart(int x, int y) {
-			getInteractableList().forEach(interactable -> {
-				if (!interactable.getBoundingBox().isPositionInside(x, y)) return;
-				interactable.clickStart(x, y);
-				lastClick = interactable;
-			});
+		public Interactable clickStart(int x, int y) {
+			if (isHidden()) return null;
+			for (Interactable interactable : getInteractableList()) {
+				if (!interactable.getBoundingBox().isPositionInside(x, y)) continue;
+				return interactable.clickStart(x, y);
+			}
+			return null;
 		}
 
 		@Override
@@ -213,6 +228,12 @@ public interface Interactable {
 			if (lastHover == null) return;
 			lastHover.hoverLeave(x,y);
 			lastHover = null;
+		}
+
+		@Override
+		public void input(int keyCode, int scanCode, int modifiers) {
+			Interactable.super.input(keyCode, scanCode, modifiers);
+			getInteractableList().forEach(interactable -> interactable.input(keyCode,scanCode,modifiers));
 		}
 
 		@Override
