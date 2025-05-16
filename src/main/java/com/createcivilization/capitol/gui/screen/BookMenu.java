@@ -6,7 +6,7 @@ import com.createcivilization.capitol.gui.base.Interactable;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
 import com.createcivilization.capitol.gui.interactables.TextInputInteractable;
-import com.createcivilization.capitol.gui.pages.CreateTeamPage;
+import com.createcivilization.capitol.gui.pages.DisplayTeam;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -183,7 +183,7 @@ public class BookMenu extends SmartScreen {
 
 		public InfoHandler() {
 			super(List.of(
-				new CreateTeamPage()
+				new DisplayTeam()
 			));
 		}
 	}

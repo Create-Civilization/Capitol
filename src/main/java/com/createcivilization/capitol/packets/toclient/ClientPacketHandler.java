@@ -1,7 +1,7 @@
 package com.createcivilization.capitol.packets.toclient;
 
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.screen.TeamStatisticsScreen;
+import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
@@ -41,7 +41,7 @@ public class ClientPacketHandler {
 		// This SHOULD throw if team is not loaded due to the server already checking for team existence
 		// If it throws, client is out of sync, thus needs to be synced
 		Team team = TeamUtils.getTeam(teamId).getOrThrow();
-		ClientConstants.INSTANCE.setScreen(new TeamStatisticsScreen(team));
+		ClientConstants.INSTANCE.setScreen(new BookMenu(3,0));
 	}
 
 	public static void handlePacket(Runnable run, Object ctx) {

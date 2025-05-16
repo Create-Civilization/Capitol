@@ -37,7 +37,7 @@ public abstract class TextInputInteractable implements Interactable.BlitInteract
 	public void render(GuiGraphics guiGraphics) {
 		BlitInteractable.super.render(guiGraphics);
 
-		if (getValue().isEmpty()) guiGraphics.drawString(ClientConstants.INSTANCE.font, placeHolderText.getString(), this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, Color.GRAY.getRGB(), dropShadow);
+		if (getValue().isEmpty() && !isActive()) guiGraphics.drawString(ClientConstants.INSTANCE.font, placeHolderText.getString(), this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, Color.GRAY.getRGB(), dropShadow);
 		else guiGraphics.drawString(ClientConstants.INSTANCE.font, getValue() + (isActive() && (System.currentTimeMillis() / 500) % 2 == 0 ? "_" : ""), this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, color, dropShadow);
 	}
 
