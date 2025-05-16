@@ -240,8 +240,18 @@ public class BookMenu extends SmartScreen {
 	}
 
 	public static class Button extends ButtonInteractable {
-		public Button(int x, int y, Component text) {
+		Runnable onActivated;
+
+		public Button(int x, int y, Component text, Runnable runnable) {
 			super(ASSET.blit(42, 180, 106, 13), ASSET.blit(148, 180, 106, 13), text, x, y, null, true);
+			this.onActivated = runnable;
+		}
+
+		@Override
+		public Interactable clickStart(int x, int y) {
+			if (!(super.clickStart(x, y) instanceof Interactable interactable)) return null;
+			this.onActivated.run();
+			return interactable;
 		}
 	}
 
