@@ -1,7 +1,6 @@
 package com.createcivilization.capitol.gui.screen;
 
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.gui.base.Asset;
 import com.createcivilization.capitol.gui.base.BookScreen;
 import com.createcivilization.capitol.gui.base.Interactable;
 import com.createcivilization.capitol.gui.base.SmartScreen;

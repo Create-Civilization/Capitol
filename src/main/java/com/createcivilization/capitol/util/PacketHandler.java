@@ -1,10 +1,12 @@
 package com.createcivilization.capitol.util;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
 import com.createcivilization.capitol.packets.bidirectional.BiAddTeam;
 import com.createcivilization.capitol.packets.bidirectional.BiRemoveChunk;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
+import com.createcivilization.capitol.packets.toserver.ServerPacketHandler;
 import com.createcivilization.capitol.packets.toserver.requests.*;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 import com.createcivilization.capitol.team.Team;
@@ -133,11 +135,21 @@ public class PacketHandler {
 	public static void empty(Object payload, IPayloadContext context) {}
 
 	public static void sendToServer(Object msg) {
-		PacketDistributor.sendToServer((CustomPacketPayload) msg);
+		try {
+			PacketDistributor.sendToServer((CustomPacketPayload) msg);
+		} catch (RuntimeException e) {
+			Capitol.LOGGER.error("Packet error, requesting re-sync", e);
+			PacketDistributor.sendToServer(new C2SRequestSync(0));
+		}
 	}
 
 	public static void sendToPlayer(Object msg, ServerPlayer player) {
-		PacketDistributor.sendToPlayer(player, (CustomPacketPayload) msg);
+		try {
+			PacketDistributor.sendToPlayer(player, (CustomPacketPayload) msg);
+		} catch (RuntimeException e) {
+			Capitol.LOGGER.error("Packet error {}, requesting to re-sync player \"{}\"", e, player.getName().getString());
+			ServerPacketHandler.syncDataWithPlayer(player);
+		}
 	}
 
 	public static void sendToAllPlayers(Object msg) {

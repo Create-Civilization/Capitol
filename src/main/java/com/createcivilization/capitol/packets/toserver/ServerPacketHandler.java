@@ -12,6 +12,7 @@ import net.minecraft.world.level.ChunkPos;
 
 import net.neoforged.api.distmarker.*;
 
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 import java.awt.Color;
@@ -47,7 +48,7 @@ public class ServerPacketHandler {
 		if (player == null) return;
 		UUID playerToInviteUUID = Objects.requireNonNull(playerList.getPlayerByName(playerToInviteName)).getUUID();
 
-//		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
+		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
 
 		Team team = invitingTeam.getOrThrow();
 
@@ -62,7 +63,7 @@ public class ServerPacketHandler {
 	}
 
 
-	public static void handlePacket(Runnable run, Object ctx) {
+	public static void handlePacket(Runnable run, IPayloadContext ctx) {
 //		ctx.enqueueWork(
 //			() -> DistHelper.runWhenOnServer(
 //				() -> run
