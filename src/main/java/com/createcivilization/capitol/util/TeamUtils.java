@@ -2,9 +2,11 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
-import com.createcivilization.capitol.packets.bidirectional.BiAddTeam;
-import com.createcivilization.capitol.packets.bidirectional.BiRemoveChunk;
+import com.createcivilization.capitol.packets.bidirectional.*;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddChunk;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddTeam;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddWar;
+import com.createcivilization.capitol.packets.bidirectional.remove.BiRemoveChunk;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
@@ -42,10 +44,10 @@ public class TeamUtils {
 	 */
     public static final List<Team> loadedTeams = new ArrayList<>();
 
-	public static final List<War> wars = new ArrayList<>();
+	public static final List<War> loadedWars = new ArrayList<>();
 
 	/**
-	 * @return The {@link File} which stores team data, automatically created if it doesn't exist.
+	 * @return The {@link File} which stores receivingTeam data, automatically created if it doesn't exist.
 	 */
     public static File getTeamDataFile() throws IOException {
 		return FileUtils.forceFileExistence(FileUtils.getLocalFile("team_data.json"));
@@ -59,23 +61,23 @@ public class TeamUtils {
 	}
 
 	/**
-	 * @return If the {@link Player} is in a team or not.
+	 * @return If the {@link Player} is in a receivingTeam or not.
 	 */
     public static boolean hasTeam(Player player) {
         return hasTeam(player.getUUID());
     }
 
 	/**
-	 * @return If the {@link UUID} is in a team or not
+	 * @return If the {@link UUID} is in a receivingTeam or not
 	 */
 	public static boolean hasTeam(UUID playerUUID) {
 		return loadedTeams.stream().anyMatch(team -> team.getMembers().values().stream().anyMatch(list -> list.contains(playerUUID)));
 	}
 
 	/**
-	 * Checks if player owns the team that they're in
+	 * Checks if player owns the receivingTeam that they're in
 	 * @param player The player to check for ownership
-	 * @return If the player is the owner of his team
+	 * @return If the player is the owner of his receivingTeam
 	 */
 	public static boolean isTeamOwner(Player player) {
 		return TeamUtils.getTeam(player).getOrThrow().getMembers().get("owner").stream().anyMatch(player.getUUID()::equals);
@@ -115,7 +117,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * TODO: Completely redo the Permission system and replace it with a c2s synced config per team (done in the capitol block?)
+	 * TODO: Completely redo the Permission system and replace it with a c2s synced config per receivingTeam (done in the capitol block?)
 	 * @return The Permission map the {@link Player} has in the chunk at the {@link BlockPos} specified in the parameters.
 	 */
 	public static Map<String, Boolean> getPermissionInChunk(BlockPos pos, Player player) {
@@ -134,7 +136,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * @return An {@link ObjectHolder} with a value of either the {@link Team} the given {@link Player} is in, or a value of {@code null} if the {@link Player} is not in a team.
+	 * @return An {@link ObjectHolder} with a value of either the {@link Team} the given {@link Player} is in, or a value of {@code null} if the {@link Player} is not in a receivingTeam.
 	 */
     public static ObjectHolder<Team> getTeam(Player player) {
         for (Team team : loadedTeams) if (team.getAllPlayers().stream().anyMatch(player.getUUID()::equals)) return new ObjectHolder<>(team);
@@ -162,7 +164,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Loads all the {@link Team}s from the team data file.
+	 * Loads all the {@link Team}s from the receivingTeam data file.
 	 */
     public static void loadTeams() throws IOException {
 		Capitol.LOGGER.info("Loading teams...");
@@ -184,7 +186,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Saves all the {@link Team}s to the team data file.
+	 * Saves all the {@link Team}s to the receivingTeam data file.
 	 */
     public static void saveTeams() throws IOException {
         System.out.println("Saving teams...");
@@ -252,7 +254,7 @@ public class TeamUtils {
     }
 
 	/**
-	 * @param teamId The team to delete
+	 * @param teamId The receivingTeam to delete
 	 */
 	public static void removeTeam(String teamId) {
 		loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
@@ -261,7 +263,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Dumps the currently loaded teams, and then loads the teams in the team data file.
+	 * Dumps the currently loaded teams, and then loads the teams in the receivingTeam data file.
 	 * @return 1 if successful, -1 if not (for /command usage)
 	 */
 	public static int reloadTeamsFromFile() {
@@ -277,7 +279,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Saves the teams to the team data file, dumps the team list, then reloads the teams.
+	 * Saves the teams to the receivingTeam data file, dumps the receivingTeam list, then reloads the teams.
 	 * @return 1 if successful, -1 if not (for /command usage)
 	 */
 	public static int reloadTeams() {
@@ -294,7 +296,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Claims the current chunk for the given player's team.
+	 * Claims the current chunk for the given player's receivingTeam.
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int claimCurrentChunk(Player player) {
@@ -302,7 +304,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Unclaims the current chunk for the given player's team.
+	 * Unclaims the current chunk for the given player's receivingTeam.
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int unclaimCurrentChunk(Player player) {
@@ -326,7 +328,7 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Checks if nearby chunks in radius are claimed by player's team.
+	 * Checks if nearby chunks in radius are claimed by player's receivingTeam.
 	 * @param player Player to check
 	 * @param radius The chunk radius around the player to check
 	 */
@@ -337,11 +339,11 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Checks if nearby chunks in radius are of a team
+	 * Checks if nearby chunks in radius are of a receivingTeam
 	 * @param chunkPos origin on which to check around
 	 * @param radius the radius to check around chunkPos
 	 * @param dimension the dimension to check in
-	 * @param team the team to check
+	 * @param team the receivingTeam to check
 	 * @return wether any were found
 	 */
 	public static boolean chunkIsNearChildChunk(ChunkPos chunkPos, int radius, ResourceLocation dimension, Team team) {
@@ -395,8 +397,8 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Check if player's team owns chunk at position.
-	 * @param player the player on which the team shall be checked.
+	 * Check if player's receivingTeam owns chunk at position.
+	 * @param player the player on which the receivingTeam shall be checked.
 	 * @param chunkPos the position of the chunk.
 	 */
 	public static boolean isChunkParent(Player player, ResourceLocation dimension, ChunkPos chunkPos) {
@@ -405,8 +407,8 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Check if team owns chunk at position.
-	 * @param team the team on which the team shall be checked.
+	 * Check if receivingTeam owns chunk at position.
+	 * @param team the receivingTeam on which the receivingTeam shall be checked.
 	 * @param chunkPos the position of the chunk.
 	 */
 	public static boolean isChunkParent(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
@@ -414,8 +416,8 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Claims chunks in a radius of a center position to a team
-	 * @param team The team to claim the chunks to
+	 * Claims chunks in a radius of a center position to a receivingTeam
+	 * @param team The receivingTeam to claim the chunks to
 	 * @param dimension The dimension to claim the chunks in
 	 * @param chunkPos The center of the radius to claim the chunks in
 	 * @param radius The radius itself
@@ -425,8 +427,8 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Unclaims chunks in a radius of a center position from a team
-	 * @param team The team to unclaim the chunks from
+	 * Unclaims chunks in a radius of a center position from a receivingTeam
+	 * @param team The receivingTeam to unclaim the chunks from
 	 * @param dimension The dimension to unclaim the chunks in
 	 * @param chunkPos The center of the radius to unclaim the chunks in
 	 * @param radius The radius itself
@@ -438,7 +440,7 @@ public class TeamUtils {
 	}
 
 	public static int unclaimChunks(Team team, ResourceLocation dimension, List<ChunkPos> chunkPosList) {
-		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Unclaiming chunk " + chunkPosList + " in dimension " + dimension + " from team '" + team.getName() + "'");
+		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Unclaiming chunk " + chunkPosList + " in dimension " + dimension + " from receivingTeam '" + team.getName() + "'");
 
 		team.getDimensionalData(dimension).removeChildChunks(chunkPosList);
 
@@ -458,13 +460,13 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Claims the given chunk for the given team,
+	 * Claims the given chunk for the given receivingTeam,
 	 * If the chunk has no near chunks nearby to take ownership,
 	 * it will default to create a capitolblock claim, please check before to avoid this effect
 	 * @return 1 if successful, -1 if failed (for /command usage)
 	 */
 	public static int claimChunk(Team team, ResourceLocation dimension, ChunkPos pos) {
-		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Claiming chunk " + pos + " in dimension " + dimension + " for team '" + team.getName() + "'");
+		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Claiming chunk " + pos + " in dimension " + dimension + " for receivingTeam '" + team.getName() + "'");
 
 		Team.CapitolData parent = getNearestParent(dimension, pos).orElseGet(() -> {
 			Team.CapitolData def = new Team.CapitolData(pos);
@@ -505,14 +507,14 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Unclaims the given chunk from the given team.
-	 * @param team      The team to unclaim for.
+	 * Unclaims the given chunk from the given receivingTeam.
+	 * @param team      The receivingTeam to unclaim for.
 	 * @param dimension The dimension of the chunk.
 	 * @param chunkPos  The position of the chunk.
 	 */
 	// TODO: ChunkUnclaimedEvent?
 	public static void unclaimChunk(Team team, ResourceLocation dimension, ChunkPos chunkPos) {
-		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from team '" + team.getName() + "'");
+		if (CapitolConfig.SERVER.debugLogs.get()) Capitol.LOGGER.info("Unclaiming chunk " + chunkPos + " in dimension " + dimension + " from receivingTeam '" + team.getName() + "'");
 
 		team.getDimensionalData(dimension).removeChildChunk(chunkPos);
 
@@ -543,6 +545,9 @@ public class TeamUtils {
 					capitolData.getChildChunks().forEach(childChunk -> PacketHandler.sendToPlayer(new BiAddChunk(childChunk, team.getTeamId(), chunkEntry.getKey()), player));
 				}
 			}
+		}
+		for (War war : TeamUtils.loadedWars) {
+			PacketHandler.sendToPlayer(new BiAddWar());
 		}
 	}
 

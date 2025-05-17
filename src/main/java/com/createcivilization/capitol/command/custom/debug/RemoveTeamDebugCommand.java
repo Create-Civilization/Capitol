@@ -42,7 +42,7 @@ public class RemoveTeamDebugCommand extends AbstractDebugCommand {
 			context.getSource().sendSuccess(() -> Component.literal("Team \"" + teamName + "\" has been removed, please rejoin to update commands"), true);
 			return 1;
 		}
-		context.getSource().sendSuccess(() -> Component.literal("No team \"" + teamName + "\" found"), true);
+		context.getSource().sendSuccess(() -> Component.literal("No receivingTeam \"" + teamName + "\" found"), true);
 		return 1;
 	}
 }

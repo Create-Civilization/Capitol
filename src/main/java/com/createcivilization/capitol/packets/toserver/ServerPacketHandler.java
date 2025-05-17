@@ -1,7 +1,10 @@
 package com.createcivilization.capitol.packets.toserver;
 
 import com.createcivilization.capitol.constants.ServerConstants;
+import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddWar;
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.network.chat.*;
@@ -62,16 +65,6 @@ public class ServerPacketHandler {
 			);
 	}
 
-
-	public static void handlePacket(Runnable run, IPayloadContext ctx) {
-//		ctx.enqueueWork(
-//			() -> DistHelper.runWhenOnServer(
-//				() -> run
-//			)
-//		);
-//		ctx.setPacketHandled(true);
-	}
-
 	public static void sendTeamMessage(ServerPlayer sender, String message) {
 		ObjectHolder<Team> holder = TeamUtils.getTeam(sender);
 		if (holder.isEmpty()) return;
@@ -91,5 +84,12 @@ public class ServerPacketHandler {
 		if (!TeamUtils.isChunkParent(team, dimension, pos)) return;
 
 		TeamUtils.unclaimChunkAndUpdate(team, dimension, pos);
+	}
+
+	public static void addWar(Team declaring, Team receiving) {
+		War warToAdd = new War(declaring, receiving);
+
+		if(TeamUtils.loadedWars.contains(warToAdd)) return;
+		PacketHandler.sendToAllPlayers(new BiAddWar(warToAdd.getDeclaringTeam(), warToAdd.getReceivingTeam()));
 	}
 }

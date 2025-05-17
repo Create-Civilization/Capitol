@@ -17,7 +17,8 @@ public class PermissionUtil {
 		"interactBlocks",
 		"addRole",
 		"editPermissions",
-		"removeMember"
+		"removeMember",
+		"declareWar"
 	));
 
 	public static Map<String, Boolean> newPermission(String keyword) {

@@ -51,27 +51,27 @@ public class CapitolConfig {
 			120
 		);
 		this.nonMemberUseItems = this.boolean0(
-			"Whether non-members can use items (can be overridden by team permissions).",
+			"Whether non-members can use items (can be overridden by receivingTeam permissions).",
 			"can_non_members_use_items",
 			true
 		);
 		this.nonMemberInteractEntities = this.boolean0(
-			"Whether non-members can interact with entities (can be overridden by team permissions).",
+			"Whether non-members can interact with entities (can be overridden by receivingTeam permissions).",
 			"can_non_members_interact_with_entities",
 			true
 		);
 		this.nonMemberInteractBlocks = this.boolean0(
-			"Whether non-members can interact with blocks (can be overridden by team permissions).",
+			"Whether non-members can interact with blocks (can be overridden by receivingTeam permissions).",
 			"can_non_members_interact_with_blocks",
 			true
 		);
 		this.maxChunks = this.positiveInteger(
-			"The maximum number of chunks a team can own.",
+			"The maximum number of chunks a receivingTeam can own.",
 			"max_chunks",
 			1000
 		);
 		this.maxMembers = this.positiveInteger(
-			"The maximum number of members a team can have.",
+			"The maximum number of members a receivingTeam can have.",
 			"max_members",
 			50
 		);

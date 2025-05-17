@@ -159,7 +159,9 @@ public class BookMenu extends BookScreen {
 
 	private static class AttackHandler extends PageHandler {
 		public AttackHandler() {
-			super(List.of());
+			super(List.of(
+
+			));
 		}
 	}
 	private static class DefenseHandler extends PageHandler {

@@ -3,6 +3,7 @@ package com.createcivilization.capitol.packets.toclient;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.resources.ResourceLocation;
@@ -38,19 +39,10 @@ public class ClientPacketHandler {
 	}
 
 	public static void openTeamStatistics(String teamId) {
-		// This SHOULD throw if team is not loaded due to the server already checking for team existence
+		// This SHOULD throw if receivingTeam is not loaded due to the server already checking for receivingTeam existence
 		// If it throws, client is out of sync, thus needs to be synced
 		Team team = TeamUtils.getTeam(teamId).getOrThrow();
 		ClientConstants.INSTANCE.setScreen(new BookMenu(3,0));
-	}
-
-	public static void handlePacket(Runnable run, Object ctx) {
-//		ctx.enqueueWork(
-//			() -> DistHelper.runWhenOnClient(
-//				() -> run
-//			)
-//		);
-//		ctx.setPacketHandled(true);
 	}
 
 	public static void removeCapitol(Team.CapitolData capitolData, ResourceLocation dimension, String teamId) {
@@ -58,5 +50,9 @@ public class ClientPacketHandler {
 		team.getDimensionalData(dimension).removeCapitolData(capitolData);
 		ClientConstants.toResetChunksTeamIds.add(teamId);
 		ClientConstants.chunksDirty = true;
+	}
+
+	public static void addWar(Team declaringTeam, Team receivingTeam) {
+		TeamUtils.loadedWars.add(new War(declaringTeam, receivingTeam));
 	}
 }

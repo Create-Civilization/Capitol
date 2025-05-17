@@ -2,7 +2,8 @@ package com.createcivilization.capitol.journeymap;
 
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.event.ClientEvents;
-import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddChunk;
+import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 

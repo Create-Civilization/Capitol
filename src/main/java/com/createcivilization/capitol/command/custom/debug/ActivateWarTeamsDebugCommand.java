@@ -43,7 +43,7 @@ public class ActivateWarTeamsDebugCommand extends AbstractDebugCommand {
 		String defenderTeamName = StringArgumentType.getString(context, "defenderTeamName");
 		Team attackerTeam = TeamUtils.getTeamByName(attackerTeamName).getOrThrow();
 		Team defenderTeam = TeamUtils.getTeamByName(defenderTeamName).getOrThrow();
-		TeamUtils.wars.add(new War(attackerTeam, defenderTeam));
+		TeamUtils.loadedWars.add(new War(attackerTeam, defenderTeam));
 
 		context.getSource().sendSuccess(() -> Component.literal(
 			"Successfully intiated a war between \"" + attackerTeamName + "\" and \"" + defenderTeamName + "\""

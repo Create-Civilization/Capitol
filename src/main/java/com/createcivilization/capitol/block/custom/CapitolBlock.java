@@ -2,6 +2,7 @@ package com.createcivilization.capitol.block.custom;
 
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 import com.createcivilization.capitol.config.CapitolConfig;
+import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveCapitol;
 import com.createcivilization.capitol.team.Team;
@@ -95,7 +96,7 @@ public class CapitolBlock extends BaseEntityBlock {
 
 	// setPlacedBy --> Minecraft
 	// Check if:
-	// Player is in team
+	// Player is in receivingTeam
 	// Chunk does not have CapitolBlock
 	// Then:
 	// Claim chunk & chunk radius (CONFIG AMOUNT, DEFAULTING TO 1)
@@ -109,7 +110,7 @@ public class CapitolBlock extends BaseEntityBlock {
 			!world.isClientSide
 				&& world.getBlockEntity(pos) instanceof CapitolBlockEntity // Safety check
 				&& placer instanceof Player player // Make sure nothing else is placing it
-				&& TeamUtils.hasTeam(player) // Make sure player has a team
+				&& TeamUtils.hasTeam(player) // Make sure player has a receivingTeam
 				&& !TeamUtils.chunkHasCapitolBlock(new ChunkPos(pos), TeamUtils.getPlayerDimension(player))
 				&& !TeamUtils.isInClaimedChunk(player, pos)
 		) {

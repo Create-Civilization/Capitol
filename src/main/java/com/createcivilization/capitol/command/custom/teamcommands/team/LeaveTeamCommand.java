@@ -26,17 +26,17 @@ public class LeaveTeamCommand extends AbstractTeamCommand {
 		Team playerTeam = TeamUtils.getTeam(player).getOrThrow();
 		List<UUID> owners = playerTeam.getPlayersWithRole("owner");
 		if (owners.contains(player.getUUID()) && owners.size() == 1){
-			player.sendSystemMessage(Component.literal("You cannot leave the team as the only owner"));
+			player.sendSystemMessage(Component.literal("You cannot leave the receivingTeam as the only owner"));
 			return -1;
 		}
 		playerTeam.removePlayer(player.getUUID());
-		player.sendSystemMessage(Component.literal("Successfully left team"));
+		player.sendSystemMessage(Component.literal("Successfully left receivingTeam"));
 		return 1;
 	}
 
 	@Override
 	public boolean canExecute(Player player) {
-		setMustWhat("be a player and in a team");
+		setMustWhat("be a player and in a receivingTeam");
 		return TeamUtils.hasTeam(player);
 	}
 }

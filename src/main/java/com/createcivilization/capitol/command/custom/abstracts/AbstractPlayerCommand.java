@@ -24,7 +24,7 @@ public abstract class AbstractPlayerCommand extends AbstractCommand {
 
 	protected String mustWhat = "be a player";
 
-	// What the user must have to do the command, i.e "be a player", "be a player and an operator", "be a player and in a team"
+	// What the user must have to do the command, i.e "be a player", "be a player and an operator", "be a player and in a receivingTeam"
 	public void setMustWhat(String mustWhat) {
 		this.mustWhat = mustWhat;
 	}

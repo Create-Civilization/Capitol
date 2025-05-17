@@ -23,7 +23,7 @@ public class ClientConstants {
 	public static final List<String> toResetChunksTeamIds = new ArrayList<>();
 
 	// ERROR
-	public static final Component NOT_IN_TEAM = Component.literal("You are not in a team");
+	public static final Component NOT_IN_TEAM = Component.literal("You are not in a receivingTeam");
 	public static final Component NOT_NEAR_CHUNK = Component.literal("Must be next to a claimed chunk to do this");
 	public static final Component CHUNK_ALREADY_CLAIMED = Component.literal("Chunk already claimed");
 

@@ -68,7 +68,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 
 	@Override
     public boolean canExecute(Player player) {
-        setMustWhat("be a player and not be in a team");
+        setMustWhat("be a player and not be in a receivingTeam");
         return !TeamUtils.hasTeam(player);
     }
 
@@ -97,12 +97,12 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 	public int executeAllParams(CommandContext<CommandSourceStack> command, Color color) {
 		String name = StringArgumentType.getString(command, "name");
 		if (TeamUtils.teamExists(name)) {
-			command.getSource().sendFailure(Component.literal("A team with the name '" + name + "' already exists!"));
+			command.getSource().sendFailure(Component.literal("A receivingTeam with the name '" + name + "' already exists!"));
 			return -1;
 		}
 		return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
 			TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, color));
-			command.getSource().sendSuccess(() -> Component.literal("Created team '" + name + "' with color '" + color + "'."), true);
+			command.getSource().sendSuccess(() -> Component.literal("Created receivingTeam '" + name + "' with color '" + color + "'."), true);
 			command.getSource().sendSystemMessage(Component.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
 			return 1;
 		}, () -> {

@@ -33,7 +33,7 @@ public class ClaimCurrentChunkCommand extends AbstractTeamCommand {
 
 	@Override
     public boolean canExecute(Player player) {
-        setMustWhat("be a player and be in a team");
+        setMustWhat("be a player and be in a receivingTeam");
         return TeamUtils.hasTeam(player);
     }
 }

@@ -16,7 +16,7 @@ public class DisbandTeamCommand extends AbstractTeamCommand {
 
 	@Override
 	public int execute(Player player) {
-		// Only runs if player owns the team (check canExecute)
+		// Only runs if player owns the receivingTeam (check canExecute)
 		TeamUtils.removeTeam(TeamUtils.getTeam(player).getOrThrow().getTeamId());
 		player.sendSystemMessage(Component.literal("Team successfully disbanded"));
 		return 1;
@@ -24,7 +24,7 @@ public class DisbandTeamCommand extends AbstractTeamCommand {
 
 	@Override
 	public boolean canExecute(Player player) {
-		setMustWhat("be a player and own a team");
+		setMustWhat("be a player and own a receivingTeam");
 		return TeamUtils.hasTeam(player) && TeamUtils.isTeamOwner(player);
 	}
 }

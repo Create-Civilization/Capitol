@@ -39,7 +39,7 @@ public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 		Player player = Objects.requireNonNull(source.getPlayer());
 		UUID uuid = player.getUUID();
 		if (TeamUtils.hasTeam(player)) {
-			source.sendFailure(Component.literal("You're already in a team"));
+			source.sendFailure(Component.literal("You're already in a receivingTeam"));
 			return -1;
 		}
 		if (
@@ -47,7 +47,7 @@ public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 			&& (invitingTeam.getInviteeTimestamp(uuid) + CapitolConfig.SERVER.inviteTimeout.get()) > (System.currentTimeMillis() / 1000L)
 		) {
 			invitingTeam.addPlayer("member", uuid);
-			source.sendSuccess(() -> Component.literal("Successfully joined team \"" + invitingTeam.getName() + "\""), true);
+			source.sendSuccess(() -> Component.literal("Successfully joined receivingTeam \"" + invitingTeam.getName() + "\""), true);
 			return 1;
 		} else {
 			source.sendFailure(Component.literal("Invite Expired!"));
@@ -57,7 +57,7 @@ public class InviteAcceptTeamCommand extends AbstractTeamCommand {
 
 	@Override
 	public boolean canExecute(Player player) {
-		setMustWhat("be a player and be in a team");
+		setMustWhat("be a player and be in a receivingTeam");
 		return TeamUtils.hasTeam(player);
 	}
 }

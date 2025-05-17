@@ -4,6 +4,7 @@ import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.gui.screen.CreateTeamScreen;
+import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
 import com.createcivilization.capitol.packets.toserver.requests.C2SClaimCurrentChunk;
 import com.createcivilization.capitol.packets.toserver.requests.C2SSendTeamMessage;
 import com.createcivilization.capitol.team.Team;
@@ -65,7 +66,7 @@ public class ClientEvents {
 		if (KeyBindings.toggleTeamChat.consumeClick()) {
 			if (getTeamOrDisplayClientMessage(player).isPresent()) {
 				ClientConstants.teamChat = !ClientConstants.teamChat;
-				ClientConstants.INSTANCE.player.displayClientMessage(Component.literal("Now talking in " + (ClientConstants.teamChat ? "team chat" : "public chat")), false);
+				ClientConstants.INSTANCE.player.displayClientMessage(Component.literal("Now talking in " + (ClientConstants.teamChat ? "receivingTeam chat" : "public chat")), false);
 			}
 		}
 

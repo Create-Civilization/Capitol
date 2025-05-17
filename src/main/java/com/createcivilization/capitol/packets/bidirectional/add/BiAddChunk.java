@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.packets.bidirectional;
+package com.createcivilization.capitol.packets.bidirectional.add;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.packets.DirectionalPayload;

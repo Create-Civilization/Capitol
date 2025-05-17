@@ -37,7 +37,7 @@ public class InviteTeamCommand extends AbstractTeamCommand {
 			throw new RuntimeException(e);
 		}
 		if (TeamUtils.hasTeam(toInvite)) {
-			inviter.sendFailure(Component.literal("Player already in a team."));
+			inviter.sendFailure(Component.literal("Player already in a receivingTeam."));
 			return -1;
 		}
 		assert invitingTeam != null;
@@ -47,13 +47,13 @@ public class InviteTeamCommand extends AbstractTeamCommand {
 			.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitolTeams inviteAccept " + invitingTeam.getTeamId()))
 			.withColor(TextColor.fromRgb(0x00FF00))));
 
-		inviter.sendSuccess(() -> Component.literal("Successfully invited player to team"), true);
+		inviter.sendSuccess(() -> Component.literal("Successfully invited player to receivingTeam"), true);
 		return 1;
 	}
 
 	@Override
 	public boolean canExecute(Player player) {
-		setMustWhat("be a player and be in a team");
+		setMustWhat("be a player and be in a receivingTeam");
 		return TeamUtils.hasTeam(player);
 	}
 }

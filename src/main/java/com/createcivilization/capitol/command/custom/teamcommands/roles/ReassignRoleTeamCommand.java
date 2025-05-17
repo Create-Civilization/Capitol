@@ -53,7 +53,7 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 		String role = StringArgumentType.getString(context,"roleName");
 
 		if (!Objects.equals(TeamUtils.getTeam(player).getOrThrow().getTeamId(), TeamUtils.getTeam(toPromote).getOrThrow().getTeamId())) {
-			source.sendFailure(Component.literal("Player is not from the same team as you"));
+			source.sendFailure(Component.literal("Player is not from the same receivingTeam as you"));
 			return -1;
 		}
 
@@ -79,7 +79,7 @@ public class ReassignRoleTeamCommand extends AbstractTeamCommand {
 
 	@Override
 	public boolean canExecute(Player player) {
-		setMustWhat("be a player, be in a team and have role making permissions");
+		setMustWhat("be a player, be in a receivingTeam and have role making permissions");
 		return TeamUtils.hasTeam(player)
 			&& TeamUtils.getPlayerPermission(TeamUtils.getTeam(player).getOrThrow(), player).get("editPermissions");
 	}

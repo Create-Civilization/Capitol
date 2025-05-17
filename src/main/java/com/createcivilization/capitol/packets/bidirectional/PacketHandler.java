@@ -1,15 +1,17 @@
-package com.createcivilization.capitol.util;
+package com.createcivilization.capitol.packets.bidirectional;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.bidirectional.BiAddChunk;
-import com.createcivilization.capitol.packets.bidirectional.BiAddTeam;
-import com.createcivilization.capitol.packets.bidirectional.BiRemoveChunk;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddChunk;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddTeam;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddWar;
+import com.createcivilization.capitol.packets.bidirectional.remove.BiRemoveChunk;
 import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.packets.toclient.syncing.*;
 import com.createcivilization.capitol.packets.toserver.ServerPacketHandler;
 import com.createcivilization.capitol.packets.toserver.requests.*;
 import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.GsonUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -111,6 +113,7 @@ public class PacketHandler {
 		registerBiDirectional.accept(BiAddChunk.TYPE, BiAddChunk.STREAM_CODEC, BiAddChunk::client, BiAddChunk::server);
 		registerBiDirectional.accept(BiAddTeam.TYPE, BiAddTeam.STREAM_CODEC, BiAddTeam::client, BiAddTeam::server);
 		registerBiDirectional.accept(BiRemoveChunk.TYPE, BiRemoveChunk.STREAM_CODEC, BiRemoveChunk::client, BiRemoveChunk::server);
+		registerBiDirectional.accept(BiAddWar.TYPE, BiAddWar.STREAM_CODEC, BiAddWar::client, BiAddWar::server);
 
 		registerToClient.accept(S2COpenTeamStatistics.TYPE, S2COpenTeamStatistics.STREAM_CODEC, S2COpenTeamStatistics::client);
 		registerToClient.accept(S2CRemoveCapitol.TYPE, S2CRemoveCapitol.STREAM_CODEC, S2CRemoveCapitol::client);

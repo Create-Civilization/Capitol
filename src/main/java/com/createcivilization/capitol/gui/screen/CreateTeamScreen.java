@@ -4,9 +4,9 @@ import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.constants.CommonConstants;
 import com.createcivilization.capitol.gui.base.BookScreen;
 import com.createcivilization.capitol.gui.base.Interactable;
-import com.createcivilization.capitol.packets.bidirectional.BiAddTeam;
+import com.createcivilization.capitol.packets.bidirectional.add.BiAddTeam;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.PacketHandler;
+import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.network.chat.Component;
 

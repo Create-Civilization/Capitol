@@ -68,7 +68,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 	@Override
 	@SuppressWarnings("DataFlowIssue")
 	public void updateTakeOverProgress(MinecraftServer server) {
-		for (War war : TeamUtils.wars) {
+		for (War war : TeamUtils.loadedWars) {
 			if (TeamUtils.isChunkEdgeOfClaims((ChunkAccess) (Object) this)) {
 				if (this.getTakeOverProgress() < 0) {
 					String msg = "ERROR: Takeover progress is less than 0! Error occurred at ChunkPos " + this.getPos();
