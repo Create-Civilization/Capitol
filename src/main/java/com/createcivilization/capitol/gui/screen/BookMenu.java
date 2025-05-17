@@ -1,7 +1,8 @@
 package com.createcivilization.capitol.gui.screen;
 
-import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.Asset;
+import com.createcivilization.capitol.gui.base.BookScreen;
 import com.createcivilization.capitol.gui.base.Interactable;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
@@ -9,16 +10,13 @@ import com.createcivilization.capitol.gui.interactables.TextInputInteractable;
 import com.createcivilization.capitol.gui.pages.DisplayTeam;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class BookMenu extends SmartScreen {
+public class BookMenu extends BookScreen {
 
-	private static final Asset ASSET = new Asset(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "textures/gui/book_gui.png"), 421, 212);
-	private static final Asset.Blit BACKGROUND = ASSET.blit(0, 0, 295, 179);
 	public int currentPage;
 	Tabs tabs = new Tabs();
 	int startingTab;
@@ -30,7 +28,6 @@ public class BookMenu extends SmartScreen {
 		new InfoHandler(),
 		new SettingsHandler()
 	);
-	public int leftPos, rightPos, topPos;
 
 
 	public BookMenu(int startingTab, int startingPage) {
@@ -44,9 +41,8 @@ public class BookMenu extends SmartScreen {
 		this.currentPage = startingPage;
 	}
 
-	@Override
-	protected Asset.Blit getBackgroundBlit() {
-		return BACKGROUND;
+	public BookMenu() {
+		this(ClientConstants.lastTab, ClientConstants.lastPage);
 	}
 
 	@Override
