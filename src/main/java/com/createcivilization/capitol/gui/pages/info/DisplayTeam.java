@@ -23,9 +23,9 @@ public class DisplayTeam extends Page {
 		BiFunction<Component, Integer, TextInteractable> newText = (title, y) -> new TextInteractable(title, 72 - ClientConstants.INSTANCE.font.width(title.getString()) / 2, 14 + y, null, null);
 
 		Team team = ClientConstants.getPlayerTeam().getOrThrow();
-		addInteractableList(newText.apply(Component.literal("Claimed chunks:"), 10));
-		addInteractableList(newText.apply(Component.literal(team.getAllChildChunks().size() + " / " + CapitolConfig.SERVER.maxChunks.get()), 20));
-		addInteractableList(newText.apply(Component.literal("Members:"), 30));
-		addInteractableList(newText.apply(Component.literal(String.valueOf(team.getMembers().values().stream().mapToInt(List::size).sum())), 40));
+		addInteractable(newText.apply(Component.literal("Claimed chunks:"), 10));
+		addInteractable(newText.apply(Component.literal(team.getAllChildChunks().size() + " / " + CapitolConfig.SERVER.maxChunks.get()), 20));
+		addInteractable(newText.apply(Component.literal("Members:"), 30));
+		addInteractable(newText.apply(Component.literal(String.valueOf(team.getMembers().values().stream().mapToInt(List::size).sum())), 40));
 	}
 }

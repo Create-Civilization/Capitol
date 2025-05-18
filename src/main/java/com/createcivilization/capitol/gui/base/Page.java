@@ -3,7 +3,6 @@ package com.createcivilization.capitol.gui.base;
 import com.createcivilization.capitol.constants.ClientConstants;
 import net.minecraft.network.chat.Component;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +14,15 @@ public abstract class Page extends Interactable.InteractableBundle {
 		setInteractableList(List.of(new TextInteractable(title, 72 - ClientConstants.INSTANCE.font.width(title.getString()) / 2, 14, null, null)));
 	}
 
-	public void addInteractableList(Interactable interactable) {
+	public void addInteractable(Interactable interactable) {
 		List<Interactable> interactables = new ArrayList<>(getInteractableList());
 		interactables.add(interactable);
+		setInteractableList(interactables);
+	}
+
+	public void remInteractable(Interactable interactable) {
+		List<Interactable> interactables = new ArrayList<>(getInteractableList());
+		interactables.remove(interactable);
 		setInteractableList(interactables);
 	}
 

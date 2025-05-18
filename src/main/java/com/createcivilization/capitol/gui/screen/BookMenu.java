@@ -2,18 +2,17 @@ package com.createcivilization.capitol.gui.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ClientConstants;
-import com.createcivilization.capitol.gui.base.BookScreen;
-import com.createcivilization.capitol.gui.base.BoundingBox;
-import com.createcivilization.capitol.gui.base.Interactable;
-import com.createcivilization.capitol.gui.base.SmartScreen;
+import com.createcivilization.capitol.gui.base.*;
 import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
 import com.createcivilization.capitol.gui.interactables.TextInputInteractable;
 import com.createcivilization.capitol.gui.pages.attack.DeclareWar;
 import com.createcivilization.capitol.gui.pages.info.DisplayTeam;
+import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -162,9 +161,14 @@ public class BookMenu extends BookScreen {
 
 	private static class AttackHandler extends PageHandler {
 		public AttackHandler() {
-			super(List.of(
-				new DeclareWar()
-			));
+			super(getPageList());
+		}
+		private static List<Interactable> getPageList() {
+			List<Page> pageList = new ArrayList<>();
+
+			if (TeamUtils.canPlayerDo(ClientConstants.getPlayerTeam().getOrThrow(), ClientConstants.INSTANCE.player, "declareWar")) pageList.add(new DeclareWar());
+
+			return (List<Interactable>) (Object) pageList;
 		}
 	}
 	private static class DefenseHandler extends PageHandler {
@@ -258,12 +262,6 @@ public class BookMenu extends BookScreen {
 	public static class TextInput extends TextInputInteractable {
 		public TextInput(@Nullable Component placeHolderText, int x, int y, @Nullable List<String> autoCorrect) {
 			super(ASSET.blit(148, 193, 106, 13), placeHolderText, x, y, autoCorrect, null, true);
-		}
-
-		@Override
-		public BoundingBox getBoundingBox() {
-			Capitol.LOGGER.info("bd {}",super.getBoundingBox());
-			return super.getBoundingBox();
 		}
 	}
 }
