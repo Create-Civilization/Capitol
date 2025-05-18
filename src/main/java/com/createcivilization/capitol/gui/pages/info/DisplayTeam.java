@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.gui.pages;
+package com.createcivilization.capitol.gui.pages.info;
 
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.constants.ClientConstants;

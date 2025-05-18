@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.gui.base;
 
+import com.createcivilization.capitol.Capitol;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -80,7 +81,8 @@ public abstract class SmartScreen extends Screen {
 		if (button == 0) {
 			for (Interactable interactable : interactableList) {
 				if (!interactable.getBoundingBox().isPositionInside((int) mouseX, (int) mouseY)) continue;
-				currentClick = interactable.clickStart((int) mouseX, (int) mouseY);
+				Interactable v = interactable.clickStart((int) mouseX, (int) mouseY);
+				currentClick = v == null ? currentClick : v;
 			}
 			lastClick = currentClick;
 		}

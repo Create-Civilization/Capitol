@@ -1,12 +1,15 @@
 package com.createcivilization.capitol.gui.screen;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.BookScreen;
+import com.createcivilization.capitol.gui.base.BoundingBox;
 import com.createcivilization.capitol.gui.base.Interactable;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
 import com.createcivilization.capitol.gui.interactables.TextInputInteractable;
-import com.createcivilization.capitol.gui.pages.DisplayTeam;
+import com.createcivilization.capitol.gui.pages.attack.DeclareWar;
+import com.createcivilization.capitol.gui.pages.info.DisplayTeam;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
@@ -160,7 +163,7 @@ public class BookMenu extends BookScreen {
 	private static class AttackHandler extends PageHandler {
 		public AttackHandler() {
 			super(List.of(
-
+				new DeclareWar()
 			));
 		}
 	}
@@ -253,8 +256,14 @@ public class BookMenu extends BookScreen {
 	}
 
 	public static class TextInput extends TextInputInteractable {
-		public TextInput(@Nullable Component placeHolderText, int x, int y) {
-			super(ASSET.blit(148, 193, 106, 13), placeHolderText, x, y, null, true);
+		public TextInput(@Nullable Component placeHolderText, int x, int y, @Nullable List<String> autoCorrect) {
+			super(ASSET.blit(148, 193, 106, 13), placeHolderText, x, y, autoCorrect, null, true);
+		}
+
+		@Override
+		public BoundingBox getBoundingBox() {
+			Capitol.LOGGER.info("bd {}",super.getBoundingBox());
+			return super.getBoundingBox();
 		}
 	}
 }

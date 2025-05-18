@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BiAddWar(Team declaringTeam, Team receivingTeam) implements DirectionalPayload.BiDirectional {
 
-	public static final CustomPacketPayload.Type<BiAddChunk> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "bi_add_team"));
+	public static final CustomPacketPayload.Type<BiAddWar> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "bi_add_war"));
 
 	public static final StreamCodec<FriendlyByteBuf, BiAddWar> STREAM_CODEC =
 		StreamCodec.composite(

@@ -547,7 +547,7 @@ public class TeamUtils {
 			}
 		}
 		for (War war : TeamUtils.loadedWars) {
-			PacketHandler.sendToPlayer(new BiAddWar());
+			PacketHandler.sendToPlayer(new BiAddWar(war.getDeclaringTeam(), war.getReceivingTeam()), player);
 		}
 	}
 

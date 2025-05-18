@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.gui.interactables;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.Asset;
 import com.createcivilization.capitol.gui.base.Interactable;
@@ -9,11 +10,13 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public abstract class TextInputInteractable implements Interactable.BlitInteractable {
 
+	public static final int gray = Color.GRAY.getRGB();
 	private final Asset.Blit idleBlit;
 	private final Component placeHolderText;
 	private StringBuilder value = new StringBuilder();
@@ -21,24 +24,45 @@ public abstract class TextInputInteractable implements Interactable.BlitInteract
 	private final int color;
 	boolean dropShadow;
 	SmartScreen smartScreen;
+	List<String> autoFill;
 
-	public TextInputInteractable(Asset.Blit idleBlit, @Nullable Component placeHolderText, int x, int y, @Nullable Integer color, boolean dropShadow) {
+	public TextInputInteractable(Asset.Blit idleBlit, @Nullable Component placeHolderText, int x, int y, @Nullable List<String> autoFill, @Nullable Integer color, boolean dropShadow) {
 		this.idleBlit = idleBlit;
 		this.placeHolderText = placeHolderText == null ? Component.empty() : placeHolderText;
 		this.color = color == null ? Color.WHITE.getRGB() : color;
 		this.dropShadow = dropShadow;
 		this.x = x;
 		this.y = y;
+		this.autoFill = autoFill;
 	}
 
 	private boolean isHidden = false;
+	private String closestTeamName = "";
 
 	@Override
 	public void render(GuiGraphics guiGraphics) {
 		BlitInteractable.super.render(guiGraphics);
 
-		if (getValue().isEmpty() && !isActive()) guiGraphics.drawString(ClientConstants.INSTANCE.font, placeHolderText.getString(), this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, Color.GRAY.getRGB(), dropShadow);
-		else guiGraphics.drawString(ClientConstants.INSTANCE.font, getValue() + (isActive() && (System.currentTimeMillis() / 500) % 2 == 0 ? "_" : ""), this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, color, dropShadow);
+		String value = getValue();
+		if (value.isEmpty() && !isActive()) guiGraphics.drawString(ClientConstants.INSTANCE.font, placeHolderText.getString(), this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, gray, dropShadow);
+		else {
+			// autofill
+			if (autoFill != null) {
+				getClosestTeamName(value);
+				guiGraphics.drawString(ClientConstants.INSTANCE.font, closestTeamName, this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, gray, dropShadow);
+			}
+			guiGraphics.drawString(ClientConstants.INSTANCE.font, value + (isActive() && (System.currentTimeMillis() / 500) % 2 == 0 ? "_" : ""), this.x + 3, this.y + ClientConstants.INSTANCE.font.lineHeight / 2 - 2, color, dropShadow);
+		};
+	}
+
+	private void getClosestTeamName(String value) {
+		for (String string : autoFill) {
+			if (string.toLowerCase().startsWith(value.toLowerCase())) {
+				closestTeamName = string;
+				return;
+			}
+		}
+		closestTeamName = "";
 	}
 
 
@@ -55,6 +79,14 @@ public abstract class TextInputInteractable implements Interactable.BlitInteract
 			value.deleteCharAt(value.length() - 1);
 			return;
 		}
+		if (keyCode == GLFW_KEY_ENTER) {
+			this.smartScreen.lastClick = null;
+			return;
+		}
+		if (keyCode == GLFW_KEY_TAB || keyCode == GLFW_KEY_RIGHT) {
+			setValue(closestTeamName);
+			return;
+		}
 
 		String keyName = glfwGetKeyName(keyCode, scanCode);
 		if (keyName != null && keyName.length() == 1) {
@@ -67,6 +99,7 @@ public abstract class TextInputInteractable implements Interactable.BlitInteract
 	}
 
 	private boolean isActive() {
+		if (this.smartScreen == null) return false;
 		return this.smartScreen.lastClick == this;
 	}
 

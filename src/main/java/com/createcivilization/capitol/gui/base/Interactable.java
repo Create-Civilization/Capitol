@@ -156,8 +156,8 @@ public interface Interactable {
 			BoundingBox firstBoundingBox = list.getFirst().getBoundingBox();
 			int startX = firstBoundingBox.startX;
 			int startY = firstBoundingBox.startY;
-			int endX = 0;
-			int endY = 0;
+			int endX = firstBoundingBox.endX;
+			int endY = firstBoundingBox.endY;
 
 			for (Interactable interactable : list) {
 				BoundingBox boundingBox = interactable.getBoundingBox();
