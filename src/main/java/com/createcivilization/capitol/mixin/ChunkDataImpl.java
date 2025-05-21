@@ -5,6 +5,7 @@ import com.createcivilization.capitol.event.custom.WarEvent;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
@@ -65,6 +66,9 @@ public abstract class ChunkDataImpl implements IChunkData {
 		this.isDecrementing = this.getTakeOverProgress() != 0;
 	}
 
+	//TODO:: FIX TEAM HANG ON UNCLAIMED CHUNKS
+	//TODO:: FIX IMPROPER ENEMY DETECTION
+
 	@Override
 	@SuppressWarnings("DataFlowIssue")
 	public void updateTakeOverProgress(MinecraftServer server) {
@@ -88,7 +92,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
 					else {
 						var thisTeam = isThisChunkClaimedByDeclaringTeam ? war.getReceivingTeam() : war.getDeclaringTeam();
-						TeamUtils.unclaimChunkAndUpdate(
+						TeamUtils.unclaimChunk(
 							thisTeam,
 							dimensionResourceLocation,
 							this.getPos()
@@ -101,6 +105,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 							"Chunk taken over in war " + war + ", at ChunkPos " + this.getPos()
 						);
 					}
+					players.forEach(serverPlayer -> serverPlayer.displayClientMessage(Component.literal(String.valueOf(this.takeOverProgress)), true));
 				} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
 			}
 		}

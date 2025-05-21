@@ -17,13 +17,14 @@ public class DeclareWar extends Page {
 
 	@Override
 	public void init(SmartScreen smartScreen) {
-		BookMenu.TextInput textInput = new BookMenu.TextInput(Component.literal("Team name"), 20, 24, TeamUtils.loadedTeams.stream().map(Team::getName).toList());
+		BookMenu.TextInput textInput = new BookMenu.TextInput(Component.literal("Team name"), 20, 24, TeamUtils.loadedTeams.stream().filter(team -> !team.equals(ClientConstants.getPlayerTeam().getOrThrow())).map(Team::getName).toList());
 		addInteractable(textInput);
 		addInteractable(new BookMenu.Button(20, 47, Component.literal("Declare war"), () -> {
 			String teamName = textInput.getValue();
 			PacketHandler.sendToServer(new BiAddWar(ClientConstants.getPlayerTeam().getOrThrow(), TeamUtils.getTeamByName(teamName).getOrThrow()));
 			smartScreen.onClose();
 			assert ClientConstants.INSTANCE.player != null;
+			//TODO:: REJECT
 			ClientConstants.INSTANCE.player.displayClientMessage(Component.literal("Successfully declared war on \"" + teamName + "\""), true);
 		}));
 		super.init(smartScreen);
