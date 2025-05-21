@@ -5,6 +5,7 @@ import com.createcivilization.capitol.event.custom.WarEvent;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
@@ -113,6 +114,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 						"Chunk taken over in war " + war + ", at ChunkPos " + pos
 					);
 				}
+				players.forEach(serverPlayer -> serverPlayer.displayClientMessage(Component.literal(String.valueOf(this.takeOverProgress)), true));
 			} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
 		}
 	}
