@@ -90,6 +90,7 @@ public class ServerPacketHandler {
 		War warToAdd = new War(declaring, receiving);
 
 		if(TeamUtils.loadedWars.contains(warToAdd)) return;
+		TeamUtils.loadedWars.add(warToAdd);
 		PacketHandler.sendToAllPlayers(new BiAddWar(warToAdd.getDeclaringTeam(), warToAdd.getReceivingTeam()));
 	}
 }
