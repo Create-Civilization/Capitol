@@ -126,13 +126,7 @@ public class PlayerInteractionEvents {
 	}
 
 	public static void setCancelled0(PlayerInteractEvent event) {
-		try {
-			var setCancellationResult = event.getClass().getMethod("setCancellationResult", InteractionResult.class);
-			setCancellationResult.invoke(event, InteractionResult.FAIL);
-			if (event instanceof ICancellableEvent cancellableEvent) cancellableEvent.setCanceled(true);
-			else throw new IllegalStateException("Non cancellable event!");
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to cancel event!", e);
-		}
+		if (!(event instanceof ICancellableEvent cancellableEvent)) return;
+		cancellableEvent.setCanceled(true);
 	}
 }

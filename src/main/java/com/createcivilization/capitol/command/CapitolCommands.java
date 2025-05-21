@@ -33,5 +33,6 @@ public class CapitolCommands {
 		new ReassignRoleTeamCommand().register(dispatcher);
 		new EditRoleTeamCommand().register(dispatcher);
 		new AdminModeCommand().register(dispatcher);
+		new GetTakeoverProgress().register(dispatcher);
     }
 }
