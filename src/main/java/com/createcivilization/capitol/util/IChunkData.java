@@ -4,9 +4,9 @@ import net.minecraft.server.MinecraftServer;
 
 public interface IChunkData {
 
-	float getTakeOverProgress();
+	int getTakeOverProgress();
 
-	void setTakeOverProgress(float i);
+	void setTakeOverProgress(int i);
 
 	void resetTakeOverProgress();
 

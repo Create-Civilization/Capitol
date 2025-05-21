@@ -28,20 +28,27 @@ public abstract class ChunkDataImpl implements IChunkData {
 	public abstract ChunkPos getPos();
 
 	@Unique
-	private float takeOverProgress = 0;
+	private int takeOverProgress = 0;
 
 	@Unique
 	private boolean
 		wasJustIncremented = false,
 		isDecrementing = false;
 
+	/**
+	 * @return {@link #takeOverProgress}.
+	 */
 	@Override
-	public float getTakeOverProgress() {
+	public int getTakeOverProgress() {
 		return this.takeOverProgress;
 	}
 
+	/**
+	 * Sets the {@link #takeOverProgress} to the provided parameter, resetting both {@link #wasJustIncremented} and {@link #isDecrementing}.
+	 * @param i The new takeover progress.
+	 */
 	@Override
-	public void setTakeOverProgress(float i) {
+	public void setTakeOverProgress(int i) {
 		this.takeOverProgress = i;
 		this.wasJustIncremented = false;
 		this.isDecrementing = false;
@@ -91,7 +98,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 				if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
 				else {
 					var thisTeam = isDeclaringTeam ? war.getReceivingTeam() : war.getDeclaringTeam();
-					TeamUtils.unclaimChunkAndUpdate(
+					TeamUtils.unclaimChunk(
 						thisTeam,
 						dimensionResourceLocation,
 						pos
@@ -108,10 +115,10 @@ public abstract class ChunkDataImpl implements IChunkData {
 	}
 
 	/**
-	 * @return This.
+	 * @return {@code this as Object as ChunkAccess}.
 	 */
 	@Unique
-	public ChunkAccess $() { // The fact I can name it this is hilarious
+	public ChunkAccess $() {
 		return (ChunkAccess) (Object) this;
 	}
 
