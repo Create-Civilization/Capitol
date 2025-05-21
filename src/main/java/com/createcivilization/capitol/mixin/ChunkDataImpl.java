@@ -5,13 +5,13 @@ import com.createcivilization.capitol.event.custom.WarEvent;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
 import net.neoforged.neoforge.common.NeoForge;
+
 import org.spongepowered.asm.mixin.*;
 
 import javax.annotation.Nullable;
@@ -73,49 +73,65 @@ public abstract class ChunkDataImpl implements IChunkData {
 	@SuppressWarnings("DataFlowIssue")
 	public void updateTakeOverProgress(MinecraftServer server) {
 		for (War war : TeamUtils.loadedWars) {
-			if (TeamUtils.isChunkEdgeOfClaims((ChunkAccess) (Object) this)) {
-				if (this.getTakeOverProgress() < 0) {
-					String msg = "ERROR: Takeover progress is less than 0! Error occurred at ChunkPos " + this.getPos();
-					System.out.println(msg);
-					LogToDiscord.postIfAllowed(
-						"Capitol",
-						msg
+			if (!TeamUtils.isChunkEdgeOfClaims(this.$())) return;
+
+			var pos = this.getPos();
+			if (this.getTakeOverProgress() < 0) {
+				String msg = "ERROR: Takeover progress is less than 0! Error occurred at ChunkPos " + pos;
+				System.out.println(msg);
+				LogToDiscord.postIfAllowed(
+					"Capitol",
+					msg
+				);
+				this.resetTakeOverProgress();
+			}
+
+			var players = server.getPlayerList().getPlayers();
+			var dimensionResourceLocation = this.getLevel().dimension().location();
+			var team = TeamUtils.getTeam(pos, dimensionResourceLocation).getOrThrow();
+			boolean isDeclaringTeam = team.equals(war.getDeclaringTeam());
+			if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isDeclaringTeam))) {
+				if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
+				else {
+					var thisTeam = isDeclaringTeam ? war.getReceivingTeam() : war.getDeclaringTeam();
+					TeamUtils.unclaimChunkAndUpdate(
+						thisTeam,
+						dimensionResourceLocation,
+						pos
 					);
 					this.resetTakeOverProgress();
+					NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(war, this.$(), thisTeam));
+					LogToDiscord.postIfAllowed(
+						team,
+						"Chunk taken over in war " + war + ", at ChunkPos " + pos
+					);
 				}
-
-				var players = server.getPlayerList().getPlayers();
-				var dimensionResourceLocation = this.getLevel().dimension().location();
-				var team = TeamUtils.getTeam(this.getPos(), dimensionResourceLocation).getOrThrow();
-				boolean isThisChunkClaimedByDeclaringTeam = team.equals(war.getDeclaringTeam());
-				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
-					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
-					else {
-						var thisTeam = isThisChunkClaimedByDeclaringTeam ? war.getReceivingTeam() : war.getDeclaringTeam();
-						TeamUtils.unclaimChunk(
-							thisTeam,
-							dimensionResourceLocation,
-							this.getPos()
-						);
-						this.resetTakeOverProgress();
-						//noinspection DataFlowIssue
-						NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(war, (ChunkAccess)(Object)this, thisTeam));
-						LogToDiscord.postIfAllowed(
-							team,
-							"Chunk taken over in war " + war + ", at ChunkPos " + this.getPos()
-						);
-					}
-					players.forEach(serverPlayer -> serverPlayer.displayClientMessage(Component.literal(String.valueOf(this.takeOverProgress)), true));
-				} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
-			}
+			} else if (this.wasJustIncremented || this.isDecrementing) this.decrementTakeOverProgress();
 		}
 	}
 
+	/**
+	 * @return This.
+	 */
 	@Unique
-	public boolean isPlayerInChunkAndEnemy(Player player, War war, boolean isThisChunkClaimedByDeclaringTeam) {
+	public ChunkAccess $() { // The fact I can name it this is hilarious
+		return (ChunkAccess) (Object) this;
+	}
+
+	/**
+	 * Checks if the {@code player} is in this chunk, and is of the opposite team.
+	 * @param player The player to check against.
+	 * @param war The war instance.
+	 * @param isDeclaringTeam If this chunk is claimed by the declaring team of the war.
+	 * @return If the {@code player} is in this chunk, and is of the opposite team.
+	 */
+	@Unique
+	public boolean isPlayerInChunkAndEnemy(Player player, War war, boolean isDeclaringTeam) {
 		var uuid = player.getUUID();
-		var firstTeamAndTheirAlliesUUIDs = isThisChunkClaimedByDeclaringTeam ? war.getDeclaringTeamAndAlliesUUIDs() : war.getReceivingTeamAndAlliesUUIDs();
-		var secondTeamAndTheirAlliesUUIDs = isThisChunkClaimedByDeclaringTeam ? war.getReceivingTeamAndAlliesUUIDs() : war.getDeclaringTeamAndAlliesUUIDs();
+		var firstTeamAndTheirAlliesUUIDs =
+			isDeclaringTeam ? war.getDeclaringTeamAndAlliesUUIDs() : war.getReceivingTeamAndAlliesUUIDs();
+		var secondTeamAndTheirAlliesUUIDs =
+			isDeclaringTeam ? war.getReceivingTeamAndAlliesUUIDs() : war.getDeclaringTeamAndAlliesUUIDs();
 		boolean playerIsNotOfThisTeamOrTheirAllies = !firstTeamAndTheirAlliesUUIDs.contains(uuid);
 		boolean playerIsOfOppositeTeamOrTheirAllies = secondTeamAndTheirAlliesUUIDs.contains(uuid);
 		return player.chunkPosition().equals(this.getPos()) && playerIsNotOfThisTeamOrTheirAllies && playerIsOfOppositeTeamOrTheirAllies;
