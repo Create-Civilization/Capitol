@@ -81,7 +81,8 @@ public abstract class ChunkDataImpl implements IChunkData {
 				}
 
 				var players = server.getPlayerList().getPlayers();
-				var team = TeamUtils.getTeam(this.getPos(), this.getLevel().dimension().location()).getOrThrow();
+				var dimensionResourceLocation = this.getLevel().dimension().location();
+				var team = TeamUtils.getTeam(this.getPos(), dimensionResourceLocation).getOrThrow();
 				boolean isThisChunkClaimedByDeclaringTeam = team.equals(war.getDeclaringTeam());
 				if (players.stream().anyMatch((player) -> this.isPlayerInChunkAndEnemy(player, war, isThisChunkClaimedByDeclaringTeam))) {
 					if (this.getTakeOverProgress() <= CapitolConfig.SERVER.maxWarTakeoverAmount.get()) this.incrementTakeOverProgress();
@@ -89,7 +90,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 						var thisTeam = isThisChunkClaimedByDeclaringTeam ? war.getReceivingTeam() : war.getDeclaringTeam();
 						TeamUtils.unclaimChunkAndUpdate(
 							thisTeam,
-							this.getLevel().dimension().location(),
+							dimensionResourceLocation,
 							this.getPos()
 						);
 						this.resetTakeOverProgress();
