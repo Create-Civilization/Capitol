@@ -15,7 +15,7 @@ public class PermissionUtil {
 		"useItems",
 		"interactEntities",
 		"interactBlocks",
-		"addRole",
+		"editRoles",
 		"editPermissions",
 		"removeMember",
 		"declareWar"
