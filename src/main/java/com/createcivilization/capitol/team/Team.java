@@ -90,6 +90,10 @@ public class Team {
 		return members;
 	}
 
+	public boolean idsMatch(Team team) {
+		return this.getTeamId().equals(team.getTeamId());
+	}
+
 	public String getTeamId() {
 		return teamId;
 	}

@@ -19,11 +19,11 @@ public class KeyBindings {
 
 	private static final String CATEGORY = "key.categories." + Capitol.MOD_ID;
 
-	public static final KeyMapping openStatistics = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".stats",
+	public static final KeyMapping openMenu = new KeyMapping(
+		"key." + Capitol.MOD_ID + ".menu",
 		KeyConflictContext.IN_GAME,
 		InputConstants.getKey(
-			InputConstants.KEY_L,
+			InputConstants.KEY_M,
 			-1
 		),
 		CATEGORY
@@ -34,16 +34,6 @@ public class KeyBindings {
 		KeyConflictContext.IN_GAME,
 		InputConstants.getKey(
 			InputConstants.KEY_V,
-			-1
-		),
-		CATEGORY
-	);
-
-	public static final KeyMapping openClaimMenu = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".open_claim_menu",
-		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(
-			InputConstants.KEY_M,
 			-1
 		),
 		CATEGORY

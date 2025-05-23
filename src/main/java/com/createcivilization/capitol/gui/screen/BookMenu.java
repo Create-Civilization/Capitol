@@ -1,12 +1,12 @@
 package com.createcivilization.capitol.gui.screen;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.*;
 import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
 import com.createcivilization.capitol.gui.interactables.TextInputInteractable;
 import com.createcivilization.capitol.gui.pages.attack.DeclareWar;
 import com.createcivilization.capitol.gui.pages.info.DisplayTeam;
+import com.createcivilization.capitol.gui.pages.support.AddPlayer;
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -122,6 +122,7 @@ public class BookMenu extends BookScreen {
 				setY(getY() - 2);
 				bookMenu.currentTab = this;
 				bookMenu.pageHandlers.get(this.index).show();
+				ClientConstants.lastTab = this.index;
 				return this;
 			}
 
@@ -130,6 +131,7 @@ public class BookMenu extends BookScreen {
 				setY(getY() - 5);
 				bookMenu.currentTab = this;
 				bookMenu.pageHandlers.get(this.index).show();
+				ClientConstants.lastTab = this.index;
 			}
 
 			@Override
@@ -180,7 +182,9 @@ public class BookMenu extends BookScreen {
 	private static class SupportHandler extends PageHandler {
 
 		public SupportHandler() {
-			super(List.of());
+			super(List.of(
+				new AddPlayer()
+			));
 		}
 	}
 	private static class InfoHandler extends PageHandler {

@@ -4,6 +4,8 @@ import com.createcivilization.capitol.team.Team;
 
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
@@ -12,9 +14,11 @@ import java.util.*;
 
 public class ClientConstants {
 
+	// INFO
 	public static final Minecraft INSTANCE = Minecraft.getInstance();
 	public static boolean viewChunks;
 	public static final ObjectHolder<Team> playerTeam = new ObjectHolder<>();
+	public static final List<PlayerInfo> playerList = new ArrayList<>();
 	public static boolean teamChat = false;
 	public static int lastPage, lastTab = 0;
 
@@ -38,5 +42,14 @@ public class ClientConstants {
 	public static ObjectHolder<Team> getPlayerTeam() {
 		playerTeam.setFrom(TeamUtils.getTeam(INSTANCE.player));
 		return playerTeam;
+	}
+
+	public static List<PlayerInfo> getPlayerList() {
+		ClientPacketListener connection = ClientConstants.INSTANCE.getConnection();
+		playerList.clear();
+		if (connection != null) {
+			playerList.addAll(connection.getOnlinePlayers());
+		}
+		return playerList;
 	}
 }

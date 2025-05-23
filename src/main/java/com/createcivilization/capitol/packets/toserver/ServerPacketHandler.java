@@ -10,12 +10,12 @@ import com.createcivilization.capitol.util.*;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
 import net.neoforged.api.distmarker.*;
 
-import net.neoforged.neoforge.network.handling.IPayloadContext;
 import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 import java.awt.Color;
@@ -45,15 +45,19 @@ public class ServerPacketHandler {
 	}
 
 	public static void invitePlayerToTeam(ServerPlayer sender, String playerToInviteName) {
-		var playerList = ServerConstants.server.getOrThrow().getPlayerList();
+		PlayerList playerList = ServerConstants.server.getOrThrow().getPlayerList();
 		ObjectHolder<Team> invitingTeam = TeamUtils.getTeam(sender);
-		Player player = playerList.getPlayerByName(playerToInviteName); // already ignores case
+		Player player = playerList.getPlayerByName(playerToInviteName);
 		if (player == null) return;
 		UUID playerToInviteUUID = Objects.requireNonNull(playerList.getPlayerByName(playerToInviteName)).getUUID();
 
 		if (TeamUtils.hasTeam(playerToInviteUUID) || invitingTeam.isEmpty()) return;
 
 		Team team = invitingTeam.getOrThrow();
+		if (TeamUtils.canPlayerDo(team, sender, "invitePlayers")) {
+			sender.sendSystemMessage(Component.literal("You do not have the permissions to invite players!"));
+			return;
+		}
 
 		team.addInvitee(playerToInviteUUID);
 		Objects.requireNonNull(playerList.getPlayer(playerToInviteUUID))

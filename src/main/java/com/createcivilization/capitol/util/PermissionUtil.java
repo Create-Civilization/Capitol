@@ -10,6 +10,7 @@ import java.util.*;
 public class PermissionUtil {
 
 	public static final ArrayList<String> permissions = new ArrayList<>(List.of(
+		"invitePlayers",
 		"breakBlocks",
 		"placeBlocks",
 		"useItems",
@@ -40,9 +41,11 @@ public class PermissionUtil {
 				true,
 				true,
 				true,
+				true,
 				true
 			);
 			case "member" -> PermissionUtil.newPermission(
+				true,
 				true,
 				true,
 				true,
@@ -55,6 +58,7 @@ public class PermissionUtil {
 			case "non-member" -> PermissionUtil.newPermission(
 				false,
 				false,
+				false,
 				CapitolConfig.SERVER.nonMemberUseItems.get(),
 				CapitolConfig.SERVER.nonMemberInteractEntities.get(),
 				CapitolConfig.SERVER.nonMemberInteractBlocks.get(),
@@ -62,7 +66,7 @@ public class PermissionUtil {
 				false,
 				false
 			);
-			default -> null; // Throw null pointer exception, luv ya :>
+			default -> null;
 		};
 	}
 

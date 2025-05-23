@@ -3,7 +3,6 @@ package com.createcivilization.capitol.event;
 import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.screen.BookMenu;
-import com.createcivilization.capitol.gui.screen.CreateTeamScreen;
 import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
 import com.createcivilization.capitol.packets.toserver.requests.C2SClaimCurrentChunk;
 import com.createcivilization.capitol.packets.toserver.requests.C2SSendTeamMessage;
@@ -49,18 +48,13 @@ public class ClientEvents {
 		if (player == null) return;
 		final long timeStamp = System.currentTimeMillis() / 1000L;
 
-		if (KeyBindings.openStatistics.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
-			ClientConstants.INSTANCE.setScreen(new BookMenu(3, 0));
+		if (KeyBindings.openMenu.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
+			ClientConstants.INSTANCE.setScreen(new BookMenu());
 		}
 
 		if (KeyBindings.viewChunks.consumeClick()) {
 			ClientConstants.viewChunks = !ClientConstants.viewChunks;
 			player.displayClientMessage(Component.literal("Now " + (ClientConstants.viewChunks ? "showing" : "hiding") + " claim borders"), true);
-		}
-
-		if (KeyBindings.openClaimMenu.consumeClick()) {
-			if (getTeamOrDisplayClientMessage(player).isPresent()) ClientConstants.INSTANCE.setScreen(new BookMenu(3, 0));
-			else ClientConstants.INSTANCE.setScreen(new CreateTeamScreen());
 		}
 
 		if (KeyBindings.toggleTeamChat.consumeClick()) {

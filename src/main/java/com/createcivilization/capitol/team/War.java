@@ -13,11 +13,18 @@ public class War {
 		declare,
 		receive;
 
-	public War(Team declare, Team receive) {
+	public final long timeOfCreation;
+
+	public War(Team declare, Team receive, long time) {
 		this.declare = declare;
 		this.receive = receive;
+		this.timeOfCreation = time;
 		NeoForge.EVENT_BUS.post(new WarEvent.WarCreatedEvent(this));
 		LogToDiscord.postIfAllowed(this.declare, "War started! " + this);
+	}
+
+	public War(Team declare, Team receive) {
+		this(declare, receive, System.currentTimeMillis() / 1000);
 	}
 
 	public Team getDeclaringTeam() {

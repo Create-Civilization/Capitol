@@ -5,27 +5,30 @@ import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.Page;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.network.chat.Component;
+import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.List;
-import java.util.function.BiFunction;
 
 public class DisplayTeam extends Page {
 
 	public DisplayTeam() {
-		super(ClientConstants.TEAM_STATISTICS);
+		super(Component.literal(ClientConstants.getPlayerTeam().getOrThrow().getName()));
 	}
 
 	@Override
 	public void init(SmartScreen smartScreen) {
 		super.init(smartScreen);
 
-		BiFunction<Component, Integer, TextInteractable> newText = (title, y) -> new TextInteractable(title, 72 - ClientConstants.INSTANCE.font.width(title.getString()) / 2, 14 + y, null, null);
+		TriConsumer<Component, Component, Integer> newText = (title, value, y) -> {
+			addInteractable(new TextInteractable(title, 13, 14 + y, null, null));
+			addInteractable(new TextInteractable(value, 130 - ClientConstants.INSTANCE.font.width(value), 14 + y, null, null));
+		};
 
 		Team team = ClientConstants.getPlayerTeam().getOrThrow();
-		addInteractable(newText.apply(Component.literal("Claimed chunks:"), 10));
-		addInteractable(newText.apply(Component.literal(team.getAllChildChunks().size() + " / " + CapitolConfig.SERVER.maxChunks.get()), 20));
-		addInteractable(newText.apply(Component.literal("Members:"), 30));
-		addInteractable(newText.apply(Component.literal(String.valueOf(team.getMembers().values().stream().mapToInt(List::size).sum())), 40));
+		newText.accept(Component.literal("Chunks:"), Component.literal(team.getAllChildChunks().size() + " / " + CapitolConfig.SERVER.maxChunks.get()), 14);
+		newText.accept(Component.literal("Members:"), Component.literal(String.valueOf(team.getMembers().values().stream().mapToInt(List::size).sum())), 28);
+		newText.accept(Component.literal("Wars:"), Component.literal(String.valueOf(TeamUtils.loadedWars.stream().filter(war -> war.getDeclaringTeam().idsMatch(war.getReceivingTeam())).toList().size())), 42);
 	}
 }
