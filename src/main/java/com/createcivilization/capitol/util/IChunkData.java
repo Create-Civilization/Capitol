@@ -6,13 +6,13 @@ public interface IChunkData {
 
 	int getTakeOverProgress();
 
-	void setTakeOverProgress(int i);
+	void setTakeOverProgress(Number i);
 
 	void resetTakeOverProgress();
 
-	void incrementTakeOverProgress(double modifier);
+	void incrementTakeOverProgress(Number modifier);
 
-	void decrementTakeOverProgress(double modifier);
+	void decrementTakeOverProgress(Number modifier);
 
 	void updateTakeOverProgress(MinecraftServer server);
 }
