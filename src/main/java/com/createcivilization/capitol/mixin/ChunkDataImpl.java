@@ -2,43 +2,34 @@ package com.createcivilization.capitol.mixin;
 
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.event.custom.WarEvent;
-import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.team.War;
+import com.createcivilization.capitol.team.*;
 import com.createcivilization.capitol.util.*;
 
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerBossEvent;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.*;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.chunk.ChunkAccess;
-
-import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.chunk.UpgradeData;
+import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
 
 import net.neoforged.neoforge.common.NeoForge;
+
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Mixin(ChunkAccess.class)
 @SuppressWarnings("AddedMixinMembersNamePattern")
 public abstract class ChunkDataImpl implements IChunkData {
 
 	@Shadow
-	@Nullable
 	public abstract Level getLevel();
 
 	@Shadow
@@ -73,7 +64,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 	}
 
 	/**
-	 * Sets the {@link #takeOverProgress} to the provided parameter, resetting both.
+	 * Sets the {@link #takeOverProgress} to the provided parameter.
 	 * @param i The new takeover progress.
 	 */
 	@Override
@@ -102,13 +93,14 @@ public abstract class ChunkDataImpl implements IChunkData {
 		this.setTakeOverProgress(this.getTakeOverProgress() - (CapitolConfig.SERVER.warTakeoverDecrement.get() * modifier));
 	}
 
-	// If this wasn't a nickpick push then why did you change my TODO:: to TODO:? that's how I like 'em and you never did that before <3
+	// TODO: Replace all "TODO::" statements with "TODO:" <3 (kidding)
 
 	@Override
 	public void updateTakeOverProgress(MinecraftServer server) {
-		if (!TeamUtils.isChunkEdgeOfClaims(this.$())) return;
+		var thiz = this.$();
+		if (!TeamUtils.isChunkEdgeOfClaims(thiz)) return;
 		ChunkPos pos = this.getPos();
-		ResourceLocation dimension = Objects.requireNonNull(this.getLevel()).dimension().location(); // 2 usages
+		ResourceLocation dimension = this.getLevel().dimension().location();
 		Team team = TeamUtils.getTeam(pos, dimension).getOrThrow();
 		PlayerList serverPlayerList = server.getPlayerList();
 
@@ -146,7 +138,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 				pos
 			);
 			this.resetTakeOverProgress();
-			NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(this.$(), team));
+			NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(thiz, team));
 			LogToDiscord.postIfAllowed(
 				team,
 				"Chunk taken from team " + team.getName() +" over in war , at ChunkPos " + pos
@@ -170,7 +162,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 	 * @return {@code this as Object as ChunkAccess}.
 	 */
 	@Unique
-	public ChunkAccess $() {
+	private ChunkAccess $() {
 		return (ChunkAccess) (Object) this;
 	}
 }

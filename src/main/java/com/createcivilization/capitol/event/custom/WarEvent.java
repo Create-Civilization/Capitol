@@ -1,7 +1,6 @@
 package com.createcivilization.capitol.event.custom;
 
-import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.team.War;
+import com.createcivilization.capitol.team.*;
 
 import net.minecraft.world.level.chunk.ChunkAccess;
 
