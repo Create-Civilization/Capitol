@@ -38,14 +38,13 @@ public abstract class WarEvent extends Event {
 		}
 	}
 
-	public static class ChunkTakenOverEvent extends WarEvent {
+	public static class ChunkTakenOverEvent extends Event {
 
 		private final ChunkAccess chunk;
 		private final Team teamThatLostChunk;
 
 		@Internal
-		public ChunkTakenOverEvent(War war, ChunkAccess chunk, Team teamThatLostChunk) {
-			super(war);
+		public ChunkTakenOverEvent(ChunkAccess chunk, Team teamThatLostChunk) {
 			this.chunk = chunk;
 			this.teamThatLostChunk = teamThatLostChunk;
 		}
