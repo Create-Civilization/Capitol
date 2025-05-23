@@ -17,7 +17,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
 
-import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.*;
 
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
@@ -64,12 +64,12 @@ public abstract class ChunkDataImpl implements IChunkData {
 	}
 
 	/**
-	 * Sets the {@link #takeOverProgress} to the provided parameter.
+	 * Sets the {@link #takeOverProgress} to the provided parameter, rounded to precision.
 	 * @param i The new takeover progress.
 	 */
 	@Override
-	public void setTakeOverProgress(int i) {
-		this.takeOverProgress = i;
+	public void setTakeOverProgress(Number i) {
+		this.takeOverProgress = Math.round(i.floatValue());
 	}
 
 	@Override
@@ -78,27 +78,25 @@ public abstract class ChunkDataImpl implements IChunkData {
 	}
 
 	@Override
-	public void incrementTakeOverProgress(double modifier) {
+	public void incrementTakeOverProgress(Number modifier) {
 		takeOverBar.setColor(BossEvent.BossBarColor.RED);
-		this.setTakeOverProgress((int) (this.getTakeOverProgress() + (CapitolConfig.SERVER.warTakeoverIncrement.get() * modifier)));
+		this.setTakeOverProgress((this.getTakeOverProgress() + takeover(true, modifier)));
 	}
 
 	@Override
-	public void decrementTakeOverProgress(double modifier) {
+	public void decrementTakeOverProgress(Number modifier) {
 		if (this.getTakeOverProgress() <= 0) {
 			this.resetTakeOverProgress();
 			return;
 		}
 		takeOverBar.setColor(BossEvent.BossBarColor.BLUE);
-		this.setTakeOverProgress((int) (this.getTakeOverProgress() - (CapitolConfig.SERVER.warTakeoverDecrement.get() * modifier)));
+		this.setTakeOverProgress((this.getTakeOverProgress() - takeover(false, modifier)));
 	}
-
-	// I don't find this funny, it's just annoying
 
 	@Override
 	public void updateTakeOverProgress(MinecraftServer server) {
-		ChunkAccess chunkAccess = this.$();
-		if (!TeamUtils.isChunkEdgeOfClaims(chunkAccess)) return;
+		ChunkAccess self = (ChunkAccess) (Object) this;
+		if (!TeamUtils.isChunkEdgeOfClaims(self)) return;
 		ChunkPos pos = this.getPos();
 		ResourceLocation dimension = this.getLevel().dimension().location();
 		Team team = TeamUtils.getTeam(pos, dimension).getOrThrow();
@@ -138,7 +136,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 				pos
 			);
 			this.resetTakeOverProgress();
-			NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(chunkAccess, team));
+			NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(self, team));
 			LogToDiscord.postIfAllowed(
 				team,
 				"Chunk taken from team " + team.getName() +" over in war , at ChunkPos " + pos
@@ -158,11 +156,10 @@ public abstract class ChunkDataImpl implements IChunkData {
 		}).toList();
 	}
 
-	/**
-	 * @return {@code this as Object as ChunkAccess}.
-	 */
 	@Unique
-	private ChunkAccess $() {
-		return (ChunkAccess) (Object) this;
+	private double takeover(boolean inc, Number modifier) {
+		CapitolConfig config = CapitolConfig.SERVER;
+		ModConfigSpec.IntValue value = inc ? config.warTakeoverIncrement : config.warTakeoverDecrement;
+		return value.get() * modifier.doubleValue();
 	}
 }
