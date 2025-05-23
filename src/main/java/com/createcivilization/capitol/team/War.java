@@ -3,7 +3,9 @@ package com.createcivilization.capitol.team;
 import com.createcivilization.capitol.event.custom.WarEvent;
 import com.createcivilization.capitol.util.*;
 
+import com.mojang.datafixers.util.Pair;
 import net.neoforged.neoforge.common.NeoForge;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -58,5 +60,40 @@ public class War {
 	@Override
 	public String toString() {
 		return declare.getQuotedName() + " vs " + receive.getQuotedName();
+	}
+
+	/**
+	 * Returns a {@link Pair} of two lists containing the wars in which the given team is participating.
+	 * <p>
+	 * The first list contains the wars where the team is defending (i.e., the team or its allies are the targets of a declaration),
+	 * and the second list contains the wars where the team is attacking (i.e., the team or its allies initiated the war).
+	 * </p>
+	 *
+	 * @param team The team whose war participation is to be analyzed.
+	 * @return A {@code Pair} of lists:
+	 *         - {@code first}: List of wars where the team is a defender.
+	 *         - {@code second}: List of wars where the team is an attacker.
+	 */
+	public static Pair<List<War>, List<War>> getParticipatingWars(Team team) {
+		List<War> defending = new ArrayList<>();
+		List<War> attacking = new ArrayList<>();
+		String teamId = team.getTeamId();
+
+		for (War loadedWar : TeamUtils.loadedWars) {
+			if (loadedWar.getDeclaringTeamAndAllies().stream().map(Team::getTeamId).toList().contains(teamId)) attacking.add(loadedWar);
+			else if (loadedWar.getReceivingTeamAndAllies().stream().map(Team::getTeamId).toList().contains(teamId)) defending.add(loadedWar);
+		}
+
+		return new Pair<>(defending, attacking);
+	}
+
+	public static List<War> getFlatParticipatingWars(Team team) {
+		return flattenWarPair(War.getParticipatingWars(team));
+	}
+
+	private static List<War> flattenWarPair(Pair<List<War>, List<War>> participatingWarsPair) {
+		List<War> participatingWars = new ArrayList<>(participatingWarsPair.getSecond());
+		participatingWars.addAll(participatingWarsPair.getFirst());
+		return participatingWars;
 	}
 }

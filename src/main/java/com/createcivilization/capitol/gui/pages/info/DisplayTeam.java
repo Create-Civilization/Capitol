@@ -4,6 +4,7 @@ import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.Page;
 import com.createcivilization.capitol.gui.base.SmartScreen;
+import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.network.chat.Component;
@@ -21,10 +22,8 @@ public class DisplayTeam extends Page {
 	public void init(SmartScreen smartScreen) {
 		super.init(smartScreen);
 
-		TriConsumer<Component, Component, Integer> newText = (title, value, y) -> {
-			addInteractable(new TextInteractable(title, 13, 14 + y, null, null));
-			addInteractable(new TextInteractable(value, 130 - ClientConstants.INSTANCE.font.width(value), 14 + y, null, null));
-		};
+		// I love currying.
+		TriConsumer<Component, Component, Integer> newText = (a,b,c) -> BookMenu.addTableEntry(this, a, b, c);
 
 		Team team = ClientConstants.getPlayerTeam().getOrThrow();
 		newText.accept(Component.literal("Chunks:"), Component.literal(team.getAllChildChunks().size() + " / " + CapitolConfig.SERVER.maxChunks.get()), 14);

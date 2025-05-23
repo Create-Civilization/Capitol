@@ -5,11 +5,16 @@ import com.createcivilization.capitol.gui.base.*;
 import com.createcivilization.capitol.gui.interactables.ButtonInteractable;
 import com.createcivilization.capitol.gui.interactables.TextInputInteractable;
 import com.createcivilization.capitol.gui.pages.attack.DeclareWar;
+import com.createcivilization.capitol.gui.pages.attack.WarDisplay;
 import com.createcivilization.capitol.gui.pages.info.DisplayTeam;
 import com.createcivilization.capitol.gui.pages.support.AddPlayer;
+import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.TeamUtils;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -168,7 +173,13 @@ public class BookMenu extends BookScreen {
 		private static List<Interactable> getPageList() {
 			List<Page> pageList = new ArrayList<>();
 
-			if (TeamUtils.canPlayerDo(ClientConstants.getPlayerTeam().getOrThrow(), ClientConstants.INSTANCE.player, "declareWar")) pageList.add(new DeclareWar());
+			Team playerTeam = ClientConstants.getPlayerTeam().getOrThrow();
+			if (TeamUtils.canPlayerDo(playerTeam, ClientConstants.INSTANCE.player, "declareWar")) pageList.add(new DeclareWar());
+
+
+			for (War war : War.getFlatParticipatingWars(playerTeam)) {
+				pageList.add(new WarDisplay(war));
+			}
 
 			return (List<Interactable>) (Object) pageList;
 		}
@@ -268,4 +279,9 @@ public class BookMenu extends BookScreen {
 			super(ASSET.blit(148, 193, 106, 13), placeHolderText, x, y, autoCorrect, null, true);
 		}
 	}
+
+	public static void addTableEntry (Page page, Component title, Component value, int y){
+		page.addInteractable(new Interactable.TextInteractable(title, 13, 14 + y, null, null));
+		page.addInteractable(new Interactable.TextInteractable(value, 130 - ClientConstants.INSTANCE.font.width(value), 14 + y, null, null));
+	};
 }
