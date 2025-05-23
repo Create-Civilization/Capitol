@@ -78,27 +78,27 @@ public abstract class ChunkDataImpl implements IChunkData {
 	}
 
 	@Override
-	public void incrementTakeOverProgress(int modifier) {
+	public void incrementTakeOverProgress(double modifier) {
 		takeOverBar.setColor(BossEvent.BossBarColor.RED);
-		this.setTakeOverProgress(this.getTakeOverProgress() + (CapitolConfig.SERVER.warTakeoverIncrement.get() * modifier));
+		this.setTakeOverProgress((int) (this.getTakeOverProgress() + (CapitolConfig.SERVER.warTakeoverIncrement.get() * modifier)));
 	}
 
 	@Override
-	public void decrementTakeOverProgress(int modifier) {
+	public void decrementTakeOverProgress(double modifier) {
 		if (this.getTakeOverProgress() <= 0) {
 			this.resetTakeOverProgress();
 			return;
 		}
 		takeOverBar.setColor(BossEvent.BossBarColor.BLUE);
-		this.setTakeOverProgress(this.getTakeOverProgress() - (CapitolConfig.SERVER.warTakeoverDecrement.get() * modifier));
+		this.setTakeOverProgress((int) (this.getTakeOverProgress() - (CapitolConfig.SERVER.warTakeoverDecrement.get() * modifier)));
 	}
 
-	// TODO: Replace all "TODO::" statements with "TODO:" <3 (kidding)
+	// I don't find this funny, it's just annoying
 
 	@Override
 	public void updateTakeOverProgress(MinecraftServer server) {
-		var thiz = this.$();
-		if (!TeamUtils.isChunkEdgeOfClaims(thiz)) return;
+		ChunkAccess chunkAccess = this.$();
+		if (!TeamUtils.isChunkEdgeOfClaims(chunkAccess)) return;
 		ChunkPos pos = this.getPos();
 		ResourceLocation dimension = this.getLevel().dimension().location();
 		Team team = TeamUtils.getTeam(pos, dimension).getOrThrow();
@@ -118,8 +118,8 @@ public abstract class ChunkDataImpl implements IChunkData {
 			balance += enemiesInChunk.size() - alliesInChunk.size();
 		}
 
-		// Nobody is in chunk
-		if (!anyInChunk) this.decrementTakeOverProgress(1);
+		// Nobody is in chunk, decay
+		if (!anyInChunk) this.decrementTakeOverProgress(CapitolConfig.SERVER.warDecayMultiplier.get());
 		// Someone is in the chunk past this
 		// Contested
 		else if (balance == 0) takeOverBar.setColor(BossEvent.BossBarColor.WHITE);
@@ -138,7 +138,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 				pos
 			);
 			this.resetTakeOverProgress();
-			NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(thiz, team));
+			NeoForge.EVENT_BUS.post(new WarEvent.ChunkTakenOverEvent(chunkAccess, team));
 			LogToDiscord.postIfAllowed(
 				team,
 				"Chunk taken from team " + team.getName() +" over in war , at ChunkPos " + pos

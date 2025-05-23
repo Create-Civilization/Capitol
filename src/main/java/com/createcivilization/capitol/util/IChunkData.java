@@ -10,9 +10,9 @@ public interface IChunkData {
 
 	void resetTakeOverProgress();
 
-	void incrementTakeOverProgress(int modifier);
+	void incrementTakeOverProgress(double modifier);
 
-	void decrementTakeOverProgress(int modifier);
+	void decrementTakeOverProgress(double modifier);
 
 	void updateTakeOverProgress(MinecraftServer server);
 }

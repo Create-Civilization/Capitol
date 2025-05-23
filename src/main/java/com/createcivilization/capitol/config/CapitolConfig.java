@@ -17,6 +17,7 @@ public class CapitolConfig {
 		SERVER_SPEC = specPair.getRight();
 	}
 
+	// team config
 	public final ModConfigSpec.IntValue claimRadius;
 	public final ModConfigSpec.IntValue inviteTimeout;
 	public final ModConfigSpec.BooleanValue nonMemberUseItems;
@@ -25,11 +26,14 @@ public class CapitolConfig {
 	public final ModConfigSpec.IntValue maxChunks;
 	public final ModConfigSpec.IntValue maxMembers;
 
+	// debug config
 	public final ModConfigSpec.BooleanValue debugLogs;
 	public final ModConfigSpec.BooleanValue offlineMode;
 	public final ModConfigSpec.BooleanValue logCapitolActions;
 	public final ModConfigSpec.ConfigValue<String> logUrl;
 
+	// war
+	public final ModConfigSpec.DoubleValue warDecayMultiplier;
 	public final ModConfigSpec.IntValue warTakeoverIncrement;
 	public final ModConfigSpec.IntValue warTakeoverDecrement;
 	public final ModConfigSpec.IntValue maxWarTakeoverAmount;
@@ -101,6 +105,10 @@ public class CapitolConfig {
 		this.builder.pop();
 
 		this.builder.push("War");
+		this.warDecayMultiplier = this.builder.defineInRange(
+			"war_decay_multiplier",
+			0.5d, 0d, 100d
+		);
 		this.warTakeoverIncrement = this.positiveInteger(
 			"The int increase per tick for war takeover progress.",
 			"war_takeover_increment",
