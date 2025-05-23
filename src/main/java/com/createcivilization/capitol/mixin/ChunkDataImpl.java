@@ -16,6 +16,7 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -44,22 +45,29 @@ public abstract class ChunkDataImpl implements IChunkData {
 	@Shadow
 	public abstract ChunkPos getPos();
 
-	@Shadow
-	@Final
-	protected ChunkPos chunkPos;
 	@Unique
 	private int takeOverProgress = 0;
 
 	@Unique
 	private final ServerBossEvent takeOverBar = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.NOTCHED_10);
 
+	// You removed the usage of these fields? I'm relatively sure I had those as contingencies for something - Mavity
 	@Unique
 	private boolean
 		wasJustIncremented = false,
 		isDecrementing = false;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void onConstruct(ChunkPos chunkPos, UpgradeData upgradeData, LevelHeightAccessor levelHeightAccessor, Registry biomeRegistry, long inhabitedTime, LevelChunkSection[] sections, BlendingData blendingData, CallbackInfo ci) {
+	private void onConstruct(
+		ChunkPos chunkPos,
+		UpgradeData upgradeData,
+		LevelHeightAccessor levelHeightAccessor,
+		Registry<Biome> biomeRegistry, // Please for the love of god learn how to use Generics @Orion - Mavity
+		long inhabitedTime,
+		LevelChunkSection[] sections,
+		BlendingData blendingData,
+		CallbackInfo ci
+	) {
 		takeOverBar.setName(Component.literal(chunkPos.x + " " + chunkPos.z));
 	}
 
@@ -107,16 +115,16 @@ public abstract class ChunkDataImpl implements IChunkData {
 		this.isDecrementing = this.getTakeOverProgress() != 0;
 	}
 
-	//TODO:: FIX TEAM HANG ON UNCLAIMED CHUNKS
-	//TODO:: FIX IMPROPER ENEMY DETECTION
+	//TODO: FIX TEAM HANG ON UNCLAIMED CHUNKS
+	//TODO: FIX IMPROPER ENEMY DETECTION
 
 	@Override
-	@SuppressWarnings("DataFlowIssue")
 	public void updateTakeOverProgress(MinecraftServer server) {
 		if (!TeamUtils.isChunkEdgeOfClaims(this.$())) return;
 		ChunkPos pos = this.getPos();
-		ResourceLocation dimension = this.getLevel().dimension().location();
-		Team team = TeamUtils.getTeam(pos, dimension).getOrThrow();
+		// Inlined because we only use the dimension ResourceLocation once - Mavity
+		//noinspection DataFlowIssue
+		Team team = TeamUtils.getTeam(pos, this.getLevel().dimension().location()).getOrThrow();
 		PlayerList serverPlayerList = server.getPlayerList();
 
 		int balance = 0;
@@ -179,24 +187,5 @@ public abstract class ChunkDataImpl implements IChunkData {
 	@Unique
 	public ChunkAccess $() {
 		return (ChunkAccess) (Object) this;
-	}
-
-	/**
-	 * Checks if the {@code player} is in this chunk, and is of the opposite team.
-	 * @param player The player to check against.
-	 * @param war The war instance.
-	 * @param isDeclaringTeam If this chunk is claimed by the declaring team of the war.
-	 * @return If the {@code player} is in this chunk, and is of the opposite team.
-	 */
-	@Unique
-	public boolean isPlayerInChunkAndEnemy(Player player, War war, boolean isDeclaringTeam) {
-		var uuid = player.getUUID();
-		var firstTeamAndTheirAlliesUUIDs =
-			isDeclaringTeam ? war.getDeclaringTeamAndAlliesUUIDs() : war.getReceivingTeamAndAlliesUUIDs();
-		var secondTeamAndTheirAlliesUUIDs =
-			isDeclaringTeam ? war.getReceivingTeamAndAlliesUUIDs() : war.getDeclaringTeamAndAlliesUUIDs();
-		boolean playerIsNotOfThisTeamOrTheirAllies = !firstTeamAndTheirAlliesUUIDs.contains(uuid);
-		boolean playerIsOfOppositeTeamOrTheirAllies = secondTeamAndTheirAlliesUUIDs.contains(uuid);
-		return player.chunkPosition().equals(this.getPos()) && playerIsNotOfThisTeamOrTheirAllies && playerIsOfOppositeTeamOrTheirAllies;
 	}
 }
