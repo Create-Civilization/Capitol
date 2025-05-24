@@ -5,44 +5,51 @@ import com.createcivilization.capitol.util.*;
 
 import com.mojang.datafixers.util.Pair;
 import net.neoforged.neoforge.common.NeoForge;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class War {
 
-	private final Team
-		declare,
-		receive;
+	private final String
+		declareId,
+		receiveId;
 
 	public final long timeOfCreation;
 
 	public War(Team declare, Team receive, long time) {
-		this.declare = declare;
-		this.receive = receive;
-		this.timeOfCreation = time;
-		NeoForge.EVENT_BUS.post(new WarEvent.WarCreatedEvent(this));
-		LogToDiscord.postIfAllowed(this.declare, "War started! " + this);
+		this(declare.getTeamId(), receive.getTeamId(), time);
 	}
 
 	public War(Team declare, Team receive) {
 		this(declare, receive, System.currentTimeMillis() / 1000);
 	}
 
+	public War(String declareId, String receiveId, long time) {
+		this.declareId = declareId;
+		this.receiveId = receiveId;
+		this.timeOfCreation = time;
+		NeoForge.EVENT_BUS.post(new WarEvent.WarCreatedEvent(this));
+		LogToDiscord.postIfAllowed(this.declareId, "War started! " + this);
+	}
+
+	public War(String declareId, String receiveId) {
+		this(declareId, receiveId, System.currentTimeMillis() / 1000);
+	}
+
 	public Team getDeclaringTeam() {
-		return this.declare;
+		return TeamUtils.getTeam(declareId).getOrThrow();
 	}
 
 	public Team getReceivingTeam() {
-		return this.receive;
+		return TeamUtils.getTeam(receiveId).getOrThrow();
 	}
 
 	public List<Team> getDeclaringTeamAndAllies() {
-		return TeamUtils.getTeamAndAllies(this.declare);
+		return TeamUtils.getTeamAndAllies(getDeclaringTeam());
 	}
 
 	public List<Team> getReceivingTeamAndAllies() {
-		return TeamUtils.getTeamAndAllies(this.receive);
+		return TeamUtils.getTeamAndAllies(getReceivingTeam());
 	}
 
 	public List<UUID> getDeclaringTeamAndAlliesUUIDs() {
@@ -59,7 +66,7 @@ public class War {
 
 	@Override
 	public String toString() {
-		return declare.getQuotedName() + " vs " + receive.getQuotedName();
+		return getDeclaringTeam().getQuotedName() + " vs " + getReceivingTeam().getQuotedName();
 	}
 
 	/**
