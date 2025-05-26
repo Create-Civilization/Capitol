@@ -70,10 +70,14 @@ public class CapitolBlock extends BaseEntityBlock {
 		return state.rotate(mirror.getRotation(state.getValue(FACING)));
 	}
 
-	// onDestroyedByPlayer --> forge
 	@Override
 	public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
 		if (level.isClientSide) return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
+		destroy(level, pos);
+		return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
+	}
+
+	public static void destroy(Level level, BlockPos pos) {
 		ResourceLocation dimension = level.dimension().location();
 		ChunkPos chunkPos = new ChunkPos(pos);
 		ObjectHolder<Team> team = TeamUtils.getTeam(chunkPos, dimension);
@@ -89,9 +93,6 @@ public class CapitolBlock extends BaseEntityBlock {
 					);
 			}
 		);
-
-
-		return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
 	}
 
 	// setPlacedBy --> Minecraft

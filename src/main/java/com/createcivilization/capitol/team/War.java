@@ -44,6 +44,18 @@ public class War {
 		return TeamUtils.getTeam(receiveId).getOrThrow();
 	}
 
+	public String getDeclaringTeamId() {
+		return declareId;
+	}
+
+	public String getReceivingTeamId() {
+		return receiveId;
+	}
+
+	public long getTimeOfCreation() {
+		return timeOfCreation;
+	}
+
 	public List<Team> getDeclaringTeamAndAllies() {
 		return TeamUtils.getTeamAndAllies(getDeclaringTeam());
 	}

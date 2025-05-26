@@ -24,7 +24,7 @@ public class CreateTeamScreen extends BookScreen {
 		super.init();
 		addInteractable(new Interactable.TextInteractable(title, this.leftPos + ClientConstants.INSTANCE.font.width(title.getString()) / 2 + 10, this.topPos + 14, null, null));
 		BookMenu.TextInput input = new BookMenu.TextInput(Component.literal("Team Name"), this.leftPos + 20, 60, null);
-		BookMenu.TextInput color = new BookMenu.TextInput(Component.literal("Team Color"), this.leftPos + 20, 83, null);
+		BookMenu.TextInput color = new BookMenu.TextInput(Component.literal("Team Color"), this.leftPos + 20, 83, CommonConstants.Colors.colors.keySet().stream().toList());
 		addInteractable(new BookMenu.Button(this.rightPos + 20, 71, Component.literal("Create"), () -> {
 			String value = input.getValue();
 			if (TeamUtils.teamExists(value)) return;

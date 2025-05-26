@@ -1,7 +1,9 @@
 package com.createcivilization.capitol.util;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
 
+import com.createcivilization.capitol.team.War;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 
@@ -14,7 +16,8 @@ import java.util.*;
 
 public class GsonUtil {
 
-	public static final Type LIST_TYPE = new TypeToken<List<Team>>() {}.getType();
+	public static final Type LIST_TEAMS_TYPE = new TypeToken<List<Team>>() {}.getType();
+	public static final Type LIST_WARS_TYPE = new TypeToken<List<War>>() {}.getType();
 
 	private static final Gson GSON = new GsonBuilder()
 		.setPrettyPrinting()
@@ -23,6 +26,7 @@ public class GsonUtil {
 		.registerTypeAdapter(UUID.class, new UUIDAdapter())
 		.registerTypeAdapter(ResourceLocation.class, new ResourceLocationAdapter())
 		.registerTypeAdapter(Team.TeamDimensionData.class, new TeamDimensionDataAdapter())
+		.registerTypeAdapter(War.class, new WarAdapter())
 		.create();
 
 	public static String serialize(Team team) {
@@ -46,23 +50,33 @@ public class GsonUtil {
 	}
 
 	public static List<Team> deserializeList(String json) {
-		return GSON.fromJson(json, LIST_TYPE);
+		return GSON.fromJson(json, LIST_TEAMS_TYPE);
 	}
 
-	public static void saveToFile(List<Team> teams, String filePath) throws IOException {
+	public static void saveTeamToFile(List<Team> teams, String filePath) throws IOException {
 		try (FileWriter writer = new FileWriter(filePath)) {
 			GSON.toJson(teams, writer);
 		}
 	}
 
-	public static List<Team> loadFromFile(String filePath) throws IOException {
-		try (FileReader reader = new FileReader(filePath)) {
-			return GSON.fromJson(reader, LIST_TYPE);
+	public static void saveWarToFile(List<War> wars, String filePath) throws IOException {
+		try (FileWriter writer = new FileWriter(filePath)) {
+			GSON.toJson(wars, writer);
 		}
 	}
 
-	public static List<Team> loadFromString(String json) {
-		return GSON.fromJson(json, LIST_TYPE);
+	public static List<Team> loadFromFile(String filePath) throws IOException {
+		try (FileReader reader = new FileReader(filePath)) {
+			return GSON.fromJson(reader, LIST_TEAMS_TYPE);
+		}
+	}
+
+	public static List<Team> loadTeamsFromString(String json) {
+		return GSON.fromJson(json, LIST_TEAMS_TYPE);
+	}
+
+	public static List<War> loadWarsFromString(String json) {
+		return GSON.fromJson(json, LIST_WARS_TYPE);
 	}
 
 	static class ColorAdapter implements JsonSerializer<Color>, JsonDeserializer<Color> {
@@ -119,6 +133,30 @@ public class GsonUtil {
 				dimensionData.addCapitolData(context.deserialize(element, Team.CapitolData.class));
 			}
 			return dimensionData;
+		}
+	}
+
+	static class WarAdapter implements JsonSerializer<War>, JsonDeserializer<War> {
+		@Override
+		public War deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+			JsonObject jsonObject = json.getAsJsonObject();
+
+			String declareId = jsonObject.get("declareId").getAsString();
+			String receiveId = jsonObject.get("receiveId").getAsString();
+			long timeOfCreation = jsonObject.get("timeOfCreation").getAsLong();
+
+			return new War(declareId, receiveId, timeOfCreation);
+		}
+
+		@Override
+		public JsonElement serialize(War src, Type typeOfSrc, JsonSerializationContext context) {
+			JsonObject jsonObject = new JsonObject();
+
+			jsonObject.addProperty("declareId", src.getDeclaringTeamId());
+			jsonObject.addProperty("receiveId", src.getReceivingTeamId());
+			jsonObject.addProperty("timeOfCreation", src.getTimeOfCreation());
+
+			return jsonObject;
 		}
 	}
 }

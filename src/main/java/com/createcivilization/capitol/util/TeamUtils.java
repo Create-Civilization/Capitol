@@ -54,6 +54,13 @@ public class TeamUtils {
     }
 
 	/**
+	 * @return The {@link File} which stores war data, automatically created if it doesn't exist.
+	 */
+	public static File getWarDataFile() throws IOException {
+		return FileUtils.forceFileExistence(FileUtils.getLocalFile("war_data.json"));
+	}
+
+	/**
 	 * @return The {@link File} which stores claimed chunk data, automatically created if it doesn't exist.
 	 */
 	public static File getChunkDataFile() throws IOException {
@@ -164,16 +171,27 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Loads all the {@link Team}s from the receivingTeam data file.
+	 * Loads all the data file.
 	 */
-    public static void loadTeams() throws IOException {
+    public static void loadData() throws IOException {
 		Capitol.LOGGER.info("Loading teams...");
-        var file = TeamUtils.getTeamDataFile();
+        File file = TeamUtils.getTeamDataFile();
 		try {
 			FileUtils.setContentsIfEmpty(file, "[" + System.lineSeparator() + "]");
 		} finally {
 			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
 			LogToDiscord.postIfAllowed("Capitol", "Loaded teams and chunks");
+			Capitol.LOGGER.info("Loaded teams successfully");
+		}
+
+		Capitol.LOGGER.info("Loading wars...");
+		file = TeamUtils.getWarDataFile();
+		try {
+			FileUtils.setContentsIfEmpty(file, "[" + System.lineSeparator() + "]");
+		} finally {
+			loadedWars.addAll(parseWars(FileUtils.getFileContents(file)));
+			LogToDiscord.postIfAllowed("Capitol", "Loaded wars");
+			Capitol.LOGGER.info("Loaded wars successfully");
 		}
     }
 
@@ -186,24 +204,37 @@ public class TeamUtils {
 	}
 
 	/**
-	 * Saves all the {@link Team}s to the receivingTeam data file.
+	 * Saves all the data to their respective files.
 	 */
-    public static void saveTeams() throws IOException {
-        System.out.println("Saving teams...");
+    public static void saveData() throws IOException {
 
 		File teamDataFile = TeamUtils.getTeamDataFile();
+		File warDataFile = TeamUtils.getWarDataFile();
 
-		GsonUtil.saveToFile(loadedTeams, teamDataFile.getPath());
+		Capitol.LOGGER.info("Saving teams..");
 
-		LogToDiscord.postIfAllowed("Capitol", "Saved teams and claimed chunks");
+		GsonUtil.saveTeamToFile(loadedTeams, teamDataFile.getPath());
+
+		Capitol.LOGGER.info("Saving wars..");
+
+		GsonUtil.saveWarToFile(loadedWars, warDataFile.getPath());
+
+		LogToDiscord.postIfAllowed("Capitol", "Saved teams and wars");
     }
 
 	/**
 	 * @return A list of {@link Team}s parsed from the given {@link String}.
 	 */
     public static List<Team> parseTeams(String str) {
-        return GsonUtil.loadFromString(str);
+        return GsonUtil.loadTeamsFromString(str);
     }
+
+	/**
+	 * @return A list of {@link War}s parsed from the given {@link String}.
+	 */
+	public static List<War> parseWars(String str) {
+		return GsonUtil.loadWarsFromString(str);
+	}
 
 	/**
 	 * @return An individual {@link Team} object parsed from json.
@@ -269,7 +300,8 @@ public class TeamUtils {
 	public static int reloadTeamsFromFile() {
 		try {
 			loadedTeams.clear();
-			loadTeams();
+			loadedWars.clear();
+			loadData();
 			return 1;
 		} catch (IOException e) {
 			e.printStackTrace(System.out);
@@ -284,9 +316,9 @@ public class TeamUtils {
 	 */
 	public static int reloadTeams() {
 		try {
-			saveTeams();
+			saveData();
 			loadedTeams.clear();
-			loadTeams();
+			loadData();
 			return 1;
 		} catch (IOException e) {
 			e.printStackTrace(System.out);

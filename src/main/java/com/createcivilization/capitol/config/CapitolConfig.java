@@ -37,6 +37,7 @@ public class CapitolConfig {
 	public final ModConfigSpec.IntValue warTakeoverIncrement;
 	public final ModConfigSpec.IntValue warTakeoverDecrement;
 	public final ModConfigSpec.IntValue maxWarTakeoverAmount;
+	public final ModConfigSpec.DoubleValue capitolConquerPercent;
 
 	private final ModConfigSpec.Builder builder;
 
@@ -123,6 +124,10 @@ public class CapitolConfig {
 			"The maximum amount of war takeover progress (divide value by 20 to get time in seconds).",
 			"max_war_takeover_amount",
 			600
+		);
+		this.capitolConquerPercent = this.builder.defineInRange(
+			"capitol_conquer_percent",
+			0.6d, 0d, 100d
 		);
 		this.builder.pop();
 	}

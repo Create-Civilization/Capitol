@@ -3,6 +3,7 @@ package com.createcivilization.capitol.event;
 import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.screen.BookMenu;
+import com.createcivilization.capitol.gui.screen.CreateTeamScreen;
 import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
 import com.createcivilization.capitol.packets.toserver.requests.C2SClaimCurrentChunk;
 import com.createcivilization.capitol.packets.toserver.requests.C2SSendTeamMessage;
@@ -24,6 +25,7 @@ import wiiu.mavity.wiiu_lib.util.ObjectHolder;
 
 import java.util.*;
 
+import static com.createcivilization.capitol.constants.ClientConstants.getPlayerTeam;
 import static com.createcivilization.capitol.constants.ClientConstants.playerTeam;
 
 @EventBusSubscriber(modid = Capitol.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
@@ -48,8 +50,10 @@ public class ClientEvents {
 		if (player == null) return;
 		final long timeStamp = System.currentTimeMillis() / 1000L;
 
-		if (KeyBindings.openMenu.consumeClick() && getTeamOrDisplayClientMessage(player).isPresent()) {
-			ClientConstants.INSTANCE.setScreen(new BookMenu());
+		if (KeyBindings.openMenu.consumeClick()) {
+			ObjectHolder<Team> playerTeam = getPlayerTeam();
+			if (playerTeam.isPresent()) ClientConstants.INSTANCE.setScreen(new BookMenu());
+			else ClientConstants.INSTANCE.setScreen(new CreateTeamScreen());
 		}
 
 		if (KeyBindings.viewChunks.consumeClick()) {
