@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.packets.toclient;
+package com.createcivilization.capitol.payloads.toclient;
 
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.screen.BookMenu;

@@ -1,8 +1,8 @@
-package com.createcivilization.capitol.packets.toserver;
+package com.createcivilization.capitol.payloads.toserver;
 
 import com.createcivilization.capitol.constants.ServerConstants;
-import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
-import com.createcivilization.capitol.packets.bidirectional.add.BiAddWar;
+import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
+import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.*;

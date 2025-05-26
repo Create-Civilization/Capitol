@@ -2,12 +2,12 @@ package com.createcivilization.capitol.util;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.packets.bidirectional.*;
-import com.createcivilization.capitol.packets.bidirectional.add.BiAddChunk;
-import com.createcivilization.capitol.packets.bidirectional.add.BiAddTeam;
-import com.createcivilization.capitol.packets.bidirectional.add.BiAddWar;
-import com.createcivilization.capitol.packets.bidirectional.remove.BiRemoveChunk;
-import com.createcivilization.capitol.packets.toclient.syncing.*;
+import com.createcivilization.capitol.payloads.bidirectional.*;
+import com.createcivilization.capitol.payloads.bidirectional.add.BiAddChunk;
+import com.createcivilization.capitol.payloads.bidirectional.add.BiAddTeam;
+import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
+import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveChunk;
+import com.createcivilization.capitol.payloads.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
 import net.minecraft.core.BlockPos;

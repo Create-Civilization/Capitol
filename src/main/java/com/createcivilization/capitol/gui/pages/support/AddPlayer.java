@@ -4,8 +4,8 @@ import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.Page;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.gui.screen.BookMenu;
-import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
-import com.createcivilization.capitol.packets.toserver.requests.C2SInvitePlayer;
+import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
+import com.createcivilization.capitol.payloads.toserver.requests.C2SInvitePlayer;
 import net.minecraft.network.chat.Component;
 
 public class AddPlayer extends Page {

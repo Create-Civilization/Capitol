@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.packets;
+package com.createcivilization.capitol.payloads;
 
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

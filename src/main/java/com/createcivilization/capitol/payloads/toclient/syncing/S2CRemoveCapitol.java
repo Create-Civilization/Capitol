@@ -1,11 +1,11 @@
-package com.createcivilization.capitol.packets.toclient.syncing;
+package com.createcivilization.capitol.payloads.toclient.syncing;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.DirectionalPayload;
-import com.createcivilization.capitol.packets.toclient.ClientPacketHandler;
+import com.createcivilization.capitol.payloads.DirectionalPayload;
+import com.createcivilization.capitol.payloads.toclient.ClientPacketHandler;
 import com.createcivilization.capitol.team.Team;
 
-import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
+import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

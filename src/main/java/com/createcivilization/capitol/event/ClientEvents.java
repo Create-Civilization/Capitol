@@ -4,9 +4,9 @@ import com.createcivilization.capitol.*;
 import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.gui.screen.CreateTeamScreen;
-import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
-import com.createcivilization.capitol.packets.toserver.requests.C2SClaimCurrentChunk;
-import com.createcivilization.capitol.packets.toserver.requests.C2SSendTeamMessage;
+import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
+import com.createcivilization.capitol.payloads.toserver.requests.C2SClaimCurrentChunk;
+import com.createcivilization.capitol.payloads.toserver.requests.C2SSendTeamMessage;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 

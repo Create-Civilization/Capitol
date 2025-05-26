@@ -1,15 +1,15 @@
-package com.createcivilization.capitol.packets.bidirectional;
+package com.createcivilization.capitol.payloads.bidirectional;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.bidirectional.add.BiAddChunk;
-import com.createcivilization.capitol.packets.bidirectional.add.BiAddTeam;
-import com.createcivilization.capitol.packets.bidirectional.add.BiAddWar;
-import com.createcivilization.capitol.packets.bidirectional.remove.BiRemoveChunk;
-import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
-import com.createcivilization.capitol.packets.toclient.syncing.*;
-import com.createcivilization.capitol.packets.toserver.ServerPacketHandler;
-import com.createcivilization.capitol.packets.toserver.requests.*;
-import com.createcivilization.capitol.packets.toserver.syncing.C2SRequestSync;
+import com.createcivilization.capitol.payloads.bidirectional.add.BiAddChunk;
+import com.createcivilization.capitol.payloads.bidirectional.add.BiAddTeam;
+import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
+import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveChunk;
+import com.createcivilization.capitol.payloads.toclient.gui.S2COpenTeamStatistics;
+import com.createcivilization.capitol.payloads.toclient.syncing.*;
+import com.createcivilization.capitol.payloads.toserver.ServerPacketHandler;
+import com.createcivilization.capitol.payloads.toserver.requests.*;
+import com.createcivilization.capitol.payloads.toserver.syncing.C2SRequestSync;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.GsonUtil;
 import net.minecraft.network.FriendlyByteBuf;

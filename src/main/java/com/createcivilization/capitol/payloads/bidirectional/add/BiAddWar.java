@@ -1,10 +1,10 @@
-package com.createcivilization.capitol.packets.bidirectional.add;
+package com.createcivilization.capitol.payloads.bidirectional.add;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.packets.DirectionalPayload;
-import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
-import com.createcivilization.capitol.packets.toclient.ClientPacketHandler;
-import com.createcivilization.capitol.packets.toserver.ServerPacketHandler;
+import com.createcivilization.capitol.payloads.DirectionalPayload;
+import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
+import com.createcivilization.capitol.payloads.toclient.ClientPacketHandler;
+import com.createcivilization.capitol.payloads.toserver.ServerPacketHandler;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.TeamUtils;
 import net.minecraft.network.FriendlyByteBuf;

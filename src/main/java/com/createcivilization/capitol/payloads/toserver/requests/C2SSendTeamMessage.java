@@ -1,9 +1,9 @@
-package com.createcivilization.capitol.packets.toserver.requests;
+package com.createcivilization.capitol.payloads.toserver.requests;
 
 import com.createcivilization.capitol.Capitol;
 
-import com.createcivilization.capitol.packets.DirectionalPayload;
-import com.createcivilization.capitol.packets.toserver.ServerPacketHandler;
+import com.createcivilization.capitol.payloads.DirectionalPayload;
+import com.createcivilization.capitol.payloads.toserver.ServerPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

@@ -2,9 +2,9 @@ package com.createcivilization.capitol.block.custom;
 
 import com.createcivilization.capitol.block.entity.CapitolBlockEntity;
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.packets.bidirectional.PacketHandler;
-import com.createcivilization.capitol.packets.toclient.gui.S2COpenTeamStatistics;
-import com.createcivilization.capitol.packets.toclient.syncing.S2CRemoveCapitol;
+import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
+import com.createcivilization.capitol.payloads.toclient.gui.S2COpenTeamStatistics;
+import com.createcivilization.capitol.payloads.toclient.syncing.S2CRemoveCapitol;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.util.*;
 
