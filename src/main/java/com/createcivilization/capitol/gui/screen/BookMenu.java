@@ -11,11 +11,10 @@ import com.createcivilization.capitol.gui.pages.support.AddPlayer;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.TeamUtils;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
+import oshi.util.tuples.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -216,20 +215,54 @@ public class BookMenu extends BookScreen {
 	private abstract static class PageHandler extends Interactable.InteractableBundle {
 
 		int x,y;
+		BookMenu bookMenu;
+		Pair<Interactable, Interactable> pageFlippers = new Pair<>(
+			new PageFlipper.Back(24, 158),
+			new PageFlipper.Next(251, 158)
+		);
 
 		public PageHandler(List<Interactable> pages) {
 			setInteractableList(pages);
 		}
 
 		@Override
+		public void render(GuiGraphics guiGraphics) {
+			if (isHidden()) return;
+
+			List<Interactable> list = getInteractableList();
+			int plusOne = this.bookMenu.currentPage + 1;
+
+			if (this.bookMenu.currentPage >= 0 && this.bookMenu.currentPage < list.size()) {
+				list.get(this.bookMenu.currentPage).render(guiGraphics);
+
+				if (plusOne >= list.size())
+					pageFlippers.getA().hide();
+			}
+
+
+			if (plusOne >= 0 && plusOne < list.size()) {
+				list.get(plusOne).render(guiGraphics);
+
+				if (this.bookMenu.currentPage - 1 < 0)
+					pageFlippers.getB().hide();
+			}
+
+			pageFlippers.getA().render(guiGraphics);
+			pageFlippers.getB().render(guiGraphics);
+		}
+
+		@Override
 		public void init(SmartScreen smartScreen) {
-			BookMenu bookMenu = (BookMenu) smartScreen;
+			this.bookMenu = (BookMenu) smartScreen;
 			int i = 0;
 			for (Interactable interactable : getInteractableList()) {
 				interactable.init(bookMenu);
 				interactable.setX(i++ % 2 == 0 ? bookMenu.leftPos : bookMenu.rightPos);
 				interactable.setY(bookMenu.topPos);
 			}
+
+			pageFlippers.getA().init(smartScreen);
+			pageFlippers.getB().init(smartScreen);
 		}
 
 		@Override
@@ -255,6 +288,54 @@ public class BookMenu extends BookScreen {
 		@Override
 		public void setY(int y) {
 			this.y = y;
+		}
+
+		public static class PageFlipper extends ButtonInteractable {
+
+			boolean held = false;
+			int add;
+			BookMenu bookMenu;
+
+			public PageFlipper(Asset.Blit idleBlit, Asset.@Nullable Blit activeBlit, int x, int y, int add) {
+				super(idleBlit, activeBlit, null, x, y, null, false);
+				this.add = add;
+			}
+
+			@Override
+			public void init(SmartScreen smartScreen) {
+				this.bookMenu = (BookMenu) smartScreen;
+			}
+
+			@Override
+			public Interactable clickStart(int x, int y) {
+				super.clickStart(x, y);
+
+				if (!held) {
+					this.bookMenu.currentPage += this.add;
+					this.held = true;
+				}
+
+				return this;
+			}
+
+			@Override
+			public void clickRelease(int x, int y) {
+				super.clickRelease(x, y);
+
+				if (held) this.held = false;
+			}
+
+			public static class Next extends PageFlipper {
+				public Next(int x, int y) {
+					super(ASSET.blit(0, 188, 21, 8), ASSET.blit(0, 180, 21, 8), x, y, 2);
+				}
+			}
+
+			public static class Back extends PageFlipper {
+				public Back(int x, int y) {
+					super(ASSET.blit(21, 188, 21, 8), ASSET.blit(21, 180, 21, 8), x, y, -2);
+				}
+			}
 		}
 	}
 
