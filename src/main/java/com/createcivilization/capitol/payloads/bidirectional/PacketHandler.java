@@ -5,12 +5,14 @@ import com.createcivilization.capitol.payloads.bidirectional.add.BiAddChunk;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddTeam;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
 import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveChunk;
+import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveWar;
 import com.createcivilization.capitol.payloads.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.payloads.toclient.syncing.*;
 import com.createcivilization.capitol.payloads.toserver.ServerPacketHandler;
 import com.createcivilization.capitol.payloads.toserver.requests.*;
 import com.createcivilization.capitol.payloads.toserver.syncing.C2SRequestSync;
 import com.createcivilization.capitol.team.Team;
+import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.GsonUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -71,6 +73,13 @@ public class PacketHandler {
 			GsonUtil::deserializeCapitol
 		);
 
+	public static final StreamCodec<FriendlyByteBuf, War> WAR_DATA_CODEC =
+		StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8,
+			GsonUtil::serializeWar,
+			GsonUtil::deserializeWar
+		);
+
 	@SubscribeEvent
 	private static void registerPackets(RegisterPayloadHandlersEvent event) {
 		PacketHandler.register(event.registrar("1"));
@@ -114,6 +123,7 @@ public class PacketHandler {
 		registerBiDirectional.accept(BiAddTeam.TYPE, BiAddTeam.STREAM_CODEC, BiAddTeam::client, BiAddTeam::server);
 		registerBiDirectional.accept(BiRemoveChunk.TYPE, BiRemoveChunk.STREAM_CODEC, BiRemoveChunk::client, BiRemoveChunk::server);
 		registerBiDirectional.accept(BiAddWar.TYPE, BiAddWar.STREAM_CODEC, BiAddWar::client, BiAddWar::server);
+		registerBiDirectional.accept(BiRemoveWar.TYPE, BiRemoveWar.STREAM_CODEC, BiRemoveWar::client, BiRemoveWar::server);
 
 		registerToClient.accept(S2COpenTeamStatistics.TYPE, S2COpenTeamStatistics.STREAM_CODEC, S2COpenTeamStatistics::client);
 		registerToClient.accept(S2CRemoveCapitol.TYPE, S2CRemoveCapitol.STREAM_CODEC, S2CRemoveCapitol::client);

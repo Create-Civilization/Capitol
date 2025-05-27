@@ -55,4 +55,8 @@ public class ClientPacketHandler {
 	public static void addWar(Team declaringTeam, Team receivingTeam) {
 		TeamUtils.loadedWars.add(new War(declaringTeam, receivingTeam));
 	}
+
+	public static void removeWar(War war) {
+		TeamUtils.loadedWars.remove(war);
+	}
 }

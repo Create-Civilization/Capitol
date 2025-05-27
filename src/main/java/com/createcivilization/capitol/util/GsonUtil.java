@@ -49,6 +49,14 @@ public class GsonUtil {
 		return GSON.toJson(capitolData);
 	}
 
+	public static War deserializeWar(String json) {
+		return GSON.fromJson(json, War.class);
+	}
+
+	public static String serializeWar(War capitolData) {
+		return GSON.toJson(capitolData);
+	}
+
 	public static List<Team> deserializeList(String json) {
 		return GSON.fromJson(json, LIST_TEAMS_TYPE);
 	}

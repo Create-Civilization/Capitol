@@ -7,6 +7,7 @@ import com.createcivilization.capitol.payloads.bidirectional.add.BiAddChunk;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddTeam;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
 import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveChunk;
+import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveWar;
 import com.createcivilization.capitol.payloads.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
@@ -267,6 +268,18 @@ public class TeamUtils {
 		else sb.append(time.getDayOfMonth());
 		return sb.toString();
     }
+
+	public static boolean endWar(War war, Player player) {
+		if (!(TeamUtils.getTeam(player).get() instanceof Team team)) return false;
+		if (!TeamUtils.canPlayerDo(team, player, "declareWar")) return false;
+		deleteWar(war);
+		return true;
+	}
+
+	public static void deleteWar(War war) {
+		TeamUtils.loadedWars.remove(war);
+		PacketHandler.sendToAllPlayers(new BiRemoveWar(war));
+	}
 
 	/**
 	 * @return A new {@link Team} with the given parameters.

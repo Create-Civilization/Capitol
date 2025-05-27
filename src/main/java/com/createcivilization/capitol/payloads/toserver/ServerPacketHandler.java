@@ -97,4 +97,8 @@ public class ServerPacketHandler {
 		TeamUtils.loadedWars.add(warToAdd);
 		PacketHandler.sendToAllPlayers(new BiAddWar(warToAdd.getDeclaringTeam(), warToAdd.getReceivingTeam()));
 	}
+
+	public static void removeWar(War war, Player player) {
+		TeamUtils.endWar(war, player);
+	}
 }
