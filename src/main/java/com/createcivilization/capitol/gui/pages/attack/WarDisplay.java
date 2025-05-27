@@ -1,8 +1,11 @@
 package com.createcivilization.capitol.gui.pages.attack;
 
+import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.base.Page;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.gui.screen.BookMenu;
+import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
+import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveWar;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
 import com.createcivilization.capitol.util.TeamUtils;
@@ -30,6 +33,13 @@ public class WarDisplay extends Page {
 		Team updatedReceivingTeam = TeamUtils.getTeam(war.getReceivingTeam().getTeamId()).getOrThrow();
 		newText.accept(Component.literal("Chunks left:"), Component.literal(String.valueOf(updatedReceivingTeam.getAllChildChunks().size())), 66);
 		newText.accept(Component.literal("Capitols left:"), Component.literal(String.valueOf(updatedReceivingTeam.getDimensionDataMap().values().stream().mapToInt(tdd -> tdd.getCapitolDataList().size()).sum())), 80);
+
+		if (ClientConstants.getPlayerTeam().getOrThrow().idsMatch(war.getDeclaringTeam())) addInteractable(new BookMenu.Button(13, 107, Component.literal("End War"), () -> {
+			PacketHandler.sendToServer(new BiRemoveWar(war));
+			smartScreen.onClose();
+			assert ClientConstants.INSTANCE.player != null;
+			ClientConstants.INSTANCE.player.displayClientMessage(Component.literal("War successfully ended"), true);
+		}));
 
 		super.init(smartScreen);
 	}
