@@ -6,7 +6,7 @@ import com.createcivilization.capitol.gui.base.Page;
 import com.createcivilization.capitol.gui.base.SmartScreen;
 import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.data.DataManager;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.util.TriConsumer;
 
@@ -28,6 +28,6 @@ public class DisplayTeam extends Page {
 		Team team = ClientConstants.getPlayerTeam().getOrThrow();
 		newText.accept(Component.literal("Chunks:"), Component.literal(team.getAllChildChunks().size() + " / " + CapitolConfig.SERVER.maxChunks.get()), 14);
 		newText.accept(Component.literal("Members:"), Component.literal(String.valueOf(team.getMembers().values().stream().mapToInt(List::size).sum())), 28);
-		newText.accept(Component.literal("Wars:"), Component.literal(String.valueOf(TeamUtils.loadedWars.stream().filter(war -> war.getDeclaringTeam().idsMatch(war.getReceivingTeam())).toList().size())), 42);
+		newText.accept(Component.literal("Wars:"), Component.literal(String.valueOf(DataManager.WarData.loadedWars.stream().filter(war -> war.getDeclaringTeam().idsMatch(war.getReceivingTeam())).toList().size())), 42);
 	}
 }

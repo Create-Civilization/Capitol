@@ -3,8 +3,11 @@ package com.createcivilization.capitol.mixin;
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.event.custom.WarEvent;
 import com.createcivilization.capitol.team.*;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.data.IChunkData;
+import com.createcivilization.capitol.util.team.LogToDiscord;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -105,7 +108,7 @@ public abstract class ChunkDataImpl implements IChunkData {
 		int balance = 0;
 		boolean anyInChunk = false;
 
-		for (War loadedWar : TeamUtils.loadedWars) {
+		for (War loadedWar : DataManager.WarData.loadedWars) {
 			boolean isDeclaring = loadedWar.getDeclaringTeam().getTeamId().equals(team.getTeamId());
 			List<ServerPlayer> enemiesInChunk = getMembersOfSideInChunkAndAddToBar(serverPlayerList, (isDeclaring ? loadedWar.getReceivingTeamAndAlliesUUIDs() : loadedWar.getDeclaringTeamAndAlliesUUIDs()));
 			List<ServerPlayer> alliesInChunk = getMembersOfSideInChunkAndAddToBar(serverPlayerList, (!isDeclaring ? loadedWar.getReceivingTeamAndAlliesUUIDs() : loadedWar.getDeclaringTeamAndAlliesUUIDs()));

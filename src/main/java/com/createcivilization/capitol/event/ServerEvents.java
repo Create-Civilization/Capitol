@@ -2,8 +2,9 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,7 +46,7 @@ public class ServerEvents {
 	public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent playerLoggedInEvent) {
 		if (playerLoggedInEvent.getEntity() instanceof ServerPlayer player) {
 			player.getPersistentData().putString(LAST_CHUNK_TEAM_ID, "");
-			TeamUtils.synchronizeServerDataWithPlayer(player);
+			DataManager.synchronizeServerDataWithPlayer(player);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.util;
+package com.createcivilization.capitol.util.data;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLLoader;

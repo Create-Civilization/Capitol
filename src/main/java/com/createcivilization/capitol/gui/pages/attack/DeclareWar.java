@@ -7,7 +7,8 @@ import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.network.chat.Component;
 
 public class DeclareWar extends Page {
@@ -17,7 +18,7 @@ public class DeclareWar extends Page {
 
 	@Override
 	public void init(SmartScreen smartScreen) {
-		BookMenu.TextInput textInput = new BookMenu.TextInput(Component.literal("Team name"), 20, 24, TeamUtils.loadedTeams.stream().filter(team -> !team.equals(ClientConstants.getPlayerTeam().getOrThrow())).map(Team::getName).toList());
+		BookMenu.TextInput textInput = new BookMenu.TextInput(Component.literal("Team name"), 20, 24, DataManager.TeamData.loadedTeams.stream().filter(team -> !team.equals(ClientConstants.getPlayerTeam().getOrThrow())).map(Team::getName).toList());
 		addInteractable(textInput);
 		addInteractable(new BookMenu.Button(20, 47, Component.literal("Declare war"), () -> {
 			String teamName = textInput.getValue();

@@ -2,12 +2,11 @@ package com.createcivilization.capitol.event;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.team.TeamUtils;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 

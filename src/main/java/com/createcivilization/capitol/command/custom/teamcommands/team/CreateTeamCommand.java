@@ -3,7 +3,8 @@ package com.createcivilization.capitol.command.custom.teamcommands.team;
 import com.createcivilization.capitol.command.Suggestions;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.constants.CommonConstants;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.TeamUtils;
 
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;
@@ -101,7 +102,7 @@ public class CreateTeamCommand extends AbstractTeamCommand {
 			return -1;
 		}
 		return new ObjectHolder<Player>(command.getSource().getPlayer()).ifPresentOrElse(player -> {
-			TeamUtils.loadedTeams.add(TeamUtils.createTeam(name, player, color));
+			DataManager.TeamData.loadedTeams.add(TeamUtils.createTeam(name, player, color));
 			command.getSource().sendSuccess(() -> Component.literal("Created receivingTeam '" + name + "' with color '" + color + "'."), true);
 			command.getSource().sendSystemMessage(Component.literal("Please leave and rejoin the server or world you are playing so you can access the right commands."));
 			return 1;

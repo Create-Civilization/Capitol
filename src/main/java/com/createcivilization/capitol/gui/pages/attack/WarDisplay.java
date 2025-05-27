@@ -8,7 +8,7 @@ import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
 import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveWar;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.util.TriConsumer;
 

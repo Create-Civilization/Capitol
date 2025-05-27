@@ -2,7 +2,8 @@ package com.createcivilization.capitol.command.custom.debug;
 
 import com.createcivilization.capitol.command.Suggestions;
 import com.createcivilization.capitol.team.*;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.TeamUtils;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -43,7 +44,7 @@ public class ActivateWarTeamsDebugCommand extends AbstractDebugCommand {
 		String defenderTeamName = StringArgumentType.getString(context, "defenderTeamName");
 		Team attackerTeam = TeamUtils.getTeamByName(attackerTeamName).getOrThrow();
 		Team defenderTeam = TeamUtils.getTeamByName(defenderTeamName).getOrThrow();
-		TeamUtils.loadedWars.add(new War(attackerTeam, defenderTeam));
+		DataManager.WarData.loadedWars.add(new War(attackerTeam, defenderTeam));
 
 		context.getSource().sendSuccess(() -> Component.literal(
 			"Successfully intiated a war between \"" + attackerTeamName + "\" and \"" + defenderTeamName + "\""

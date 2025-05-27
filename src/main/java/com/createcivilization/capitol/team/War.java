@@ -1,8 +1,10 @@
 package com.createcivilization.capitol.team;
 
 import com.createcivilization.capitol.event.custom.WarEvent;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.LogToDiscord;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import com.mojang.datafixers.util.Pair;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -98,7 +100,7 @@ public class War {
 		List<War> attacking = new ArrayList<>();
 		String teamId = team.getTeamId();
 
-		for (War loadedWar : TeamUtils.loadedWars) {
+		for (War loadedWar : DataManager.WarData.loadedWars) {
 			if (loadedWar.getDeclaringTeamAndAllies().stream().map(Team::getTeamId).toList().contains(teamId)) attacking.add(loadedWar);
 			else if (loadedWar.getReceivingTeamAndAllies().stream().map(Team::getTeamId).toList().contains(teamId)) defending.add(loadedWar);
 		}

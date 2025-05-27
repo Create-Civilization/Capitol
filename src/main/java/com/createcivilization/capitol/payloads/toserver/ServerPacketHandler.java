@@ -5,8 +5,10 @@ import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.LogToDiscord;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,12 +27,12 @@ import java.util.*;
 public class ServerPacketHandler {
 
 	public static void syncDataWithPlayer(ServerPlayer sender) {
-		TeamUtils.synchronizeServerDataWithPlayer(sender);
+		DataManager.synchronizeServerDataWithPlayer(sender);
 	}
 
     public static void createTeam(String teamName, ServerPlayer sender, Color teamColor) {
 		if (TeamUtils.hasTeam(sender)) return;
-		TeamUtils.loadedTeams.add(TeamUtils.createTeam(teamName, sender, teamColor));
+		DataManager.TeamData.loadedTeams.add(TeamUtils.createTeam(teamName, sender, teamColor));
     }
 
 	public static void claimCurrentPlayerChunk(ServerPlayer sender) {
@@ -93,8 +95,8 @@ public class ServerPacketHandler {
 	public static void addWar(Team declaring, Team receiving) {
 		War warToAdd = new War(declaring, receiving);
 
-		if(TeamUtils.loadedWars.contains(warToAdd) || (warToAdd.getDeclaringTeam().equals(warToAdd.getReceivingTeam()))) return;
-		TeamUtils.loadedWars.add(warToAdd);
+		if(DataManager.WarData.loadedWars.contains(warToAdd) || (warToAdd.getDeclaringTeam().equals(warToAdd.getReceivingTeam()))) return;
+		DataManager.WarData.loadedWars.add(warToAdd);
 		PacketHandler.sendToAllPlayers(new BiAddWar(warToAdd.getDeclaringTeam(), warToAdd.getReceivingTeam()));
 	}
 

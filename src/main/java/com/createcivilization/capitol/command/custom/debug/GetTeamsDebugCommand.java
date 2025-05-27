@@ -1,7 +1,7 @@
 package com.createcivilization.capitol.command.custom.debug;
 
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.data.DataManager;
 
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -20,8 +20,8 @@ public class GetTeamsDebugCommand extends AbstractDebugCommand {
 
 	@Override
 	public int execute(Player player) {
-		if (TeamUtils.loadedTeams.isEmpty()) player.sendSystemMessage(Component.literal("No teams loaded"));
-		for (Team team : TeamUtils.loadedTeams) player.sendSystemMessage(Component.literal(team.toString()));
+		if (DataManager.TeamData.loadedTeams.isEmpty()) player.sendSystemMessage(Component.literal("No teams loaded"));
+		for (Team team : DataManager.TeamData.loadedTeams) player.sendSystemMessage(Component.literal(team.toString()));
 		return 1;
 	}
 

@@ -2,7 +2,7 @@ package com.createcivilization.capitol.constants;
 
 import com.createcivilization.capitol.team.Team;
 
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;

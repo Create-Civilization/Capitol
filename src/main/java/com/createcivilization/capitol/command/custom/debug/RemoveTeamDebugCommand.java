@@ -11,7 +11,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.Objects;
 
-import static com.createcivilization.capitol.util.TeamUtils.loadedTeams;
+import static com.createcivilization.capitol.util.data.DataManager.TeamData.loadedTeams;
 
 public class RemoveTeamDebugCommand extends AbstractDebugCommand {
 

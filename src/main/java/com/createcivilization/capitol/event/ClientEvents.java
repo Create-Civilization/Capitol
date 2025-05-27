@@ -8,8 +8,9 @@ import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
 import com.createcivilization.capitol.payloads.toserver.requests.C2SClaimCurrentChunk;
 import com.createcivilization.capitol.payloads.toserver.requests.C2SSendTeamMessage;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -33,7 +34,7 @@ public class ClientEvents {
 
 	@SubscribeEvent
 	public static void onLeave(ClientPlayerNetworkEvent.LoggingOut event) {
-		TeamUtils.loadedTeams.clear();
+		DataManager.TeamData.loadedTeams.clear();
 	}
 
 	@SubscribeEvent
@@ -94,7 +95,7 @@ public class ClientEvents {
 			ResourceLocation dimension = clientLevel.dimension().location();
 
 			// Render claim borders
-			for (Team team : TeamUtils.loadedTeams) {
+			for (Team team : DataManager.TeamData.loadedTeams) {
 				// Remove all non-loaded chunks from list
 				List<ChunkPos> chunks = team.getDimensionalData(dimension).getAllChildChunks();
 				if (chunks == null) continue;

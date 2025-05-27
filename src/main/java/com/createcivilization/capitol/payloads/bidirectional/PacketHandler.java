@@ -13,7 +13,7 @@ import com.createcivilization.capitol.payloads.toserver.requests.*;
 import com.createcivilization.capitol.payloads.toserver.syncing.C2SRequestSync;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
-import com.createcivilization.capitol.util.GsonUtil;
+import com.createcivilization.capitol.util.data.GsonUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

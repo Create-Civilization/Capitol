@@ -4,8 +4,9 @@ import com.createcivilization.capitol.constants.ClientConstants;
 import com.createcivilization.capitol.gui.screen.BookMenu;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 
@@ -17,12 +18,12 @@ import java.util.List;
 public class ClientPacketHandler {
 
 	public static void addTeam(Team toAdd) {
-		TeamUtils.loadedTeams.add(toAdd);
+		DataManager.TeamData.loadedTeams.add(toAdd);
 		ClientConstants.chunksDirty = true;
 	}
 
 	public static void removeTeam(String toRemoveId) {
-		TeamUtils.loadedTeams.removeIf(team -> team.getTeamId().equals(toRemoveId));
+		DataManager.TeamData.loadedTeams.removeIf(team -> team.getTeamId().equals(toRemoveId));
 		ClientConstants.chunksDirty = true;
 	}
 
@@ -53,10 +54,10 @@ public class ClientPacketHandler {
 	}
 
 	public static void addWar(Team declaringTeam, Team receivingTeam) {
-		TeamUtils.loadedWars.add(new War(declaringTeam, receivingTeam));
+		DataManager.WarData.loadedWars.add(new War(declaringTeam, receivingTeam));
 	}
 
 	public static void removeWar(War war) {
-		TeamUtils.loadedWars.remove(war);
+		DataManager.WarData.loadedWars.remove(war);
 	}
 }

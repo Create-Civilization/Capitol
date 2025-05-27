@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.util;
+package com.createcivilization.capitol.util.data;
 
 import net.minecraft.server.MinecraftServer;
 

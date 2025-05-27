@@ -1,6 +1,6 @@
 package com.createcivilization.capitol.command.custom.debug;
 
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.data.DataManager;
 
 import net.minecraft.commands.*;
 import net.minecraft.network.chat.Component;
@@ -26,6 +26,6 @@ public class ReloadTeamsFromFileCommand extends AbstractDebugCommand {
 	@Override
 	public int execute(Player player) {
 		player.sendSystemMessage(Component.literal("Reloading teams from file..."));
-		return TeamUtils.reloadTeamsFromFile();
+		return DataManager.TeamData.reloadTeamsFromFile();
 	}
 }

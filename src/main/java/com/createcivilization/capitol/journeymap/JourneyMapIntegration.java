@@ -5,8 +5,9 @@ import com.createcivilization.capitol.event.ClientEvents;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddChunk;
 import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import journeymap.api.v2.client.*;
 import journeymap.api.v2.client.display.PolygonOverlay;
 import journeymap.api.v2.client.event.*;
@@ -75,13 +76,13 @@ public class JourneyMapIntegration implements IClientPlugin {
 
 		// Cleanup old overlays from deleted teams
 		for (String teamId : overlays.keySet()) {
-			if (TeamUtils.loadedTeams.stream().noneMatch(team -> team.getTeamId().equals(teamId))) {
+			if (DataManager.TeamData.loadedTeams.stream().noneMatch(team -> team.getTeamId().equals(teamId))) {
 				this.api.remove(this.overlays.get(teamId));
 				this.overlays.remove(teamId);
 			}
 		}
 
-		for (Team team : TeamUtils.loadedTeams) {
+		for (Team team : DataManager.TeamData.loadedTeams) {
 			for (Map.Entry<ResourceLocation, Team.TeamDimensionData> claimedChunks : team.getDimensionDataMap().entrySet()) {
 				var player = Minecraft.getInstance().player;
 				assert player != null;

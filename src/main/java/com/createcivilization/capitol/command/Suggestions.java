@@ -2,8 +2,10 @@ package com.createcivilization.capitol.command;
 
 import com.createcivilization.capitol.constants.CommonConstants;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.team.PermissionUtil;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.commands.CommandSourceStack;
@@ -14,12 +16,12 @@ import java.util.Arrays;
 public class Suggestions {
 
 	public static final SuggestionProvider<CommandSourceStack> TEAM_NAMES = (context, builder) -> {
-		TeamUtils.loadedTeams.stream().map(Team::getQuotedName).forEach(builder::suggest);
+		DataManager.TeamData.loadedTeams.stream().map(Team::getQuotedName).forEach(builder::suggest);
 		return builder.buildFuture();
 	};
 
 	public static final SuggestionProvider<CommandSourceStack> TEAM_IDS = (context, builder) -> {
-		TeamUtils.loadedTeams.stream().map(Team::getTeamId).forEach(builder::suggest);
+		DataManager.TeamData.loadedTeams.stream().map(Team::getTeamId).forEach(builder::suggest);
 		return builder.buildFuture();
 	};
 

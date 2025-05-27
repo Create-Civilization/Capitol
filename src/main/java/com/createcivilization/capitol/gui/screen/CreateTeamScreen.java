@@ -7,7 +7,7 @@ import com.createcivilization.capitol.gui.base.Interactable;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddTeam;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.network.chat.Component;
 
 import java.awt.*;

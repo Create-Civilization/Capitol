@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.util;
+package com.createcivilization.capitol.util.team;
 
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.team.Team;

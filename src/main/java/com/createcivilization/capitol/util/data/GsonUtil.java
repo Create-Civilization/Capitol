@@ -1,6 +1,5 @@
-package com.createcivilization.capitol.util;
+package com.createcivilization.capitol.util.data;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.team.Team;
 
 import com.createcivilization.capitol.team.War;

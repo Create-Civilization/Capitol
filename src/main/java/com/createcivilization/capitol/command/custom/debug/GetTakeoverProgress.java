@@ -1,8 +1,6 @@
 package com.createcivilization.capitol.command.custom.debug;
 
-import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.IChunkData;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.data.IChunkData;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;

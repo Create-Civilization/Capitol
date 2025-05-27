@@ -3,8 +3,9 @@ package com.createcivilization.capitol.command.custom.teamcommands.roles;
 import com.createcivilization.capitol.command.Suggestions;
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.team.PermissionUtil;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;
 

@@ -1,8 +1,10 @@
 package com.createcivilization.capitol.team;
 
 import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.GsonUtil;
+import com.createcivilization.capitol.util.team.LogToDiscord;
+import com.createcivilization.capitol.util.team.PermissionUtil;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 

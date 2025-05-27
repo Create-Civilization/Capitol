@@ -6,8 +6,9 @@ import com.createcivilization.capitol.payloads.bidirectional.PacketHandler;
 import com.createcivilization.capitol.payloads.toclient.gui.S2COpenTeamStatistics;
 import com.createcivilization.capitol.payloads.toclient.syncing.S2CRemoveCapitol;
 import com.createcivilization.capitol.team.Team;
-import com.createcivilization.capitol.util.*;
 
+import com.createcivilization.capitol.util.data.DistHelper;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.*;

@@ -1,7 +1,7 @@
 package com.createcivilization.capitol.command.custom.teamcommands.roles;
 
 import com.createcivilization.capitol.command.custom.abstracts.AbstractTeamCommand;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;

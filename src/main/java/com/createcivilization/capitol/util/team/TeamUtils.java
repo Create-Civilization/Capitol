@@ -1,19 +1,19 @@
-package com.createcivilization.capitol.util;
+package com.createcivilization.capitol.util.team;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.config.CapitolConfig;
 import com.createcivilization.capitol.payloads.bidirectional.*;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddChunk;
 import com.createcivilization.capitol.payloads.bidirectional.add.BiAddTeam;
-import com.createcivilization.capitol.payloads.bidirectional.add.BiAddWar;
 import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveChunk;
 import com.createcivilization.capitol.payloads.bidirectional.remove.BiRemoveWar;
 import com.createcivilization.capitol.payloads.toclient.syncing.*;
 import com.createcivilization.capitol.team.*;
 
+import com.createcivilization.capitol.util.data.DataManager;
+import com.createcivilization.capitol.util.data.DistHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.*;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 import wiiu.mavity.wiiu_lib.util.*;
 
 import java.awt.Color;
-import java.io.*;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
@@ -41,34 +40,6 @@ public class TeamUtils {
     private TeamUtils() { throw new AssertionError(); }
 
 	/**
-	 * A list of the currently loaded teams.
-	 */
-    public static final List<Team> loadedTeams = new ArrayList<>();
-
-	public static final List<War> loadedWars = new ArrayList<>();
-
-	/**
-	 * @return The {@link File} which stores receivingTeam data, automatically created if it doesn't exist.
-	 */
-    public static File getTeamDataFile() throws IOException {
-		return FileUtils.forceFileExistence(FileUtils.getLocalFile("team_data.json"));
-    }
-
-	/**
-	 * @return The {@link File} which stores war data, automatically created if it doesn't exist.
-	 */
-	public static File getWarDataFile() throws IOException {
-		return FileUtils.forceFileExistence(FileUtils.getLocalFile("war_data.json"));
-	}
-
-	/**
-	 * @return The {@link File} which stores claimed chunk data, automatically created if it doesn't exist.
-	 */
-	public static File getChunkDataFile() throws IOException {
-		return FileUtils.forceFileExistence(FileUtils.getLocalFile("claimed_chunks.json"));
-	}
-
-	/**
 	 * @return If the {@link Player} is in a receivingTeam or not.
 	 */
     public static boolean hasTeam(Player player) {
@@ -79,7 +50,7 @@ public class TeamUtils {
 	 * @return If the {@link UUID} is in a receivingTeam or not
 	 */
 	public static boolean hasTeam(UUID playerUUID) {
-		return loadedTeams.stream().anyMatch(team -> team.getMembers().values().stream().anyMatch(list -> list.contains(playerUUID)));
+		return DataManager.TeamData.loadedTeams.stream().anyMatch(team -> team.getMembers().values().stream().anyMatch(list -> list.contains(playerUUID)));
 	}
 
 	/**
@@ -114,7 +85,7 @@ public class TeamUtils {
 	 * @return If the given {@link ChunkPos} is representative of the location of a claimed chunk.
 	 */
 	public static boolean isChildChunk(ResourceLocation dimension, ChunkPos pos) {
-		return loadedTeams.stream().anyMatch(team -> team.hasChunkPos(dimension, pos));
+		return DataManager.TeamData.loadedTeams.stream().anyMatch(team -> team.hasChunkPos(dimension, pos));
 	}
 
 	/**
@@ -147,7 +118,7 @@ public class TeamUtils {
 	 * @return An {@link ObjectHolder} with a value of either the {@link Team} the given {@link Player} is in, or a value of {@code null} if the {@link Player} is not in a receivingTeam.
 	 */
     public static ObjectHolder<Team> getTeam(Player player) {
-        for (Team team : loadedTeams) if (team.getAllPlayers().stream().anyMatch(player.getUUID()::equals)) return new ObjectHolder<>(team);
+        for (Team team : DataManager.TeamData.loadedTeams) if (team.getAllPlayers().stream().anyMatch(player.getUUID()::equals)) return new ObjectHolder<>(team);
         return new ObjectHolder<>();
     }
 
@@ -155,46 +126,21 @@ public class TeamUtils {
 	 * @return An {@link ObjectHolder} with a value of either the {@link Team} the given {@link String} represents, or a value of {@code null} if no {@link Team} can be found with that id.
 	 */
 	public static ObjectHolder<Team> getTeam(String teamId) {
-		for (Team team : loadedTeams) if (team.getTeamId().equals(teamId)) return new ObjectHolder<>(team);
+		for (Team team : DataManager.TeamData.loadedTeams) if (team.getTeamId().equals(teamId)) return new ObjectHolder<>(team);
 		return new ObjectHolder<>();
 	}
 
 	public static ObjectHolder<Team> getTeamByName(String name) {
-		for (Team team : loadedTeams) if (team.getName().equals(name)) return new ObjectHolder<>(team);
+		for (Team team : DataManager.TeamData.loadedTeams) if (team.getName().equals(name)) return new ObjectHolder<>(team);
 		return new ObjectHolder<>();
 	}
 
 	public static ObjectHolder<Team> getTeam(ChunkPos pos, ResourceLocation dimension) {
-		for (Team team : loadedTeams) {
+		for (Team team : DataManager.TeamData.loadedTeams) {
 			if (team.hasChunkPos(dimension, pos)) return new ObjectHolder<>(team);
 		}
 		return new ObjectHolder<>();
 	}
-
-	/**
-	 * Loads all the data file.
-	 */
-    public static void loadData() throws IOException {
-		Capitol.LOGGER.info("Loading teams...");
-        File file = TeamUtils.getTeamDataFile();
-		try {
-			FileUtils.setContentsIfEmpty(file, "[" + System.lineSeparator() + "]");
-		} finally {
-			loadedTeams.addAll(parseTeams(FileUtils.getFileContents(file)));
-			LogToDiscord.postIfAllowed("Capitol", "Loaded teams and chunks");
-			Capitol.LOGGER.info("Loaded teams successfully");
-		}
-
-		Capitol.LOGGER.info("Loading wars...");
-		file = TeamUtils.getWarDataFile();
-		try {
-			FileUtils.setContentsIfEmpty(file, "[" + System.lineSeparator() + "]");
-		} finally {
-			loadedWars.addAll(parseWars(FileUtils.getFileContents(file)));
-			LogToDiscord.postIfAllowed("Capitol", "Loaded wars");
-			Capitol.LOGGER.info("Loaded wars successfully");
-		}
-    }
 
 	public static boolean isRoleHigher(Team team, String role, String possiblyBiggerRole) {
 		for (String currRole : team.getRoleRanking()) {
@@ -204,47 +150,7 @@ public class TeamUtils {
 		return false;
 	}
 
-	/**
-	 * Saves all the data to their respective files.
-	 */
-    public static void saveData() throws IOException {
-
-		File teamDataFile = TeamUtils.getTeamDataFile();
-		File warDataFile = TeamUtils.getWarDataFile();
-
-		Capitol.LOGGER.info("Saving teams..");
-
-		GsonUtil.saveTeamToFile(loadedTeams, teamDataFile.getPath());
-
-		Capitol.LOGGER.info("Saving wars..");
-
-		GsonUtil.saveWarToFile(loadedWars, warDataFile.getPath());
-
-		LogToDiscord.postIfAllowed("Capitol", "Saved teams and wars");
-    }
-
-	/**
-	 * @return A list of {@link Team}s parsed from the given {@link String}.
-	 */
-    public static List<Team> parseTeams(String str) {
-        return GsonUtil.loadTeamsFromString(str);
-    }
-
-	/**
-	 * @return A list of {@link War}s parsed from the given {@link String}.
-	 */
-	public static List<War> parseWars(String str) {
-		return GsonUtil.loadWarsFromString(str);
-	}
-
-	/**
-	 * @return An individual {@link Team} object parsed from json.
-	 */
-    public static Team parseTeam(String json) {
-        return GsonUtil.deserializeTeam(json);
-    }
-
-    public static boolean teamExists(String teamName) {
+	public static boolean teamExists(String teamName) {
 		return getTeamByName(teamName).isPresent();
     }
 
@@ -277,7 +183,7 @@ public class TeamUtils {
 	}
 
 	public static void deleteWar(War war) {
-		TeamUtils.loadedWars.remove(war);
+		DataManager.WarData.loadedWars.remove(war);
 		PacketHandler.sendToAllPlayers(new BiRemoveWar(war));
 	}
 
@@ -301,43 +207,9 @@ public class TeamUtils {
 	 * @param teamId The receivingTeam to delete
 	 */
 	public static void removeTeam(String teamId) {
-		loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
+		DataManager.TeamData.loadedTeams.removeIf(team -> Objects.equals(team.getTeamId(), teamId));
 
 		DistHelper.runWhenOnServer(() -> () -> PacketHandler.sendToAllPlayers(new S2CRemoveTeam(teamId)));
-	}
-
-	/**
-	 * Dumps the currently loaded teams, and then loads the teams in the receivingTeam data file.
-	 * @return 1 if successful, -1 if not (for /command usage)
-	 */
-	public static int reloadTeamsFromFile() {
-		try {
-			loadedTeams.clear();
-			loadedWars.clear();
-			loadData();
-			return 1;
-		} catch (IOException e) {
-			e.printStackTrace(System.out);
-			e.printStackTrace(System.err);
-			return -1;
-		}
-	}
-
-	/**
-	 * Saves the teams to the receivingTeam data file, dumps the receivingTeam list, then reloads the teams.
-	 * @return 1 if successful, -1 if not (for /command usage)
-	 */
-	public static int reloadTeams() {
-		try {
-			saveData();
-			loadedTeams.clear();
-			loadData();
-			return 1;
-		} catch (IOException e) {
-			e.printStackTrace(System.out);
-			e.printStackTrace(System.err);
-			return -1;
-		}
 	}
 
 	/**
@@ -364,7 +236,7 @@ public class TeamUtils {
 	 */
 	public static boolean chunkHasCapitolBlock(ChunkPos pos, ResourceLocation dimension) {
 		AtomicBoolean result = new AtomicBoolean(false);
-		for (Team team : loadedTeams) {
+		for (Team team : DataManager.TeamData.loadedTeams) {
 			team.getDimensionalData(dimension).getParentOfChunk(pos).ifPresent(
 				capitolData -> result.set(capitolData.capitolBlockChunk == pos)
 			);
@@ -395,17 +267,6 @@ public class TeamUtils {
 		AtomicBoolean toReturn = new AtomicBoolean(false);
 		chunkRadiusOperation(chunkPos, radius, inputChunk -> team.hasChunkPos(dimension, inputChunk), inputChunk -> toReturn.set(inputChunk != null));
 		return toReturn.get();
-	}
-
-	public static ChunkPos parseChunkPosFromString(String toParse) {
-		toParse = toParse.substring(1, toParse.indexOf("]"));
-		int splitPoint = toParse.indexOf(",");
-		return new ChunkPos(Integer.parseInt(toParse.substring(0, splitPoint)),Integer.parseInt(toParse.substring(splitPoint+2)));
-	}
-
-	public static List<ChunkPos> parseChunkPosListFromString(String toParseRaw) {
-		String[] toParse = toParseRaw.split(", ");
-		return Arrays.stream(toParse).map(TeamUtils::parseChunkPosFromString).toList();
 	}
 
 	public static void chunkRadiusOperation(ChunkPos chunkPos, int radius, Predicate<ChunkPos> filter, Consumer<@Nullable ChunkPos> processor) {
@@ -580,20 +441,6 @@ public class TeamUtils {
 		teams.add(team);
 		team.getAllies().forEach(teamId -> getTeam(teamId).ifPresent(teams::add));
 		return teams;
-	}
-
-	public static void synchronizeServerDataWithPlayer(ServerPlayer player) {
-		for (Team team : TeamUtils.loadedTeams) {
-			PacketHandler.sendToPlayer(new BiAddTeam(team), player);
-			for (Map.Entry<ResourceLocation, Team.TeamDimensionData> chunkEntry : team.getDimensionDataMap().entrySet()) {
-				for (Team.CapitolData capitolData : chunkEntry.getValue().getCapitolDataList()) {
-					capitolData.getChildChunks().forEach(childChunk -> PacketHandler.sendToPlayer(new BiAddChunk(childChunk, team.getTeamId(), chunkEntry.getKey()), player));
-				}
-			}
-		}
-		for (War war : TeamUtils.loadedWars) {
-			PacketHandler.sendToPlayer(new BiAddWar(war.getDeclaringTeam(), war.getReceivingTeam()), player);
-		}
 	}
 
 	@SuppressWarnings("DataFlowIssue") // Only called server-side. We know the world is not null at this point, because that's impossible.

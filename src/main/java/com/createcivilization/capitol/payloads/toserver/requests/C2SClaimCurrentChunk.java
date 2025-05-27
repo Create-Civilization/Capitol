@@ -4,7 +4,7 @@ import com.createcivilization.capitol.Capitol;
 
 import com.createcivilization.capitol.payloads.DirectionalPayload;
 import com.createcivilization.capitol.payloads.toserver.ServerPacketHandler;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

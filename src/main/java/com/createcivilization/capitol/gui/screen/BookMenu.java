@@ -10,7 +10,7 @@ import com.createcivilization.capitol.gui.pages.info.DisplayTeam;
 import com.createcivilization.capitol.gui.pages.support.AddPlayer;
 import com.createcivilization.capitol.team.Team;
 import com.createcivilization.capitol.team.War;
-import com.createcivilization.capitol.util.TeamUtils;
+import com.createcivilization.capitol.util.team.TeamUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
