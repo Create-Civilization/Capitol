@@ -1,12 +1,10 @@
 package com.createcivilization.capitol.server.commands.teams;
 
-import com.createcivilization.capitol.common.classes.Request;
+import com.createcivilization.capitol.common.assets.Request;
 import com.createcivilization.capitol.common.data.TeamData;
 import com.createcivilization.capitol.server.commands.abstracts.TeamCommand;
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 
 import java.util.Objects;
 

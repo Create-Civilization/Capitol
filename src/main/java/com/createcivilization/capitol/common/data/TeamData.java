@@ -1,8 +1,8 @@
 package com.createcivilization.capitol.common.data;
 
-import com.createcivilization.capitol.common.classes.Request;
-import com.createcivilization.capitol.common.classes.Status;
-import com.createcivilization.capitol.common.classes.Team;
+import com.createcivilization.capitol.common.assets.Request;
+import com.createcivilization.capitol.common.assets.Status;
+import com.createcivilization.capitol.common.assets.Team;
 import com.createcivilization.capitol.server.ServerConstants;
 
 import java.util.ArrayList;

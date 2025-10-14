@@ -1,9 +1,8 @@
 package com.createcivilization.capitol.server.commands;
 
-import com.createcivilization.capitol.common.classes.Status;
+import com.createcivilization.capitol.common.assets.Status;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
 public class CommandStatusHandler{
