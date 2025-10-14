@@ -1,13 +1,15 @@
 package com.createcivilization.capitol;
 
-import com.createcivilization.capitol.block.CapitolBlocks;
-import com.createcivilization.capitol.block.entity.CapitolBlockEntities;
-import com.createcivilization.capitol.config.CapitolConfig;
-import com.createcivilization.capitol.item.CapitolItems;
+import com.createcivilization.capitol.old.block.CapitolBlocks;
+import com.createcivilization.capitol.old.block.entity.CapitolBlockEntities;
+import com.createcivilization.capitol.old.config.CapitolConfig;
+import com.createcivilization.capitol.old.item.CapitolItems;
 
+import com.createcivilization.capitol.server.ServerSetup;
 import com.mojang.logging.LogUtils;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
@@ -20,9 +22,9 @@ public class Capitol {
     public static final String MOD_ID = "capitol";
 	public static final Logger LOGGER = LogUtils.getLogger();
 
-    public Capitol() {
-		var container = ModLoadingContext.get().getActiveContainer();
-        IEventBus modEventBus = container.getEventBus();
+    public Capitol(IEventBus modEventBus, ModContainer container) {
+
+		modEventBus.addListener(ServerSetup::init);
 
 		container.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);
 

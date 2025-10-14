@@ -1,0 +1,368 @@
+package com.createcivilization.capitol.old.gui.screen;
+
+import com.createcivilization.capitol.old.constants.ClientConstants;
+import com.createcivilization.capitol.old.gui.base.*;
+import com.createcivilization.capitol.old.gui.interactables.ButtonInteractable;
+import com.createcivilization.capitol.old.gui.interactables.TextInputInteractable;
+import com.createcivilization.capitol.old.gui.pages.attack.DeclareWar;
+import com.createcivilization.capitol.old.gui.pages.attack.WarDisplay;
+import com.createcivilization.capitol.old.gui.pages.info.DisplayTeam;
+import com.createcivilization.capitol.old.gui.pages.support.AddPlayer;
+import com.createcivilization.capitol.old.team.Team;
+import com.createcivilization.capitol.old.team.War;
+import com.createcivilization.capitol.old.util.team.TeamUtils;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
+import oshi.util.tuples.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+
+public class BookMenu extends BookScreen {
+
+	public int currentPage;
+	Tabs tabs = new Tabs();
+	int startingTab;
+	Tabs.Tab currentTab;
+	List<PageHandler> pageHandlers = List.of(
+		new AttackHandler(),
+		new DefenseHandler(),
+		new SupportHandler(),
+		new InfoHandler(),
+		new SettingsHandler()
+	);
+
+
+	public BookMenu(int startingTab, int startingPage) {
+		super(Component.literal("Book"));
+		addInteractable(tabs);
+		pageHandlers.forEach(pageHandler -> {
+			pageHandler.hide();
+			addInteractable(pageHandler);
+		});
+		this.startingTab = startingTab;
+		this.currentPage = startingPage;
+	}
+
+	public BookMenu() {
+		this(ClientConstants.lastTab, ClientConstants.lastPage);
+	}
+
+	@Override
+	protected void init() {
+		int halfWidth = BACKGROUND.getBlitWidth()/2;
+		this.leftPos = (this.width / 2) - halfWidth;
+		this.rightPos = leftPos + halfWidth;
+		this.topPos = (this.height - BACKGROUND.getBlitHeight()) / 2;
+		this.tabs.setX(this.rightPos + 20);
+		this.tabs.setY(this.topPos - 16);
+		super.init();
+		((Tabs.Tab) this.tabs.getInteractableList().get(this.startingTab)).select();
+	}
+
+	private static class Tabs extends Interactable.InteractableBundle {
+
+		int x,y;
+
+		private Tabs() {
+			this.setInteractableList(
+				IntStream.range(0, 5).boxed().map(
+					integer -> (Interactable) new Tab(296 + (integer * 23), (integer * 23), 0, integer)
+				).toList()
+			);
+		}
+
+		@Override
+		public void init(SmartScreen smartScreen) {
+			this.getInteractableList().forEach(interactable -> interactable.init(smartScreen));
+		}
+
+		@Override
+		public int getX() {
+			return x;
+		}
+
+		@Override
+		public int getY() {
+			return y;
+		}
+
+		@Override
+		public void setX(int x) {
+			this.x = x;
+			this.getInteractableList().forEach(tab -> tab.setX(tab.getX() + getX()));
+		}
+
+		@Override
+		public void setY(int y) {
+			this.y = y;
+			this.getInteractableList().forEach(tab -> tab.setY(tab.getY() + getY()));
+		}
+
+		private static class Tab extends ButtonInteractable {
+
+			BookMenu bookMenu;
+
+			int index;
+
+			public Tab(int off, int x, int y, int index) {
+				super(ASSET.blit(off, 0, 15, 23), null, null, x, y, null, true);
+				this.index = index;
+			}
+
+			@Override
+			public void init(SmartScreen smartScreen) {
+				this.bookMenu = (BookMenu) smartScreen;
+			}
+
+			@Override
+			public Interactable clickStart(int x, int y) {
+				if (bookMenu.currentTab == this) return null;
+				if (bookMenu.currentTab != null) bookMenu.currentTab.deactivate();
+				bookMenu.currentPage = 0;
+				getBlit().setSize(null, 28);
+				setY(getY() - 2);
+				bookMenu.currentTab = this;
+				bookMenu.pageHandlers.get(this.index).show();
+				ClientConstants.lastTab = this.index;
+				return this;
+			}
+
+			public void select() {
+				getBlit().setSize(null, 28);
+				setY(getY() - 5);
+				bookMenu.currentTab = this;
+				bookMenu.pageHandlers.get(this.index).show();
+				ClientConstants.lastTab = this.index;
+			}
+
+			@Override
+			public void hovered(int x, int y) {
+				if (bookMenu.currentTab == this) return;
+				getBlit().setSize(null, 26);
+				setY(getY() - 3);
+			}
+
+			@Override
+			public void hoverLeave(int x, int y) {
+				if (bookMenu.currentTab == this) return;
+				getBlit().setSize(null, 23);
+				setY(getY() + 3);
+			}
+
+			public void deactivate() {
+				getBlit().setSize(null, 23);
+				setY(getY() + 5);
+				bookMenu.pageHandlers.get(this.index).hide();
+			}
+
+			@Override
+			public void render(GuiGraphics guiGraphics) {
+				super.render(guiGraphics);
+			}
+		}
+	}
+
+	private static class AttackHandler extends PageHandler {
+		public AttackHandler() {
+			super(getPageList());
+		}
+		private static List<Interactable> getPageList() {
+			List<Page> pageList = new ArrayList<>();
+
+			Team playerTeam = ClientConstants.getPlayerTeam().getOrThrow();
+			if (TeamUtils.canPlayerDo(playerTeam, ClientConstants.INSTANCE.player, "declareWar")) pageList.add(new DeclareWar());
+
+
+			for (War war : War.getFlatParticipatingWars(playerTeam)) {
+				pageList.add(new WarDisplay(war));
+			}
+
+			return (List<Interactable>) (Object) pageList;
+		}
+	}
+	private static class DefenseHandler extends PageHandler {
+
+		public DefenseHandler() {
+			super(List.of());
+		}
+	}
+	private static class SupportHandler extends PageHandler {
+
+		public SupportHandler() {
+			super(List.of(
+				new AddPlayer()
+			));
+		}
+	}
+	private static class InfoHandler extends PageHandler {
+
+		public InfoHandler() {
+			super(List.of(
+				new DisplayTeam()
+			));
+		}
+	}
+	private static class SettingsHandler extends PageHandler {
+
+		public SettingsHandler() {
+			super(List.of());
+		}
+	}
+
+	private abstract static class PageHandler extends Interactable.InteractableBundle {
+
+		int x,y;
+		BookMenu bookMenu;
+		Pair<Interactable, Interactable> pageFlippers = new Pair<>(
+			new PageFlipper.Back(24, 158),
+			new PageFlipper.Next(251, 158)
+		);
+
+		public PageHandler(List<Interactable> pages) {
+			setInteractableList(pages);
+		}
+
+		@Override
+		public void render(GuiGraphics guiGraphics) {
+			if (isHidden()) return;
+
+			List<Interactable> list = getInteractableList();
+			int plusOne = this.bookMenu.currentPage + 1;
+
+			if (this.bookMenu.currentPage >= 0 && this.bookMenu.currentPage < list.size()) {
+				list.get(this.bookMenu.currentPage).render(guiGraphics);
+
+				if (plusOne >= list.size())
+					pageFlippers.getA().hide();
+			}
+
+
+			if (plusOne >= 0 && plusOne < list.size()) {
+				list.get(plusOne).render(guiGraphics);
+
+				if (this.bookMenu.currentPage - 1 < 0)
+					pageFlippers.getB().hide();
+			}
+
+			pageFlippers.getA().render(guiGraphics);
+			pageFlippers.getB().render(guiGraphics);
+		}
+
+		@Override
+		public void init(SmartScreen smartScreen) {
+			this.bookMenu = (BookMenu) smartScreen;
+			int i = 0;
+			for (Interactable interactable : getInteractableList()) {
+				interactable.init(bookMenu);
+				interactable.setX(i++ % 2 == 0 ? bookMenu.leftPos : bookMenu.rightPos);
+				interactable.setY(bookMenu.topPos);
+			}
+
+			pageFlippers.getA().init(smartScreen);
+			pageFlippers.getB().init(smartScreen);
+		}
+
+		@Override
+		public Interactable clickStart(int x, int y) {
+			return super.clickStart(x, y);
+		}
+
+		@Override
+		public int getX() {
+			return x;
+		}
+
+		@Override
+		public int getY() {
+			return y;
+		}
+
+		@Override
+		public void setX(int x) {
+			this.x = x;
+		}
+
+		@Override
+		public void setY(int y) {
+			this.y = y;
+		}
+
+		public static class PageFlipper extends ButtonInteractable {
+
+			boolean held = false;
+			int add;
+			BookMenu bookMenu;
+
+			public PageFlipper(Asset.Blit idleBlit, Asset.@Nullable Blit activeBlit, int x, int y, int add) {
+				super(idleBlit, activeBlit, null, x, y, null, false);
+				this.add = add;
+			}
+
+			@Override
+			public void init(SmartScreen smartScreen) {
+				this.bookMenu = (BookMenu) smartScreen;
+			}
+
+			@Override
+			public Interactable clickStart(int x, int y) {
+				super.clickStart(x, y);
+
+				if (!held) {
+					this.bookMenu.currentPage += this.add;
+					this.held = true;
+				}
+
+				return this;
+			}
+
+			@Override
+			public void clickRelease(int x, int y) {
+				super.clickRelease(x, y);
+
+				if (held) this.held = false;
+			}
+
+			public static class Next extends PageFlipper {
+				public Next(int x, int y) {
+					super(ASSET.blit(0, 188, 21, 8), ASSET.blit(0, 180, 21, 8), x, y, 2);
+				}
+			}
+
+			public static class Back extends PageFlipper {
+				public Back(int x, int y) {
+					super(ASSET.blit(21, 188, 21, 8), ASSET.blit(21, 180, 21, 8), x, y, -2);
+				}
+			}
+		}
+	}
+
+	public static class Button extends ButtonInteractable {
+		Runnable onActivated;
+
+		public Button(int x, int y, Component text, Runnable runnable) {
+			super(ASSET.blit(42, 180, 106, 13), ASSET.blit(148, 180, 106, 13), text, x, y, null, true);
+			this.onActivated = runnable;
+		}
+
+		@Override
+		public Interactable clickStart(int x, int y) {
+			if (!(super.clickStart(x, y) instanceof Interactable interactable)) return null;
+			this.onActivated.run();
+			return interactable;
+		}
+	}
+
+	public static class TextInput extends TextInputInteractable {
+		public TextInput(@Nullable Component placeHolderText, int x, int y, @Nullable List<String> autoCorrect) {
+			super(ASSET.blit(148, 193, 106, 13), placeHolderText, x, y, autoCorrect, null, true);
+		}
+	}
+
+	public static void addTableEntry (Page page, Component title, Component value, int y){
+		page.addInteractable(new Interactable.TextInteractable(title, 13, 14 + y, null, null));
+		page.addInteractable(new Interactable.TextInteractable(value, 130 - ClientConstants.INSTANCE.font.width(value), 14 + y, null, null));
+	};
+}
