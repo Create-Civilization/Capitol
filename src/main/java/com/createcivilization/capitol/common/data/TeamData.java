@@ -13,29 +13,33 @@ public class TeamData {
 
 	private static final List<Team> TEAMS = new ArrayList<>();
 
-	public static Status createTeam(Request request, String name) {
-		// check if allowed to
-		UUID origin = request.origin();
-		if (origin == ServerConstants.SERVER_UUID)
-			TEAMS.add(new Team(name));
-		else if (!playerHasTeam(origin)) {
-			TEAMS.add(new Team(name, origin));
-		} else
+	public static class SmartUtils {
+		public static Status createTeam(Request request, String name) {
+			// check if allowed to
+			UUID origin = request.origin();
+			if (origin == ServerConstants.SERVER_UUID)
+				TEAMS.add(new Team(name));
+			else if (!BaseUtils.playerHasTeam(origin)) {
+				TEAMS.add(new Team(name, origin));
+			} else
+				return new Status(
+					false,
+					"Player already has a team.",
+					null
+				);
+
 			return new Status(
-				false,
-				"Player already has a team.",
+				true,
+				"Team successfully created.",
 				null
 			);
-
-		return new Status(
-			true,
-			"Team successfully created.",
-			null
-		);
+		}
 	}
 
-	public static boolean playerHasTeam(UUID player) {
-		return TEAMS.stream().anyMatch(team -> team.members().containsKey(player));
+	public static class BaseUtils {
+		public static boolean playerHasTeam(UUID player) {
+			return TEAMS.stream().anyMatch(team -> team.members().containsKey(player));
+		}
 	}
 
 	//Temporary

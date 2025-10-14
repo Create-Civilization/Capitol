@@ -2,6 +2,7 @@ package com.createcivilization.capitol.server.commands.teams;
 
 import com.createcivilization.capitol.common.assets.Request;
 import com.createcivilization.capitol.common.data.TeamData;
+import com.createcivilization.capitol.server.utils.StatusHandlers;
 import com.createcivilization.capitol.server.commands.abstracts.TeamCommand;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -24,9 +25,12 @@ public class CreateTeam extends TeamCommand {
 	@Override
 	public int executes(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack source = ctx.getSource();
-		TeamData.createTeam(
-			new Request(source.isPlayer() ? Objects.requireNonNull(source.getPlayer()).getUUID() : SERVER_UUID),
-			"team"
+		StatusHandlers.CommandHandler(
+			TeamData.SmartUtils.createTeam(
+				new Request(source.isPlayer() ? Objects.requireNonNull(source.getPlayer()).getUUID() : SERVER_UUID),
+				"team"
+			),
+			ctx
 		);
 		return 1;
 	}
