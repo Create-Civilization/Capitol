@@ -3,52 +3,51 @@ package com.createcivilization.capitol.server.commands.teams;
 import com.createcivilization.capitol.common.assets.Request;
 import com.createcivilization.capitol.common.data.TeamData;
 import com.createcivilization.capitol.server.ServerConstants;
-import com.createcivilization.capitol.server.utils.StatusHandlers;
 import com.createcivilization.capitol.server.commands.abstracts.TeamCommand;
+import com.createcivilization.capitol.server.utils.StatusHandlers;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
-/**
- * Creates a team,
- * <p>
- * If ran by a player creates a team with them as an owner,
- * <p>
- * If ran by the server creates an empty slate of a team with no members.
- */
-public class CreateTeam extends TeamCommand {
+import java.util.UUID;
 
-	public CreateTeam() {
-		super("createTeam");
+public class DisbandTeam extends TeamCommand {
+
+	public DisbandTeam() {
+		super("disbandTeam");
 	}
 
 	@Override
 	public boolean requires(CommandSourceStack commandSourceStack) {
-		return !super.requires(commandSourceStack);
+		return !commandSourceStack.isPlayer() || commandSourceStack.hasPermission(0) || super.requires(commandSourceStack);
 	}
 
-	public int executes(CommandContext<CommandSourceStack> ctx) {
+	@Override
+	public int executes(CommandContext<CommandSourceStack> context) {
+		String string = StringArgumentType.getString(context, "teamId");
 		StatusHandlers.CommandHandler(
-			TeamData.SmartUtils.createTeam(
-				new Request(ServerConstants.resolveUUIDFromSource.apply(ctx.getSource())),
-				StringArgumentType.getString(ctx, "name")
+			TeamData.SmartUtils.disbandTeam(
+				new Request(ServerConstants.resolveUUIDFromSource.apply(context.getSource())),
+				string == null ? null : UUID.fromString(string)
 			),
-			ctx
+			context
 		);
 		return 1;
 	}
 
 	@Override
-	public LiteralArgumentBuilder<CommandSourceStack> setup() {
+	protected LiteralArgumentBuilder<CommandSourceStack> setup() {
 		return Commands.literal(this.name)
+		.requires(this::requires)
+		.executes(this::executes)
 		.then(
 			Commands.argument(
-				"name",
+				"teamId",
 				StringArgumentType.word()
 			)
-			.requires(this::requires)
+			.requires(commandSourceStack -> commandSourceStack.hasPermission(0))
 			.executes(this::executes)
 		);
 	}

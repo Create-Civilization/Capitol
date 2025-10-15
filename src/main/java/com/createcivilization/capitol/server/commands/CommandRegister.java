@@ -3,6 +3,7 @@ package com.createcivilization.capitol.server.commands;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.server.commands.debug.GetTeams;
 import com.createcivilization.capitol.server.commands.teams.CreateTeam;
+import com.createcivilization.capitol.server.commands.teams.DisbandTeam;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -17,6 +18,7 @@ public class CommandRegister {
 
 		// Teams
 		new CreateTeam().register(dispatcher);
+		new DisbandTeam().register(dispatcher);
 
 		// Debug
 		new GetTeams().register(dispatcher);

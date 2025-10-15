@@ -1,8 +1,6 @@
 package com.createcivilization.capitol.common.assets;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A representation of a team in capitol.
@@ -14,13 +12,14 @@ import java.util.UUID;
 public record Team(
 	String name,
 	UUID teamId,
-	HashMap<UUID, Integer> members
+	HashMap<UUID, Integer> members,
+	List<Role> roles
 ) {
 	public Team(String name) {
-		this(name, UUID.randomUUID(), new HashMap<>());
+		this(name, UUID.randomUUID(), new HashMap<>(), new ArrayList<>());
 	}
 
 	public Team(String name, UUID founder) {
-		this(name, UUID.randomUUID(), new HashMap<>(Map.of(founder, 0)));
+		this(name, UUID.randomUUID(), new HashMap<>(Map.of(founder, 0)), new ArrayList<>());
 	}
 }
