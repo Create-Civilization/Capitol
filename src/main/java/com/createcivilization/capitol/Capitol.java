@@ -5,7 +5,7 @@ import com.createcivilization.capitol.old.block.entity.CapitolBlockEntities;
 import com.createcivilization.capitol.old.config.CapitolConfig;
 import com.createcivilization.capitol.old.item.CapitolItems;
 
-import com.createcivilization.capitol.server.ServerSetup;
+import com.createcivilization.capitol.server.ServerManager;
 import com.mojang.logging.LogUtils;
 
 import net.neoforged.bus.api.IEventBus;
@@ -24,7 +24,7 @@ public class Capitol {
     public Capitol(IEventBus modEventBus, ModContainer container) {
 
 		// Add listeners
-		modEventBus.addListener(ServerSetup::init);
+		modEventBus.addListener(ServerManager::init);
 
 		// Register configs
 		container.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);

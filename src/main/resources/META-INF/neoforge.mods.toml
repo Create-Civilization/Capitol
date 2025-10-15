@@ -70,4 +70,7 @@ ordering = "NONE"
 side = "BOTH"
 
 [[mixins]]
+config="capitolold.mixins.json"
+
+[[mixins]]
 config="capitol.mixins.json"

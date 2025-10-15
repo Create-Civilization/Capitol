@@ -1,12 +1,14 @@
 {
 	"required": true,
 	"minVersion": "0.8",
-	"package": "com.createcivilization.capitol.server.mixin",
+	"package": "com.createcivilization.capitol.old.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"refmap": "capitol.refmap.json",
 	"mixins": [
+		"ChunkDataImpl",
 		"DataHandler$DataLoaderImpl",
-		"DataHandler$DataSaverImpl"
+		"DataHandler$DataSaverImpl",
+		"DataHandler$ChunkDataImplImpl"
 	],
 	"injectors": {
 		"defaultRequire": 1

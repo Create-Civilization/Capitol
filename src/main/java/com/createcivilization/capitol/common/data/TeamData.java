@@ -79,11 +79,6 @@ public class TeamData {
 			return TEAMS.stream().filter(team -> team.members().containsKey(player)).toList().getFirst();
 		}
 
-		public static Role getPlayerRole(UUID player) {
-			Team playerTeam = getPlayerTeam(player);
-			return playerTeam.roles().get(playerTeam.members().get(player));
-		}
-
 		public static boolean isOwner(UUID player) {
 			// Filters to see if player has the role pointer of 0, which has to be the owner role as it cannot be mutated.
 			return TEAMS.stream().anyMatch(team -> team.members().entrySet().stream().anyMatch(entry -> entry.getKey() == player && entry.getValue() == 0));
@@ -97,5 +92,10 @@ public class TeamData {
 	// Temporary
 	public static List<Team> getTeams() {
 		return TEAMS;
+	}
+
+	public static void setTeams(List<Team> teams) {
+		TEAMS.clear();
+		TEAMS.addAll(teams);
 	}
 }
