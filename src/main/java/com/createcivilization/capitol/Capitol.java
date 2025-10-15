@@ -10,7 +10,6 @@ import com.mojang.logging.LogUtils;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 
@@ -24,10 +23,13 @@ public class Capitol {
 
     public Capitol(IEventBus modEventBus, ModContainer container) {
 
+		// Add listeners
 		modEventBus.addListener(ServerSetup::init);
 
+		// Register configs
 		container.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SERVER_SPEC);
 
+		// Register custom objects
         CapitolItems.register(modEventBus);
         CapitolBlocks.register(modEventBus);
         CapitolBlockEntities.register(modEventBus);

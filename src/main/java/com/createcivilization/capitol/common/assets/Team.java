@@ -4,6 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * A representation of a team in capitol.
+ * @param name The name of the team.
+ * @param teamId The unique identifier of the team.
+ * @param members A hashmap of every player in the team UUID being the player's UUID and the Integer acts like a
+ *                reference to the role, each integer is the index of the role in the role hashmap.
+ */
 public record Team(
 	String name,
 	UUID teamId,

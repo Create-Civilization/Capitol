@@ -5,6 +5,9 @@ import net.minecraft.commands.CommandSourceStack;
 
 import java.util.Objects;
 
+/**
+ * {@link Command} that requires the user to be in a team.
+ */
 public abstract class TeamCommand extends Command {
 	public TeamCommand(String name) {
 		super(name);

@@ -11,6 +11,13 @@ import java.util.Objects;
 
 import static com.createcivilization.capitol.server.ServerConstants.SERVER_UUID;
 
+/**
+ * Creates a team,
+ * <p>
+ * If ran by a player creates a team with them as an owner,
+ * <p>
+ * If ran by the server creates an empty slate of a team with no members.
+ */
 public class CreateTeam extends TeamCommand {
 
 	public CreateTeam() {

@@ -6,6 +6,9 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
+/**
+ * Debug command that returns all the teams loaded in the server.
+ */
 public class GetTeams extends OperatorCommand {
 	public GetTeams() {
 		super("getTeams");
