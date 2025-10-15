@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.server.commands.abstracts;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 
 /**
@@ -13,5 +14,10 @@ public abstract class OperatorCommand extends Command {
 	@Override
 	public boolean requires(CommandSourceStack commandSourceStack) {
 		return commandSourceStack.hasPermission(0);
+	}
+
+	@Override
+	protected LiteralArgumentBuilder<CommandSourceStack> setup() {
+		return super.setup();
 	}
 }

@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.server.commands.abstracts;
 
 import com.createcivilization.capitol.common.data.TeamData;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 
 import java.util.Objects;
@@ -16,5 +17,10 @@ public abstract class TeamCommand extends Command {
 	@Override
 	public boolean requires(CommandSourceStack commandSourceStack) {
 		return commandSourceStack.isPlayer() && TeamData.BaseUtils.playerHasTeam(Objects.requireNonNull(commandSourceStack.getPlayer()).getUUID());
+	}
+
+	@Override
+	protected LiteralArgumentBuilder<CommandSourceStack> setup() {
+		return super.setup();
 	}
 }

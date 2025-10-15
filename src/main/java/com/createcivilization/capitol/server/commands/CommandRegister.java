@@ -14,7 +14,11 @@ public class CommandRegister {
 	@SubscribeEvent
 	public static void registerCommands(RegisterCommandsEvent event) {
 		CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+
+		// Teams
 		new CreateTeam().register(dispatcher);
+
+		// Debug
 		new GetTeams().register(dispatcher);
 	}
 }

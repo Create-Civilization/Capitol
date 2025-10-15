@@ -4,8 +4,11 @@ import com.createcivilization.capitol.common.assets.Request;
 import com.createcivilization.capitol.common.data.TeamData;
 import com.createcivilization.capitol.server.utils.StatusHandlers;
 import com.createcivilization.capitol.server.commands.abstracts.TeamCommand;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 
 import java.util.Objects;
 
@@ -29,16 +32,28 @@ public class CreateTeam extends TeamCommand {
 		return !super.requires(commandSourceStack);
 	}
 
-	@Override
 	public int executes(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack source = ctx.getSource();
 		StatusHandlers.CommandHandler(
 			TeamData.SmartUtils.createTeam(
 				new Request(source.isPlayer() ? Objects.requireNonNull(source.getPlayer()).getUUID() : SERVER_UUID),
-				"team"
+				StringArgumentType.getString(ctx, "name")
 			),
 			ctx
 		);
 		return 1;
+	}
+
+	@Override
+	public LiteralArgumentBuilder<CommandSourceStack> setup() {
+		return Commands.literal(this.name)
+		.then(
+			Commands.argument(
+				"name",
+				StringArgumentType.word()
+			)
+			.requires(this::requires)
+			.executes(this::executes)
+		);
 	}
 }
