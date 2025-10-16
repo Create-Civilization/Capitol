@@ -1,12 +1,16 @@
 package com.createcivilization.capitol.common.data;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.assets.Request;
-import com.createcivilization.capitol.common.assets.Role;
 import com.createcivilization.capitol.common.assets.Status;
 import com.createcivilization.capitol.common.assets.Team;
 import com.createcivilization.capitol.server.ServerConstants;
+import com.createcivilization.capitol.server.utils.GsonUtil;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,6 +20,8 @@ import java.util.UUID;
  */
 public class TeamData {
 
+	public static final File CAPITOL_FOLDER = new File(System.getProperty("user.dir"), "capitol_data");
+	public static final File TEAM_DATA_FILE = new File(CAPITOL_FOLDER, "team_data.json");
 	private static final List<Team> TEAMS = new ArrayList<>();
 
 	/**
@@ -39,7 +45,7 @@ public class TeamData {
 
 			return new Status(
 				true,
-				"Team" + name + " successfully created.",
+				"Team " + name + " successfully created.",
 				null
 			);
 		}
@@ -86,6 +92,29 @@ public class TeamData {
 
 		public static void removeTeam(UUID teamId) {
 			TEAMS.removeIf(team -> team.teamId().equals(teamId));
+		}
+	}
+
+	/**
+	 * Utilities that manage teams data wise
+	 */
+	public static class DataUtils {
+		public static void loadData() throws IOException {
+
+		}
+
+		public static void saveData() throws IOException {
+			Capitol.LOGGER.info("Saving capitol data..");
+			if (!CAPITOL_FOLDER.exists()) if (!CAPITOL_FOLDER.mkdir()) throw new IOException("Capitol Data folder could not be made.");
+			if (!TEAM_DATA_FILE.exists()) if (!TEAM_DATA_FILE.createNewFile()) throw new IOException("Team Data file could not be made.");
+
+			TEAM_DATA_FILE.setWritable(true);
+			TEAM_DATA_FILE.setReadable(true);
+
+			FileWriter fileWriter = new FileWriter(TEAM_DATA_FILE);
+			fileWriter.write(GsonUtil.serializeList(TEAMS));
+			fileWriter.close();
+			Capitol.LOGGER.info("Capitol data saved successfully.");
 		}
 	}
 

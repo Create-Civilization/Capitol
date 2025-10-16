@@ -1,24 +1,18 @@
 package com.createcivilization.capitol.server.mixin;
 
-import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.common.data.TeamData;
 import com.createcivilization.capitol.old.constants.ServerConstants;
-import com.createcivilization.capitol.old.team.Team;
 import com.createcivilization.capitol.old.util.data.DataManager;
-import com.createcivilization.capitol.old.util.data.IChunkData;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.IOException;
-import java.util.function.BooleanSupplier;
 
 /**
  * Class for saving and loading Team data and claimed chunks.<br>
@@ -37,9 +31,8 @@ public final class DataHandler {
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/common/ModConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) {
-//			ServerConstants.server.set((MinecraftServer) (Object) this);
 //			try {
-//				DataManager.loadData();
+//				TeamData.DataUtils.loadData();
 //			} catch (IOException e) {
 //				throw new RuntimeException("An error occurred trying to load teams for Capitol!", e);
 //			}
@@ -54,11 +47,7 @@ public final class DataHandler {
 		 */
 		@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;saveAll()V", shift = At.Shift.BEFORE), method = "saveEverything")
 		private void autoSaveTeams(boolean suppressLog, boolean flush, boolean forced, CallbackInfoReturnable<Boolean> cir) {
-//			try {
-//				DataManager.saveData();
-//			} catch (IOException e) {
-//				throw new RuntimeException("An error occurred trying to save teams for Capitol!", e);
-//			}
+			capitol$saveData();
 		}
 
 		/**
@@ -66,11 +55,16 @@ public final class DataHandler {
 		 */
 		@Inject(at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;)V", shift = At.Shift.BEFORE, ordinal = 1), method = "stopServer")
 		private void saveTeams(CallbackInfo ci) {
-//			try {
-//				DataManager.saveData();
-//			} catch (IOException e) {
-//				throw new RuntimeException("An error occurred trying to save teams for Capitol!", e);
-//			}
+			capitol$saveData();
+		}
+
+		@Unique
+		private static void capitol$saveData() {
+			try {
+				TeamData.DataUtils.saveData();
+			} catch (IOException e) {
+				throw new RuntimeException("An error occurred trying to save teams for Capitol!", e);
+			}
 		}
 	}
 }
