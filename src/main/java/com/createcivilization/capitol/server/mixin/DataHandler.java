@@ -31,11 +31,11 @@ public final class DataHandler {
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/common/ModConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) {
-//			try {
-//				TeamData.DataUtils.loadData();
-//			} catch (IOException e) {
-//				throw new RuntimeException("An error occurred trying to load teams for Capitol!", e);
-//			}
+			try {
+				TeamData.DataUtils.loadData();
+			} catch (IOException e) {
+				throw new RuntimeException("An error occurred trying to load teams for Capitol!", e);
+			}
         }
     }
 

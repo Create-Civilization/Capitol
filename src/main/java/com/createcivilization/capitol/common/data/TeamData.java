@@ -9,6 +9,7 @@ import com.createcivilization.capitol.server.utils.GsonUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -100,16 +101,31 @@ public class TeamData {
 	 */
 	public static class DataUtils {
 		public static void loadData() throws IOException {
+			Capitol.LOGGER.info("Loading capitol data..");
+			FileReader fileReader = new FileReader(TEAM_DATA_FILE);
+			StringBuilder string = new StringBuilder();
 
+			int charInt;
+
+			while ((charInt = fileReader.read()) != -1) {
+				string.append((char) charInt);
+			}
+
+			TeamData.setTeams(GsonUtil.deserializeList(string.toString()));
+
+			Capitol.LOGGER.info("Capitol data loaded successfully.");
 		}
 
 		public static void saveData() throws IOException {
 			Capitol.LOGGER.info("Saving capitol data..");
 			if (!CAPITOL_FOLDER.exists()) if (!CAPITOL_FOLDER.mkdir()) throw new IOException("Capitol Data folder could not be made.");
-			if (!TEAM_DATA_FILE.exists()) if (!TEAM_DATA_FILE.createNewFile()) throw new IOException("Team Data file could not be made.");
-
-			TEAM_DATA_FILE.setWritable(true);
-			TEAM_DATA_FILE.setReadable(true);
+			if (!TEAM_DATA_FILE.exists()) {
+				if (!TEAM_DATA_FILE.createNewFile()) throw new IOException("Team Data file could not be made.");
+				else {
+					TEAM_DATA_FILE.setWritable(true);
+					TEAM_DATA_FILE.setReadable(true);
+				}
+			}
 
 			FileWriter fileWriter = new FileWriter(TEAM_DATA_FILE);
 			fileWriter.write(GsonUtil.serializeList(TEAMS));
