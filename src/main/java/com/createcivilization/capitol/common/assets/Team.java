@@ -16,10 +16,20 @@ public record Team(
 	List<Role> roles
 ) {
 	public Team(String name) {
-		this(name, UUID.randomUUID(), new HashMap<>(), new ArrayList<>());
+		this(name, UUID.randomUUID(), new HashMap<>(), List.of(
+			Role.ownerRole(),
+			Role.moderatorRole(),
+			Role.memberRole(),
+			Role.guestRole()
+		));
 	}
 
 	public Team(String name, UUID founder) {
-		this(name, UUID.randomUUID(), new HashMap<>(Map.of(founder, 0)), new ArrayList<>());
+		this(name, UUID.randomUUID(), new HashMap<>(Map.of(founder, 0)), List.of(
+			Role.ownerRole(),
+			Role.moderatorRole(),
+			Role.memberRole(),
+			Role.guestRole()
+		));
 	}
 }

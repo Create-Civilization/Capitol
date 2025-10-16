@@ -73,7 +73,7 @@ public class TeamData {
 	}
 
 	/**
-	 * Utilities that perform basic actions and checks.
+	 * Utilities that perform basic actions and checks without returning a Status.
 	 */
 	public static class BaseUtils {
 
@@ -91,8 +91,14 @@ public class TeamData {
 			return TEAMS.stream().anyMatch(team -> team.members().entrySet().stream().anyMatch(entry -> entry.getKey() == player && entry.getValue() == 0));
 		}
 
+		// Team Methods
 		public static void removeTeam(UUID teamId) {
 			TEAMS.removeIf(team -> team.teamId().equals(teamId));
+		}
+
+		public static void setTeams(List<Team> teams) {
+			TEAMS.clear();
+			TEAMS.addAll(teams);
 		}
 	}
 
@@ -101,6 +107,7 @@ public class TeamData {
 	 */
 	public static class DataUtils {
 		public static void loadData() throws IOException {
+			if (!CAPITOL_FOLDER.exists() || !TEAM_DATA_FILE.exists()) return;
 			Capitol.LOGGER.info("Loading capitol data..");
 			FileReader fileReader = new FileReader(TEAM_DATA_FILE);
 			StringBuilder string = new StringBuilder();
@@ -111,7 +118,7 @@ public class TeamData {
 				string.append((char) charInt);
 			}
 
-			TeamData.setTeams(GsonUtil.deserializeList(string.toString()));
+			BaseUtils.setTeams(GsonUtil.deserializeList(string.toString()));
 
 			Capitol.LOGGER.info("Capitol data loaded successfully.");
 		}
@@ -137,10 +144,5 @@ public class TeamData {
 	// Temporary
 	public static List<Team> getTeams() {
 		return TEAMS;
-	}
-
-	public static void setTeams(List<Team> teams) {
-		TEAMS.clear();
-		TEAMS.addAll(teams);
 	}
 }

@@ -9,8 +9,4 @@ public class ServerManager {
 	public static void init(FMLDedicatedServerSetupEvent ignore) {
 
 	}
-
-	public static void save() {
-
-	}
 }
