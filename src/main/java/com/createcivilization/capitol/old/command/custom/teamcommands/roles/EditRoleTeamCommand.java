@@ -4,7 +4,7 @@ import com.createcivilization.capitol.old.command.Suggestions;
 import com.createcivilization.capitol.old.command.custom.abstracts.AbstractTeamCommand;
 import com.createcivilization.capitol.old.team.Team;
 
-import com.createcivilization.capitol.old.util.team.PermissionUtil;
+import com.createcivilization.capitol.common.utils.PermissionUtil;
 import com.createcivilization.capitol.old.util.team.TeamUtils;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;

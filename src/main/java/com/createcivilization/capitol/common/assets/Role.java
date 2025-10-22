@@ -1,93 +1,41 @@
 package com.createcivilization.capitol.common.assets;
 
-import com.createcivilization.capitol.old.config.CapitolConfig;
+import com.createcivilization.capitol.common.utils.PermissionUtil;
+
+import java.util.Map;
 
 public record Role(
 	String name,
-	boolean invitePlayers,
-	boolean breakBlocks,
-	boolean placeBlocks,
-	boolean useItems,
-	boolean interactEntities,
-	boolean interactBlocks,
-	boolean editRoles,
-	boolean editPermissions,
-	boolean removeMember,
-	boolean declareWar
+	Map<String, Boolean> permissionMap
 ) {
 	public static Role ownerRole() {
 		return new Role(
 			"owner",
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true
+			PermissionUtil.newPermission("all_true")
 		);
 	}
 	public static Role moderatorRole() {
 		return new Role(
 			"moderator",
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			false
+			PermissionUtil.newPermission("moderator")
 		);
 	}
 	public static Role memberRole() {
 		return new Role(
 			"member",
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			false,
-			false,
-			false,
-			false
+			PermissionUtil.newPermission("member")
 		);
 	}
-	public static Role guestRole() {
+	public static Role nonMemberRole() {
 		return new Role(
 			"guest",
-			false,
-			false,
-			false,
-			CapitolConfig.SERVER.nonMemberUseItems.get(),
-			CapitolConfig.SERVER.nonMemberInteractEntities.get(),
-			CapitolConfig.SERVER.nonMemberInteractBlocks.get(),
-			false,
-			false,
-			false,
-			false
+			PermissionUtil.newPermission("non-member")
 		);
 	}
 	public static Role emptyRole(String name) {
 		return new Role(
 			name,
-			false,
-			false,
-			false,
-			false,
-			false,
-			false,
-			false,
-			false,
-			false,
-			false
+			PermissionUtil.newPermission("all_false")
 		);
 	}
 }

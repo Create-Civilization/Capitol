@@ -16,7 +16,8 @@ public abstract class TeamCommand extends Command {
 
 	@Override
 	public boolean requires(CommandSourceStack commandSourceStack) {
-		return commandSourceStack.isPlayer() && TeamData.BaseUtils.playerHasTeam(Objects.requireNonNull(commandSourceStack.getPlayer()).getUUID());
+		return (commandSourceStack.isPlayer() && TeamData.BaseUtils.playerHasTeam(Objects.requireNonNull(commandSourceStack.getPlayer()).getUUID()))
+			|| commandSourceStack.hasPermission(0);
 	}
 
 	@Override

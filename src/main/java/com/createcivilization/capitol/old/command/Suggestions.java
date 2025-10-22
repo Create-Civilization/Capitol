@@ -4,7 +4,7 @@ import com.createcivilization.capitol.old.constants.CommonConstants;
 import com.createcivilization.capitol.old.team.Team;
 
 import com.createcivilization.capitol.old.util.data.DataManager;
-import com.createcivilization.capitol.old.util.team.PermissionUtil;
+import com.createcivilization.capitol.common.utils.PermissionUtil;
 import com.createcivilization.capitol.old.util.team.TeamUtils;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 

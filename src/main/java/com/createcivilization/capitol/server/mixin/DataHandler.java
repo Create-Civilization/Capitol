@@ -1,7 +1,8 @@
 package com.createcivilization.capitol.server.mixin;
 
+import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.common.data.ClaimData;
 import com.createcivilization.capitol.common.data.TeamData;
-import com.createcivilization.capitol.old.constants.ServerConstants;
 import com.createcivilization.capitol.old.util.data.DataManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
@@ -27,15 +28,19 @@ public final class DataHandler {
 
 		/**
 		 * Loads the teams when the server starts.<br>
-		 * This mixin also sets {@link ServerConstants#server} to be the server instance.
+		 * This mixin also sets {@link com.createcivilization.capitol.server.ServerConstants#SERVER} to be the server instance.
 		 */
         @Inject(at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/common/ModConfigSpec$BooleanValue;get()Ljava/lang/Object;", shift = At.Shift.BEFORE), method = "initServer")
         public void loadTeams(CallbackInfoReturnable<Boolean> cir) {
+			Capitol.LOGGER.info("Loading capitol data..");
+			com.createcivilization.capitol.server.ServerConstants.SERVER.set((MinecraftServer) (Object) this);
 			try {
 				TeamData.DataUtils.loadData();
+				ClaimData.DataUtils.loadData();
 			} catch (IOException e) {
 				throw new RuntimeException("An error occurred trying to load teams for Capitol!", e);
 			}
+			Capitol.LOGGER.info("Capitol data loaded successfully.");
         }
     }
 
@@ -60,11 +65,14 @@ public final class DataHandler {
 
 		@Unique
 		private static void capitol$saveData() {
+			Capitol.LOGGER.info("Saving capitol data..");
 			try {
 				TeamData.DataUtils.saveData();
+				ClaimData.DataUtils.saveData();
 			} catch (IOException e) {
 				throw new RuntimeException("An error occurred trying to save teams for Capitol!", e);
 			}
+			Capitol.LOGGER.info("Capitol data saved successfully.");
 		}
 	}
 }

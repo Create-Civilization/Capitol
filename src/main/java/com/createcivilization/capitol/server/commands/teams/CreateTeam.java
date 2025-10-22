@@ -26,7 +26,7 @@ public class CreateTeam extends TeamCommand {
 
 	@Override
 	public boolean requires(CommandSourceStack commandSourceStack) {
-		return !super.requires(commandSourceStack);
+		return !super.requires(commandSourceStack) || commandSourceStack.hasPermission(0);
 	}
 
 	public int executes(CommandContext<CommandSourceStack> ctx) {

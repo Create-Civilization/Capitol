@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.old.util.team;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.common.utils.PermissionUtil;
 import com.createcivilization.capitol.old.config.CapitolConfig;
 import com.createcivilization.capitol.old.payloads.bidirectional.*;
 import com.createcivilization.capitol.old.payloads.bidirectional.add.BiAddChunk;

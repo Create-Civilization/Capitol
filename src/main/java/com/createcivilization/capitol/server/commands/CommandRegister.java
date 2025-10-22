@@ -1,6 +1,8 @@
 package com.createcivilization.capitol.server.commands;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.server.commands.chunks.ClaimChunk;
+import com.createcivilization.capitol.server.commands.debug.GetChunks;
 import com.createcivilization.capitol.server.commands.debug.GetTeams;
 import com.createcivilization.capitol.server.commands.teams.CreateTeam;
 import com.createcivilization.capitol.server.commands.teams.DisbandTeam;
@@ -20,7 +22,11 @@ public class CommandRegister {
 		new CreateTeam().register(dispatcher);
 		new DisbandTeam().register(dispatcher);
 
+		// Chunks
+		new ClaimChunk().register(dispatcher);
+
 		// Debug
 		new GetTeams().register(dispatcher);
+		new GetChunks().register(dispatcher);
 	}
 }

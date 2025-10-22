@@ -1,7 +1,7 @@
 package com.createcivilization.capitol.common.data;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.assets.Request;
+import com.createcivilization.capitol.common.assets.Role;
 import com.createcivilization.capitol.common.assets.Status;
 import com.createcivilization.capitol.common.assets.Team;
 import com.createcivilization.capitol.server.ServerConstants;
@@ -21,8 +21,7 @@ import java.util.UUID;
  */
 public class TeamData {
 
-	public static final File CAPITOL_FOLDER = new File(System.getProperty("user.dir"), "capitol_data");
-	public static final File TEAM_DATA_FILE = new File(CAPITOL_FOLDER, "team_data.json");
+	public static final File DATA_FILE = new File(ServerConstants.CAPITOL_FOLDER, "team_data.json");
 	private static final List<Team> TEAMS = new ArrayList<>();
 
 	/**
@@ -31,18 +30,22 @@ public class TeamData {
 	public static class SmartUtils {
 		public static Status createTeam(Request request, String name) {
 			UUID origin = request.origin();
+			Team newTeam;
 			if (origin.equals(ServerConstants.SERVER_UUID))
 				// Is server
-				TEAMS.add(new Team(name));
+				newTeam = new Team(name);
 			else if (!BaseUtils.playerHasTeam(origin)) {
 				// Is player
-				TEAMS.add(new Team(name, origin));
+				newTeam = new Team(name, origin);
 			} else
 				return new Status(
 					false,
 					"Player already has a team.",
 					null
 				);
+
+			TEAMS.add(newTeam);
+			ClaimData.BaseUtils.startTeam(newTeam.teamId());
 
 			return new Status(
 				true,
@@ -91,6 +94,15 @@ public class TeamData {
 			return TEAMS.stream().anyMatch(team -> team.members().entrySet().stream().anyMatch(entry -> entry.getKey() == player && entry.getValue() == 0));
 		}
 
+		public static Role getPlayerRole(UUID player) {
+			Team playerTeam = getPlayerTeam(player);
+			return playerTeam.roles().get(playerTeam.members().get(player));
+		}
+
+		public static boolean hasPermission(UUID player, String permission) {
+			return getPlayerRole(player).permissionMap().get(permission);
+		}
+
 		// Team Methods
 		public static void removeTeam(UUID teamId) {
 			TEAMS.removeIf(team -> team.teamId().equals(teamId));
@@ -100,6 +112,10 @@ public class TeamData {
 			TEAMS.clear();
 			TEAMS.addAll(teams);
 		}
+
+		public static Team getTeam(UUID teamId) {
+			return TEAMS.stream().filter(team -> team.teamId().equals(teamId)).toList().getFirst();
+		}
 	}
 
 	/**
@@ -107,9 +123,8 @@ public class TeamData {
 	 */
 	public static class DataUtils {
 		public static void loadData() throws IOException {
-			if (!CAPITOL_FOLDER.exists() || !TEAM_DATA_FILE.exists()) return;
-			Capitol.LOGGER.info("Loading capitol data..");
-			FileReader fileReader = new FileReader(TEAM_DATA_FILE);
+			if (!ServerConstants.CAPITOL_FOLDER.exists() || !DATA_FILE.exists()) return;
+			FileReader fileReader = new FileReader(DATA_FILE);
 			StringBuilder string = new StringBuilder();
 
 			int charInt;
@@ -118,26 +133,22 @@ public class TeamData {
 				string.append((char) charInt);
 			}
 
-			BaseUtils.setTeams(GsonUtil.deserializeList(string.toString()));
-
-			Capitol.LOGGER.info("Capitol data loaded successfully.");
+			BaseUtils.setTeams(GsonUtil.deserializeTeamList(string.toString()));
 		}
 
 		public static void saveData() throws IOException {
-			Capitol.LOGGER.info("Saving capitol data..");
-			if (!CAPITOL_FOLDER.exists()) if (!CAPITOL_FOLDER.mkdir()) throw new IOException("Capitol Data folder could not be made.");
-			if (!TEAM_DATA_FILE.exists()) {
-				if (!TEAM_DATA_FILE.createNewFile()) throw new IOException("Team Data file could not be made.");
+			if (!ServerConstants.CAPITOL_FOLDER.exists()) if (!ServerConstants.CAPITOL_FOLDER.mkdir()) throw new IOException("Capitol Data folder could not be made.");
+			if (!DATA_FILE.exists()) {
+				if (!DATA_FILE.createNewFile()) throw new IOException("Team Data file could not be made.");
 				else {
-					TEAM_DATA_FILE.setWritable(true);
-					TEAM_DATA_FILE.setReadable(true);
+					DATA_FILE.setWritable(true);
+					DATA_FILE.setReadable(true);
 				}
 			}
 
-			FileWriter fileWriter = new FileWriter(TEAM_DATA_FILE);
+			FileWriter fileWriter = new FileWriter(DATA_FILE);
 			fileWriter.write(GsonUtil.serializeList(TEAMS));
 			fileWriter.close();
-			Capitol.LOGGER.info("Capitol data saved successfully.");
 		}
 	}
 

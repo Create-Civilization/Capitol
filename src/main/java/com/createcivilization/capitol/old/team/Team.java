@@ -4,7 +4,7 @@ import com.createcivilization.capitol.old.config.CapitolConfig;
 
 import com.createcivilization.capitol.old.util.data.GsonUtil;
 import com.createcivilization.capitol.old.util.team.LogToDiscord;
-import com.createcivilization.capitol.old.util.team.PermissionUtil;
+import com.createcivilization.capitol.common.utils.PermissionUtil;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 

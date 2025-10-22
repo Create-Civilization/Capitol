@@ -1,15 +1,13 @@
-package com.createcivilization.capitol.old.util.team;
+package com.createcivilization.capitol.common.utils;
 
 import com.createcivilization.capitol.old.config.CapitolConfig;
 
-import com.google.gson.stream.JsonWriter;
-
-import java.io.IOException;
 import java.util.*;
 
 public class PermissionUtil {
 
 	public static final ArrayList<String> permissions = new ArrayList<>(List.of(
+		"claimChunks",
 		"invitePlayers",
 		"breakBlocks",
 		"placeBlocks",
@@ -42,9 +40,11 @@ public class PermissionUtil {
 				true,
 				true,
 				true,
-				true
+				true,
+				false
 			);
 			case "member" -> PermissionUtil.newPermission(
+				true,
 				true,
 				true,
 				true,
@@ -56,6 +56,7 @@ public class PermissionUtil {
 				false
 			);
 			case "non-member" -> PermissionUtil.newPermission(
+				false,
 				false,
 				false,
 				false,
@@ -82,17 +83,5 @@ public class PermissionUtil {
 			i++;
 		}
 		return permission;
-	}
-
-	public static void savePermission(JsonWriter writer, Map<String, Map<String, Boolean>> rolePermissions) throws IOException {
-		writer.name("rolePermissions").beginObject();
-		for (Map.Entry<String, Map<String, Boolean>> mapEntry : rolePermissions.entrySet()) {
-			writer.name(mapEntry.getKey()).beginObject();
-			for (Map.Entry<String, Boolean> subEntry : mapEntry.getValue().entrySet()) {
-				writer.name(subEntry.getKey()).value(subEntry.getValue());
-			}
-			writer.endObject();
-		}
-		writer.endObject();
 	}
 }

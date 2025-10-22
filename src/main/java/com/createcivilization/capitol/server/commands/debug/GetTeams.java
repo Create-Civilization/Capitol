@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.server.commands.debug;
 
+import com.createcivilization.capitol.common.assets.Team;
 import com.createcivilization.capitol.common.data.TeamData;
 import com.createcivilization.capitol.server.commands.abstracts.OperatorCommand;
 import com.mojang.brigadier.context.CommandContext;
@@ -16,7 +17,7 @@ public class GetTeams extends OperatorCommand {
 
 	@Override
 	public int executes(CommandContext<CommandSourceStack> ctx) {
-		ctx.getSource().sendSystemMessage(Component.literal(TeamData.getTeams().toString()));
+		ctx.getSource().sendSystemMessage(Component.literal(TeamData.getTeams().stream().map(Team::toReducedString).toList().toString()));
 		return 1;
 	}
 }

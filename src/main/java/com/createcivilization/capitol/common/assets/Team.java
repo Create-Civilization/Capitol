@@ -20,7 +20,7 @@ public record Team(
 			Role.ownerRole(),
 			Role.moderatorRole(),
 			Role.memberRole(),
-			Role.guestRole()
+			Role.nonMemberRole()
 		));
 	}
 
@@ -29,7 +29,11 @@ public record Team(
 			Role.ownerRole(),
 			Role.moderatorRole(),
 			Role.memberRole(),
-			Role.guestRole()
+			Role.nonMemberRole()
 		));
+	}
+
+	public String toReducedString() {
+		return "name: " + name() + "\nid: " + teamId() + "\nmembers: " + members().size();
 	}
 }
