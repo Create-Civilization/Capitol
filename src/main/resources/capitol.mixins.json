@@ -1,7 +1,7 @@
 {
 	"required": true,
 	"minVersion": "0.8",
-	"package": "com.createcivilization.capitol.server.mixin",
+	"package": "com.createcivilization.capitol.old.server.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"refmap": "capitol.refmap.json",
 	"mixins": [
