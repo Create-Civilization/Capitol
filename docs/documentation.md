@@ -9,6 +9,5 @@ focus heavily on these ideals in the development environment:
 
 ### *With that said, consider this file a formal warning of what responsibilities are expected of those who contribute.*
 
-
 ###### To note:
 ###### Here's cheatsheet to [github's markdown](https://github.com/adam-p/markdown-here/wiki/markdown-cheatsheet), and please note! when I say to keep your work documented, you do not need to follow my quality level or anything, I just hope we can at least have something roughly jotted down even if crappily.
