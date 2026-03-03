@@ -1,5 +1,5 @@
 # Documentation
-Inspired by ["The Unreasonable Effectiveness Of Plain Text"](https://www.youtube.com/watch?v=WgV6M1LyfNY) capitol will
+Inspired by ["The Unreasonable Effectiveness Of Plain Text"](https://www.youtube.com/watch?v=WgV6M1LyfNY), Capitol will
 focus heavily on these ideals in the development environment:
 
 - Everything must be documented, even if simply jotted down, a simple draft that can be improved later is better than none.
@@ -7,6 +7,7 @@ focus heavily on these ideals in the development environment:
 - Documentation files should be at most 2-3 paragraphs long maximum, if you need more then something is wrong, or you need to separate your ideas, remember: **keep it modular.**
 - Attempt to keep things short, clear and concise, I recommend bullet points just like these.
 - On the Development side of things, everything should be pure feature-production for the initial stages, if its a bug, a hard to implement feature, throw it in [to-do](to-do) or [backlog](backlog) and move on.
+- Readable code! You don't need the code to be tiny lamba magic, we need to make it readable to make it fast.
 
 ### *With that said, consider this file a formal warning of what responsibilities are expected of those who contribute.*
 
