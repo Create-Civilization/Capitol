@@ -6,6 +6,7 @@ focus heavily on these ideals in the development environment:
 - .md files will be our file of choice for its clear practicality in producing easily legible text without compromising style and with wide-range support.
 - Documentation files should be at most 2-3 paragraphs long maximum, if you need more then something is wrong, or you need to separate your ideas, remember: **keep it modular.**
 - Attempt to keep things short, clear and concise, I recommend bullet points just like these.
+- On the Development side of things, everything should be pure feature-production for the initial stages, if its a bug, a hard to implement feature, throw it in [to-do](to-do) or [backlog](backlog) and move on.
 
 ### *With that said, consider this file a formal warning of what responsibilities are expected of those who contribute.*
 
