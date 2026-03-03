@@ -8,6 +8,10 @@ import net.neoforged.fml.common.Mod;
 
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+
 @Mod(Capitol.MOD_ID)
 public class Capitol {
 

@@ -1,0 +1,86 @@
+package com.createcivilization.capitol.old.old.command.custom.teamcommands.roles;
+
+import com.createcivilization.capitol.old.old.command.Suggestions;
+import com.createcivilization.capitol.old.old.command.custom.abstracts.AbstractTeamCommand;
+import com.createcivilization.capitol.old.old.team.OldTeam;
+import com.createcivilization.capitol.old.old.util.team.TeamUtils;
+
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
+import net.minecraft.commands.*;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.*;
+
+// WIP
+public class ReassignRoleTeamCommand extends AbstractTeamCommand {
+
+	public ReassignRoleTeamCommand() {
+		super("reassignRole");
+		command.set(
+			Commands.literal(subCommandName.getOrThrow())
+				.requires(this::canExecuteAllParams)
+				.then(Commands.argument("player", EntityArgument.players())
+					.then(Commands.argument("roleName", StringArgumentType.string())
+						.suggests(Suggestions.ROLES)
+						.executes(this::executeAllParams)
+					)
+				)
+		);
+	}
+
+	@Override
+	public int executeAllParams(CommandContext<CommandSourceStack> context) {
+		CommandSourceStack source = context.getSource();
+		Player player = source.getPlayer();
+		Player toPromote;
+		try {
+			toPromote = EntityArgument.getPlayer(context, "player");
+		} catch (CommandSyntaxException e) {
+			throw new RuntimeException(e);
+		}
+
+		if (Objects.equals(player, toPromote)) {
+			source.sendFailure(Component.literal("Cannot reassign your own role"));
+			return -1;
+		}
+
+		OldTeam oldTeam = TeamUtils.getTeam(player).getOrThrow();
+		String role = StringArgumentType.getString(context,"roleName");
+
+		if (!Objects.equals(TeamUtils.getTeam(player).getOrThrow().getTeamId(), TeamUtils.getTeam(toPromote).getOrThrow().getTeamId())) {
+			source.sendFailure(Component.literal("Player is not from the same receivingOldTeam as you"));
+			return -1;
+		}
+
+		String finalRole = role;
+		if (Arrays.stream(oldTeam.getRoles()).noneMatch(query -> Objects.equals(query.toLowerCase(), finalRole.toLowerCase()))) {
+			source.sendFailure(Component.literal("Role not found."));
+			return -1;
+		}
+		for (String currRole : oldTeam.getRoles()) if (Objects.equals(currRole.toLowerCase(), finalRole)) role = currRole;
+		assert player != null;
+		if (TeamUtils.isRoleHigher(oldTeam, oldTeam.getRole(player.getUUID()), role)) {
+			source.sendFailure(Component.literal("Cannot reassign player to a higher role than yours"));
+			return -1;
+		}
+		UUID toPromoteUUID = toPromote.getUUID();
+		oldTeam.removePlayer(toPromoteUUID);
+		oldTeam.addPlayer(role, toPromoteUUID);
+		toPromote.sendSystemMessage(Component.literal("You have been successfully reassigned to the role \"" + role + "\""));
+		String finalRole1 = role;
+		source.sendSuccess(() -> Component.literal("Successfully reassigned \"" + toPromote.getName().getString() + "\" to \"" + finalRole1 + "\""), true);
+		return 1;
+	}
+
+	@Override
+	public boolean canExecute(Player player) {
+		setMustWhat("be a player, be in a receivingOldTeam and have role making permissions");
+		return TeamUtils.hasTeam(player)
+			&& TeamUtils.getPlayerPermission(TeamUtils.getTeam(player).getOrThrow(), player).get("editPermissions");
+	}
+}

@@ -1,0 +1,63 @@
+package com.createcivilization.capitol.old.old.command.custom.teamcommands.team;
+
+import com.createcivilization.capitol.old.old.command.custom.abstracts.AbstractTeamCommand;
+import com.createcivilization.capitol.old.old.config.CapitolConfig;
+import com.createcivilization.capitol.old.old.team.OldTeam;
+
+import com.createcivilization.capitol.old.old.util.team.TeamUtils;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+
+import net.minecraft.commands.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+
+import wiiu.mavity.wiiu_lib.util.ObjectHolder;
+
+import java.util.*;
+
+public class InviteAcceptTeamCommand extends AbstractTeamCommand {
+
+	public InviteAcceptTeamCommand() {
+		super("inviteAccept");
+		command.set(
+			Commands.literal(subCommandName.getOrThrow())
+				.requires(this::canExecuteAllParams)
+				.then(
+					Commands.argument("teamId", StringArgumentType.string())
+						.executes(this::executeAllParams)
+				)
+		);
+	}
+
+	@Override
+	public int executeAllParams(CommandContext<CommandSourceStack> context) {
+		ObjectHolder<OldTeam> invitingTeamHolder = TeamUtils.getTeam(StringArgumentType.getString(context, "teamId"));
+		if (invitingTeamHolder.isEmpty()) return -1;
+		OldTeam invitingOldTeam = invitingTeamHolder.getOrThrow();
+		CommandSourceStack source = context.getSource();
+		Player player = Objects.requireNonNull(source.getPlayer());
+		UUID uuid = player.getUUID();
+		if (TeamUtils.hasTeam(player)) {
+			source.sendFailure(Component.literal("You're already in a receivingOldTeam"));
+			return -1;
+		}
+		if (
+			invitingOldTeam.hasInvitee(uuid)
+			&& (invitingOldTeam.getInviteeTimestamp(uuid) + CapitolConfig.SERVER.inviteTimeout.get()) > (System.currentTimeMillis() / 1000L)
+		) {
+			invitingOldTeam.addPlayer("member", uuid);
+			source.sendSuccess(() -> Component.literal("Successfully joined receivingOldTeam \"" + invitingOldTeam.getName() + "\""), true);
+			return 1;
+		} else {
+			source.sendFailure(Component.literal("Invite Expired!"));
+			return -1;
+		}
+	}
+
+	@Override
+	public boolean canExecute(Player player) {
+		setMustWhat("be a player and be in a receivingOldTeam");
+		return TeamUtils.hasTeam(player);
+	}
+}
