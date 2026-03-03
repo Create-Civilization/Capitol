@@ -1,0 +1,174 @@
+package com.createcivilization.capitol.old.old.journeymap;
+
+import com.createcivilization.capitol.old.old.constants.ClientConstants;
+import com.createcivilization.capitol.old.old.event.ClientEvents;
+import com.createcivilization.capitol.old.old.payloads.bidirectional.add.BiAddChunk;
+import com.createcivilization.capitol.old.old.payloads.bidirectional.PacketHandler;
+import com.createcivilization.capitol.old.old.team.OldTeam;
+
+import com.createcivilization.capitol.old.old.util.data.DataManager;
+import com.createcivilization.capitol.old.old.util.team.TeamUtils;
+import journeymap.api.v2.client.*;
+import journeymap.api.v2.client.display.PolygonOverlay;
+import journeymap.api.v2.client.event.*;
+import journeymap.api.v2.client.fullscreen.ModPopupMenu;
+import journeymap.api.v2.client.model.ShapeProperties;
+import journeymap.api.v2.client.util.PolygonHelper;
+import journeymap.api.v2.common.event.FullscreenEventRegistry;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.*;
+import net.minecraft.world.level.ChunkPos;
+
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+
+import org.jetbrains.annotations.*;
+
+import org.lwjgl.glfw.GLFW;
+
+import java.util.*;
+
+//@JourneyMapPlugin(apiVersion = "2.0.0")
+public class JourneyMapIntegration implements IClientPlugin {
+
+	private IClientAPI api;
+
+	@Override
+	public void initialize(@NotNull IClientAPI iClientAPI) {
+		System.out.println("Capitol initializing JourneyMap integration...");
+		this.api = iClientAPI;
+		FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(this.getModId(), this::handleMapClicked);
+		NeoForge.EVENT_BUS.addListener(this::updateChunks);
+		NeoForge.EVENT_BUS.addListener(this::onKey);
+		NeoForge.EVENT_BUS.addListener(this::clearCache);
+	}
+
+	@Override
+	public String getModId() {
+		return "capitol";
+	}
+
+	// Turns out you can crash the game if you don't clear this data :/
+	public void clearCache(ClientPlayerNetworkEvent.LoggingOut event) {
+		this.overlays.values().forEach(this.api::remove);
+		this.overlays.clear();
+		this.removeLastClickOverlayIfPresent();
+		ClientConstants.toResetChunksTeamIds.clear();
+		ClientConstants.chunksDirty = false;
+	}
+
+	public void updateChunks(LevelTickEvent event) {
+		if (FMLLoader.getDist() != Dist.CLIENT) return;
+		if (!ClientConstants.chunksDirty) return;
+
+		// Cleanup old overlays from chunks that are no longer claimed
+		this.overlays.keySet().stream()
+			.filter(ClientConstants.toResetChunksTeamIds::contains)
+			.forEach((teamId) -> this.api.remove(this.overlays.get(teamId)));
+		ClientConstants.toResetChunksTeamIds.clear();
+
+		// Cleanup old overlays from deleted teams
+		for (String teamId : overlays.keySet()) {
+			if (DataManager.TeamData.LOADED_OLD_TEAMS.stream().noneMatch(team -> team.getTeamId().equals(teamId))) {
+				this.api.remove(this.overlays.get(teamId));
+				this.overlays.remove(teamId);
+			}
+		}
+
+		for (OldTeam oldTeam : DataManager.TeamData.LOADED_OLD_TEAMS) {
+			for (Map.Entry<ResourceLocation, OldTeam.TeamDimensionData> claimedChunks : oldTeam.getDimensionDataMap().entrySet()) {
+				var player = Minecraft.getInstance().player;
+				assert player != null;
+				var polygon = PolygonHelper.createChunksPolygon(claimedChunks.getValue().getAllChildChunks(), player.getBlockY());
+				for (var poly : polygon) {
+					String teamId = oldTeam.getTeamId();
+					@Nullable PolygonOverlay prevOverlay = overlays.get(teamId);
+					PolygonOverlay overlay = new PolygonOverlay(
+						this.getModId(),
+						ResourceKey.create(Registries.DIMENSION, claimedChunks.getKey()),
+						new ShapeProperties()
+							.setFillColor(oldTeam.getColor().getRGB())
+							.setFillOpacity(0.25f),
+						poly
+					);
+					try {
+						if (prevOverlay != null) this.api.remove(prevOverlay);
+						this.api.show(overlay);
+						this.overlays.put(teamId, overlay);
+					} catch (Exception e) {
+						throw new RuntimeException("Failed to render claims!", e);
+					}
+				}
+			}
+		}
+
+		ClientConstants.chunksDirty = false;
+	}
+
+	public void onPopupMenuEvent(PopupMenuEvent event) {
+		if (event.getLayer() != PopupMenuEvent.Layer.FULLSCREEN) return;
+
+		ModPopupMenu menu = event.getPopupMenu();
+		LocalPlayer player = ClientConstants.INSTANCE.player;
+		assert player != null;
+		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
+			if (ClientEvents.getTeamOrDisplayClientMessage(player).isEmpty()) return;
+			ChunkPos chunkPos = new ChunkPos(pos);
+			if (!TeamUtils.chunkIsNearChildChunk(chunkPos, 1, player))
+				player.displayClientMessage(ClientConstants.NOT_NEAR_CHUNK, true);
+			else if (TeamUtils.isInClaimedChunk(player, pos))
+				player.displayClientMessage(ClientConstants.CHUNK_ALREADY_CLAIMED, true);
+			else {
+				player.displayClientMessage(ClientConstants.CHUNK_SUCCESSFULLY_CLAIMED, true);
+				PacketHandler.sendToServer(new BiAddChunk(chunkPos, null, null));
+			}
+			this.removeLastClickOverlayIfPresent();
+		});
+
+		// TODO: Work on this.
+		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> this.removeLastClickOverlayIfPresent());
+	}
+
+	public void removeLastClickOverlayIfPresent() {
+		if (lastClickOverlay != null) {
+			this.api.remove(lastClickOverlay);
+			lastClickOverlay = null;
+		}
+	}
+
+	private final Map<String, PolygonOverlay> overlays = new HashMap<>();
+
+	private PolygonOverlay lastClickOverlay;
+
+	public void handleMapClicked(FullscreenMapEvent.ClickEvent event) {
+		if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+			var pos = event.getLocation();
+			var displaySelector = PolygonHelper.createChunkPolygonForWorldCoords(pos.getX(), pos.getY(), pos.getZ());
+			try {
+				PolygonOverlay clickOverlay = new PolygonOverlay(
+					this.getModId(),
+					event.getLevel(),
+					new ShapeProperties()
+						.setFillColor(-8388480) // Purple
+						.setFillOpacity(0.25f),
+					displaySelector
+				);
+				this.api.show(clickOverlay);
+				lastClickOverlay = clickOverlay;
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		} else this.removeLastClickOverlayIfPresent();
+	}
+
+	public void onKey(InputEvent.Key event) {
+		this.removeLastClickOverlayIfPresent();
+	}
+}
