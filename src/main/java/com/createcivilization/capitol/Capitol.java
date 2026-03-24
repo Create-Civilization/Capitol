@@ -1,6 +1,7 @@
 package com.createcivilization.capitol;
 
 import com.createcivilization.capitol.common.managers.DatabaseManager;
+import com.createcivilization.capitol.server.commands.CapitolCommands;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.world.level.storage.LevelResource;
@@ -24,6 +25,8 @@ public class Capitol {
     public Capitol(IEventBus modEventBus, ModContainer container) {
 		NeoForge.EVENT_BUS.addListener(this::onServerStart);
 		NeoForge.EVENT_BUS.addListener(this::onServerStop);
+
+		CapitolCommands.init(NeoForge.EVENT_BUS);
     }
 
 

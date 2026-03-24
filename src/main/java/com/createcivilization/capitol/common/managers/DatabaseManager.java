@@ -1,8 +1,7 @@
 package com.createcivilization.capitol.common.managers;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.common.modules.database.Database;
-import com.createcivilization.capitol.common.modules.database.DummyDatabase;
+import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -12,7 +11,7 @@ import java.sql.Statement;
 
 public class DatabaseManager {
 
-	public static Database database = new DummyDatabase();
+	public static CapitolDatabase database = new CapitolDatabase();
 
 
 	private static Connection connection;
