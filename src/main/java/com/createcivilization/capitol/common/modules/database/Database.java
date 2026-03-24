@@ -8,6 +8,5 @@ public abstract class Database {
 
 	public abstract boolean hasChunkAt(ChunkPos chunkPos);
 	public abstract boolean hasPermissionInChunk(Player player, ChunkPos chunkPos);
-
 	public abstract Team getChunkOwner(ChunkPos chunkPos);
 }

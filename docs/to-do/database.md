@@ -4,4 +4,4 @@ the database should be easily readable and understandable for any maintenance.
 
 - [ ] Database entry creation
 - [ ] Database entry deletion
-- [ ] Databse entry editing
+- [ ] Database entry editing
