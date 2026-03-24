@@ -3,5 +3,5 @@ For early testing phases the Database should use a [Dummy Database](../../src/ma
 the database should be easily readable and understandable for any maintenance.
 
 - [x] Database entry creation
-- [ ] Database entry deletion
+- [x] Database entry deletion
 - [ ] Database entry editing
