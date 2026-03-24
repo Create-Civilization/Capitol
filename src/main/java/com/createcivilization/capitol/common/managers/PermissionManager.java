@@ -2,6 +2,7 @@ package com.createcivilization.capitol.common.managers;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 
 public class PermissionManager {
 
@@ -9,10 +10,11 @@ public class PermissionManager {
 
 	public static boolean playerCanAccessChunk(Player player) {
 		ChunkPos chunkPos = player.chunkPosition();
-		boolean isChunkClaimed = ClaimManager.isChunkClaimed(chunkPos);
+		Level playerLevel = player.level();
+		boolean isChunkClaimed = ClaimManager.isChunkClaimed(chunkPos, playerLevel);
 		if (isChunkClaimed) {
 			boolean hasPermissionInChunk = playerHasBypass(player) ||
-				ClaimManager.playerHasPermissionInChunk(player, chunkPos);
+				ClaimManager.playerHasPermissionInChunk(player, chunkPos, playerLevel);
 			return playerHasBypass(player);
 		}
 
