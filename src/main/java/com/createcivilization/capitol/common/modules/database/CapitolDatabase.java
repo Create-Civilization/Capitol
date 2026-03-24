@@ -34,9 +34,9 @@ public class CapitolDatabase extends Database {
 		try {
 			PreparedStatement preparedStatement = connection.prepareStatement(
 				"SELECT teams.id, teams.name, teams.created_at " +
-					"FROM chunks c " +
-					"JOIN teams t ON t.id = c.team_id = t.id " +
-					"WHERE c.dimension = ? AND c.chunk_x = ? AND c.chunk_z = ?"
+					"FROM chunks " +
+					"JOIN teams ON teams.id = chunks.team_id " +
+					"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?"
 			);
 			preparedStatement.setString(1, level.dimension().location().toString());
 			preparedStatement.setInt(2, chunkPos.x);
@@ -57,7 +57,7 @@ public class CapitolDatabase extends Database {
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO teams (id,name,created_at) VALUES (?,?,?)");
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, team.getName());
-			preparedStatement.setInt(3, Timestamp.from(Instant.now()).getNanos());
+			preparedStatement.setLong(3, Instant.now().toEpochMilli());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting team into database.", e);
@@ -98,6 +98,7 @@ public class CapitolDatabase extends Database {
 			preparedStatement.setInt(2, chunkPos.x);
 			preparedStatement.setInt(3, chunkPos.z);
 			preparedStatement.setString(4, team.getId().toString());
+			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting chunk into database.", e);
 			throw new RuntimeException(e);
@@ -110,6 +111,7 @@ public class CapitolDatabase extends Database {
 			preparedStatement.setString(1, level.dimension().location().toString());
 			preparedStatement.setInt(2, chunkPos.x);
 			preparedStatement.setInt(3, chunkPos.z);
+			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting chunk from database.", e);
 			throw new RuntimeException(e);

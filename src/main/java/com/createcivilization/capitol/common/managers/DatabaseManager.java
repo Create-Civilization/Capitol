@@ -32,7 +32,7 @@ public class DatabaseManager {
 			}
 
 			createTables();
-			Capitol.LOGGER.info("New Capitol Database initialized");
+			Capitol.LOGGER.info("Capitol Database initialized");
 
 		} catch (ClassNotFoundException e) {
 			Capitol.LOGGER.error("No SQLite driver found.", e);
@@ -48,7 +48,7 @@ public class DatabaseManager {
 				"CREATE TABLE IF NOT EXISTS teams (" +
 					"id TEXT PRIMARY KEY NOT NULL," +
 					"name TEXT NOT NULL," +
-					"created_at INTEGER NOT NULL)"
+					"created_at LONG NOT NULL)"
 			);
 
 			stmt.execute(
