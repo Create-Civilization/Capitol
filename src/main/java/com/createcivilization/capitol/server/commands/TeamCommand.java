@@ -8,8 +8,11 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+
 import java.util.UUID;
 
 public class TeamCommand {
@@ -28,7 +31,8 @@ public class TeamCommand {
 		String name = StringArgumentType.getString(context, "name");
 		Team team = Team.builder().name(name).id(UUID.randomUUID()).build();
 		database.addTeam(team);
-		database.addPlayerTeam(context.getSource().getPlayer(), team, Role.OWNER);
+		database.addPlayerToTeam(context.getSource().getPlayer(), team, Role.OWNER);
+		context.getSource().getPlayer().sendSystemMessage(Component.literal("Team created!").withStyle(ChatFormatting.GREEN));
 		return 1;
 	}
 
