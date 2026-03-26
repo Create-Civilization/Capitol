@@ -48,7 +48,7 @@ public class CapitolDatabase extends Database {
 	@Override
 	public Team getChunkOwner(ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.created_at " +
 				"FROM chunks " +
 				"JOIN teams ON teams.id = chunks.team_id " +
 				"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?")) {
@@ -69,10 +69,11 @@ public class CapitolDatabase extends Database {
 
 	public void addTeam(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"INSERT INTO teams (id, name, created_at) VALUES (?, ?, ?)")) {
+			"INSERT INTO teams (id, name, color, created_at) VALUES (?, ?, ?, ?)")) {
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, team.getName());
-			preparedStatement.setLong(3, Instant.now().toEpochMilli());
+			preparedStatement.setInt(3, team.getColor().getRGB());
+			preparedStatement.setLong(4, Instant.now().toEpochMilli());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting team into database.", e);
@@ -109,7 +110,7 @@ public class CapitolDatabase extends Database {
 
 	public Team getPlayerTeam(Player player) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.created_at " +
 				"FROM team_members " +
 				"JOIN teams ON teams.id = team_members.team_id " +
 				"WHERE team_members.player_uuid = ?")) {

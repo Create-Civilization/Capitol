@@ -44,7 +44,7 @@ public class Claim {
 
 	private static int info(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
 		CapitolDatabase database = DatabaseManager.database;
-		Team playerTeam = database.getPlayerTeam(Objects.requireNonNull(context.getSource().getPlayer()));
+		Team playerTeam = database.getChunkOwner(context.getSource().getPlayer().chunkPosition(), context.getSource().getLevel());
 		if (playerTeam == null) {
 			context.getSource().getPlayer().sendSystemMessage(Component.literal("No Claim In This Chunk").withStyle(ChatFormatting.GREEN));
 			return 1;

@@ -13,23 +13,33 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
+import java.awt.*;
 import java.util.UUID;
 
 public class TeamCommand {
 
 	//TODO REMOVE THIS AS THIS IS TEMPORARY
 
-	static LiteralArgumentBuilder<CommandSourceStack> register(){
+	static LiteralArgumentBuilder<CommandSourceStack> register() {
 		return Commands.literal("team")
 			.then(Commands.literal("create")
 				.then(Commands.argument("name", StringArgumentType.string())
-					.executes(TeamCommand::createTeam)));
+					.then(Commands.argument("color", StringArgumentType.word())
+						.executes(TeamCommand::createTeam))));
 	}
 
 	private static int createTeam(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
 		CapitolDatabase database = DatabaseManager.database;
 		String name = StringArgumentType.getString(context, "name");
-		Team team = Team.builder().name(name).id(UUID.randomUUID()).build();
+		String hex = StringArgumentType.getString(context, "color").replace("#", "");
+		Color color;
+		try {
+			color = new Color((int) Long.parseLong(hex, 16), true);
+		} catch (NumberFormatException e) {
+			context.getSource().sendFailure(Component.literal("Invalid hex color: #" + hex));
+			return 0;
+		}
+		Team team = Team.builder().name(name).id(UUID.randomUUID()).color(color).build();
 		database.addTeam(team);
 		database.addPlayerToTeam(context.getSource().getPlayer(), team, Role.OWNER);
 		context.getSource().getPlayer().sendSystemMessage(Component.literal("Team created!").withStyle(ChatFormatting.GREEN));

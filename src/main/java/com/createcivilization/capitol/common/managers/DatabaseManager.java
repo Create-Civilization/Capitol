@@ -47,6 +47,7 @@ public class DatabaseManager {
 				"CREATE TABLE IF NOT EXISTS teams (" +
 					"id TEXT PRIMARY KEY NOT NULL," +
 					"name TEXT NOT NULL," +
+					"color INT NOT NULL," +
 					"created_at LONG NOT NULL)"
 			);
 
