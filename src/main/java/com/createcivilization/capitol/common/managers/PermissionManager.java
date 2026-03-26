@@ -8,7 +8,11 @@ public class PermissionManager {
 
 	private PermissionManager() {}
 
-//	public static boolean playerCanAccessChunk(Player player) {
+
+
+	//TODO: Needs fixing. I am to lazy rn to add all the methods needed
+
+	public static boolean playerCanAccessChunk(Player player) {
 //		ChunkPos chunkPos = player.chunkPosition();
 //		Level playerLevel = player.level();
 //		boolean isChunkClaimed = ClaimManager.isChunkClaimed(chunkPos, playerLevel);
@@ -17,9 +21,9 @@ public class PermissionManager {
 //				ClaimManager.playerHasPermissionInChunk(player, chunkPos, playerLevel);
 //			return playerHasBypass(player);
 //		}
-//
-//		return true;
-//	}
+
+		return true;
+	}
 
 	public static boolean playerHasBypass(Player player) {
 		return player.hasPermissions(4); // Is operator
