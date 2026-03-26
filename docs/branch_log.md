@@ -9,6 +9,12 @@ To keep branches understandable, create a small log underneath about the purpose
 ## Branch 1.21.1-rc-database:
 - Implements the SQLite database layer via `CapitolDatabase` and `DatabaseManager` (WAL mode, foreign keys, cascade deletes)
 - Introduces a bitfield-based permission system (`Permission` enum) and fixed roles with default permissions (`Role` enum)
-- Rewrites `Team` with a builder pattern, color (ARGB), UUID, and SQL `fromResultSet` support
-- Adds `TeamCommand` (create team with hex color) and `Claim` (claim/info) as temporary testing commands
+- Rewrites `Team` with a builder pattern, color (ARGB), UUID, `StreamCodec`, and SQL `fromResultSet` support
+- Adds `TeamCommand` (create team with hex color) and `Claim` (claim/info) as temporary testing commands — **to be removed before merge**
 - `PermissionManager.playerCanAccessChunk` is stubbed — wiring to `ClaimManager` is still TODO
+
+## Branch 1.21.1-rc-visuals (current, branched off database):
+- Networking layer: `BorderPacket` / `BorderRemovePacket` send claimed chunk data to clients; `ClientClaimCache` stores it client-side
+- `BorderRenderer` renders a **temporary** placeholder wireframe over claimed chunks — to be replaced with a proximity-fade wall effect
+- Client cache cleared on disconnect; chunk load/unload events keep cache in sync for already-loaded chunks
+- C2S request packet for syncing chunks on player join still TODO (bulk send intentionally avoided due to scale)

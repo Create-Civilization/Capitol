@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class CapitolDatabase extends Database {
 
-	private Connection getConnection(){
+	public Connection getConnection(){
 		return DatabaseManager.getConnection();
 	}
 

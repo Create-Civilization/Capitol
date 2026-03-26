@@ -1,8 +1,6 @@
 package com.createcivilization.capitol.common.managers;
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 
 public class PermissionManager {
 

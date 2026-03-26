@@ -1,5 +1,8 @@
 package com.createcivilization.capitol.common.data;
 
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
@@ -28,6 +31,15 @@ public class Team {
 		this.members = new ArrayList<>(builder.members);
 	}
 
+	public Team(ByteBuf buffer) {
+		this.id = UUID.fromString(ByteBufCodecs.STRING_UTF8.decode(buffer));
+		this.name = ByteBufCodecs.STRING_UTF8.decode(buffer);
+		this.color = new Color(ByteBufCodecs.INT.decode(buffer), true);
+		this.createdAt = ByteBufCodecs.VAR_LONG.decode(buffer);
+		this.chunks = new ArrayList<>();
+		this.members = new ArrayList<>();
+	}
+
 	public static Team fromResultSet(ResultSet rs) throws SQLException {
 		return builder()
 			.id(UUID.fromString(rs.getString("id")))
@@ -37,6 +49,12 @@ public class Team {
 			.build();
 	}
 
+	public void encode(ByteBuf buf){
+		ByteBufCodecs.STRING_UTF8.encode(buf, id.toString());
+		ByteBufCodecs.STRING_UTF8.encode(buf, name);
+		ByteBufCodecs.INT.encode(buf, color.getRGB());
+		ByteBufCodecs.VAR_LONG.encode(buf, createdAt);
+	}
 
 	public static Builder builder() {
 		return new Builder();
@@ -120,4 +138,6 @@ public class Team {
 			return new Team(this);
 		}
 	}
+
+	public static StreamCodec<ByteBuf, Team> STREAM_CODEC = StreamCodec.ofMember(Team::encode, Team::new);
 }

@@ -2,6 +2,7 @@ package com.createcivilization.capitol.server.networking;
 
 import com.createcivilization.capitol.client.networking.ClientPayloadHandler;
 import com.createcivilization.capitol.server.networking.packets.BorderPacket;
+import com.createcivilization.capitol.server.networking.packets.BorderRemovePacket;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -23,7 +24,15 @@ public class CapitolNetworking {
 			BorderPacket.TYPE,
 			BorderPacket.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
-				ClientPayloadHandler::handleDataOnMain
+				ClientPayloadHandler::handleBorderPacketOnMain
+			)
+		);
+
+		registrar.playToClient(
+			BorderRemovePacket.TYPE,
+			BorderRemovePacket.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ClientPayloadHandler::handleBorderRemovePacketOnMain
 			)
 		);
 	}

@@ -1,17 +1,32 @@
 package com.createcivilization.capitol.client.networking;
 
 import com.createcivilization.capitol.common.data.Team;
-import com.createcivilization.capitol.server.commands.Claim;
-import org.joml.Vector3f;
-
-import java.awt.*;
+import net.minecraft.world.level.ChunkPos;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.Vector;
 
 public class ClientClaimCache {
 
-	public static Map<Vector3f, Team> claims = new HashMap<Vector3f, Team>();
+	public static Map<ChunkPos, Team> claims = new HashMap<ChunkPos, Team>();
+
+	public static Map<ChunkPos, Team> get(){
+		return claims;
+	}
+
+	public static void addClaim(ChunkPos cords, Team team) {
+		claims.put(cords, team);
+	}
+
+	public static void removeClaim(ChunkPos cords) {
+		claims.remove(cords);
+	}
+
+	public static Team getClaim(ChunkPos cords) {
+		return claims.get(cords);
+	}
+
+	public static void clearClaims() {
+		claims.clear();
+	}
 
 }
