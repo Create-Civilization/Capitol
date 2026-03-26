@@ -54,7 +54,7 @@ public class DatabaseManager {
 				"CREATE TABLE IF NOT EXISTS team_members (" +
 					"team_id TEXT NOT NULL," +
 					"player_uuid TEXT NOT NULL," +
-					"role TEXT NOT NULL DEFAULT 'member'," +
+					"role TEXT NOT NULL DEFAULT 'member'," + // 'member', 'officer', 'owner' (Change this if we want)
 					"permissions INTEGER NOT NULL DEFAULT 0," +
 					"PRIMARY KEY (team_id, player_uuid)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"

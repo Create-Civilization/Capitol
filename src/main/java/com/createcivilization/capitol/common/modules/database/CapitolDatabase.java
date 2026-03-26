@@ -25,8 +25,24 @@ public class CapitolDatabase extends Database {
 	}
 
 	@Override
-	public boolean hasPermissionInChunk(Player player, ChunkPos chunkPos, Level level) {
-		return false;
+	public int getPermissionInChunk(Player player, ChunkPos chunkPos, Level level) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT tm.permissions " +
+			"FROM chunks " +
+			"JOIN team_members tm ON tm.team_id = chunks.team_id " +
+			"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ? AND tm.player_uuid = ?")) {
+			preparedStatement.setString(1, level.dimension().location().toString());
+			preparedStatement.setInt(2, chunkPos.x);
+			preparedStatement.setInt(3, chunkPos.z);
+			preparedStatement.setString(4, player.getUUID().toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				if (rs.next()) return rs.getInt("permissions");
+				return Role.DEFAULT.getDefaultPerms();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting player permissions in chunk", e);
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -111,11 +127,13 @@ public class CapitolDatabase extends Database {
 	}
 
 	public void addPlayerToTeam(Player player, Team team, Role role) {
+
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"INSERT INTO team_members (team_id, player_uuid, role) VALUES (?, ?, ?)")) {
+			"INSERT INTO team_members (team_id, player_uuid, role, permissions) VALUES (?, ?, ?, ?)")) {
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, player.getUUID().toString());
 			preparedStatement.setString(3, role.getID());
+			preparedStatement.setInt(4, role.getDefaultPerms());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while adding player to team in database.", e);
@@ -137,10 +155,11 @@ public class CapitolDatabase extends Database {
 
 	public void updatePlayerRole(Player player, Team team, Role newRole) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"UPDATE team_members SET role = ? WHERE team_id = ? AND player_uuid = ?")) {
+			"UPDATE team_members SET role = ?, permissions = ? WHERE team_id = ? AND player_uuid = ?")) {
 			preparedStatement.setString(1, newRole.getID());
-			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.setString(3, player.getUUID().toString());
+			preparedStatement.setInt(2, newRole.getDefaultPerms());
+			preparedStatement.setString(3, team.getId().toString());
+			preparedStatement.setString(4, player.getUUID().toString());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while updating player role in database.", e);
@@ -175,6 +194,21 @@ public class CapitolDatabase extends Database {
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while checking player membership in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public int getPlayerPermission(Player player, Team team) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT permissions FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.setString(2, player.getUUID().toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				if (rs.next()) return rs.getInt("permissions");
+				return -1; // player not in team
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting player permissions from database.", e);
 			throw new RuntimeException(e);
 		}
 	}

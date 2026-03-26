@@ -3,4 +3,5 @@ The database uses a SQLite implementation (`CapitolDatabase`) via `DatabaseManag
 
 - [x] Database entry creation
 - [x] Database entry deletion
-- [ ] Database entry editing (Not Fully Done Yet)
+- [x] Database entry querying (chunk ownership, player permissions via multi-table JOINs)
+- [x] Database entry editing
