@@ -8,18 +8,18 @@ public class PermissionManager {
 
 	private PermissionManager() {}
 
-	public static boolean playerCanAccessChunk(Player player) {
-		ChunkPos chunkPos = player.chunkPosition();
-		Level playerLevel = player.level();
-		boolean isChunkClaimed = ClaimManager.isChunkClaimed(chunkPos, playerLevel);
-		if (isChunkClaimed) {
-			boolean hasPermissionInChunk = playerHasBypass(player) ||
-				ClaimManager.playerHasPermissionInChunk(player, chunkPos, playerLevel);
-			return playerHasBypass(player);
-		}
-
-		return true;
-	}
+//	public static boolean playerCanAccessChunk(Player player) {
+//		ChunkPos chunkPos = player.chunkPosition();
+//		Level playerLevel = player.level();
+//		boolean isChunkClaimed = ClaimManager.isChunkClaimed(chunkPos, playerLevel);
+//		if (isChunkClaimed) {
+//			boolean hasPermissionInChunk = playerHasBypass(player) ||
+//				ClaimManager.playerHasPermissionInChunk(player, chunkPos, playerLevel);
+//			return playerHasBypass(player);
+//		}
+//
+//		return true;
+//	}
 
 	public static boolean playerHasBypass(Player player) {
 		return player.hasPermissions(4); // Is operator
