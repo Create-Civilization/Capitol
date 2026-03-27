@@ -1,8 +1,10 @@
-package com.createcivilization.capitol.server.networking;
+package com.createcivilization.capitol.common.networking;
 
 import com.createcivilization.capitol.client.networking.ClientPayloadHandler;
-import com.createcivilization.capitol.server.networking.packets.BorderPacket;
-import com.createcivilization.capitol.server.networking.packets.BorderRemovePacket;
+import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
+import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
+import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -21,18 +23,26 @@ public class CapitolNetworking {
 	public static void register(final RegisterPayloadHandlersEvent event) {
 		final PayloadRegistrar registrar = event.registrar("1");
 		registrar.playToClient(
-			BorderPacket.TYPE,
-			BorderPacket.STREAM_CODEC,
+			S2CChunkData.TYPE,
+			S2CChunkData.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
-				ClientPayloadHandler::handleBorderPacketOnMain
+				ClientPayloadHandler::chunkDataHandler
 			)
 		);
 
 		registrar.playToClient(
-			BorderRemovePacket.TYPE,
-			BorderRemovePacket.STREAM_CODEC,
+			S2CChunkRemove.TYPE,
+			S2CChunkRemove.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
-				ClientPayloadHandler::handleBorderRemovePacketOnMain
+				ClientPayloadHandler::chunkRemoveHandler
+			)
+		);
+
+		registrar.playToServer(
+			C2SChunkRequest.TYPE,
+			C2SChunkRequest.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleChunkRequest
 			)
 		);
 	}

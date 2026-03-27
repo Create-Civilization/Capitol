@@ -3,7 +3,7 @@ package com.createcivilization.capitol.server.commands;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
-import com.createcivilization.capitol.server.networking.packets.BorderPacket;
+import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -42,7 +42,7 @@ public class Claim {
 			return 0;
 		}
 		database.claimChunk(playerTeam, serverPlayer.chunkPosition(), serverPlayer.level());
-		BorderPacket packet = new BorderPacket(new Vector3f(chunkPos.x, 0, chunkPos.z), playerTeam);
+		S2CChunkData packet = new S2CChunkData(new Vector3f(chunkPos.x, 0, chunkPos.z), playerTeam);
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
 

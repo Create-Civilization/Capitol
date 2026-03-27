@@ -25,6 +25,10 @@ public class ClientClaimCache {
 		return claims.get(cords);
 	}
 
+	public static boolean hasClaim(ChunkPos cords) {
+		return claims.containsKey(cords);
+	}
+
 	public static void clearClaims() {
 		claims.clear();
 	}

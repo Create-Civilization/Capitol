@@ -1,19 +1,13 @@
 package com.createcivilization.capitol;
 
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
-import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
-import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.server.commands.CapitolCommands;
-import com.createcivilization.capitol.server.networking.CapitolNetworking;
-import com.createcivilization.capitol.server.networking.packets.BorderPacket;
-import com.createcivilization.capitol.server.networking.packets.BorderRemovePacket;
+import com.createcivilization.capitol.common.networking.CapitolNetworking;
+import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.mojang.logging.LogUtils;
 
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -43,9 +37,7 @@ public class Capitol {
 		NeoForge.EVENT_BUS.addListener(this::onServerStart);
 		NeoForge.EVENT_BUS.addListener(this::onServerStop);
 
-		NeoForge.EVENT_BUS.addListener(this::onChunkLoad);
 		if (FMLEnvironment.dist == Dist.CLIENT) {
-			NeoForge.EVENT_BUS.addListener(this::onClientDisconnect);
 			NeoForge.EVENT_BUS.register(BorderRenderer.class);
 		}
 
@@ -64,22 +56,6 @@ public class Capitol {
 		DatabaseManager.closeConnection();
 	}
 
-	private void onChunkLoad(ChunkEvent.Load event) {
-		CapitolDatabase database = DatabaseManager.database;
-		if(database.getConnection() == null) return;
-		if(event.getLevel().isClientSide()) return;
-		ChunkPos chunkPos = event.getChunk().getPos();
-		ResourceKey<Level> dimension = event.getChunk().getLevel().dimension();
-		ServerLevel level = event.getLevel().getServer().getLevel(dimension);
-		Team team = database.getChunkOwner(chunkPos, level);
-		if(team == null) {
-			BorderRemovePacket packet = new BorderRemovePacket(new Vector3f(chunkPos.x, 0, chunkPos.z));
-			PacketDistributor.sendToPlayersTrackingChunk(level,chunkPos,packet);
-			return;
-		}
-		BorderPacket packet = new BorderPacket(new Vector3f(chunkPos.x, 0, chunkPos.z), team);
-		PacketDistributor.sendToPlayersTrackingChunk(level, chunkPos, packet);
-	}
 
 	private void onClientDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
 		ClientClaimCache.clearClaims();
