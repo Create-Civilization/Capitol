@@ -55,6 +55,7 @@ neoForge {
 
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
+            additionalRuntimeClasspathConfiguration.extendsFrom(configurations.getByName("implementation"))
         }
     }
 
@@ -81,6 +82,13 @@ dependencies {
     runtimeOnly("curse.maven:journeymap-32274:6383889")
 
     implementation('curse.maven:wiiu-lib-1182545:6409744')
+    implementation 'org.xerial:sqlite-jdbc:3.45.1.0'
+    jarJar('org.xerial:sqlite-jdbc') {
+        version {
+            strictly '[3.45.0.0, 3.50.0.0)'
+            prefer '3.45.1.0'
+        }
+    }
 }
 
 tasks.withType(ProcessResources).configureEach {

@@ -3,7 +3,7 @@ A folder for a list of tasks that may be required to complete the main tasks, to
 the main tasklist from backlog when all main tasks are done.
 
 For simple tasks you can implement them here in a list:
-- [ ] [Database](database.md)
+- [x] [Database](database.md)
 - [ ] [Claim Protection](claim_protection.md)
 - [ ] [Permission Manager](permission_manager.md)
 
