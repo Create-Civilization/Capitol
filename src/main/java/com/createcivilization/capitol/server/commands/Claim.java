@@ -3,6 +3,7 @@ package com.createcivilization.capitol.server.commands;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -11,6 +12,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector3f;
 
 import java.util.Objects;
 
@@ -32,11 +36,14 @@ public class Claim {
 		if(serverPlayer == null){
 			return 0;
 		}
+		ChunkPos chunkPos = serverPlayer.chunkPosition();
 		Team playerTeam = database.getPlayerTeam(Objects.requireNonNull(context.getSource().getPlayer()));
 		if (playerTeam == null) {
 			return 0;
 		}
 		database.claimChunk(playerTeam, serverPlayer.chunkPosition(), serverPlayer.level());
+		S2CChunkData packet = new S2CChunkData(new Vector3f(chunkPos.x, 0, chunkPos.z), playerTeam);
+		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
 
 		return 1;

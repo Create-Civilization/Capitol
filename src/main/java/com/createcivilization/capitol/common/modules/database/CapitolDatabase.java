@@ -11,11 +11,13 @@ import net.minecraft.world.level.Level;
 
 import java.sql.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class CapitolDatabase extends Database {
 
-	private Connection getConnection(){
+	public Connection getConnection(){
 		return DatabaseManager.getConnection();
 	}
 
@@ -237,6 +239,21 @@ public class CapitolDatabase extends Database {
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting chunk from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public List<ClaimedChunk> getTeamChunks(Team team) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT * FROM chunks WHERE team_id = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				List<ClaimedChunk> chunks = new ArrayList<>();
+				while (rs.next()) chunks.add(ClaimedChunk.fromResultSet(rs));
+				return chunks;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting team chunks from database.", e);
 			throw new RuntimeException(e);
 		}
 	}
