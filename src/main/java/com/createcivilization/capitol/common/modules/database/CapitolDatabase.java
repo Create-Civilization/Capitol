@@ -16,12 +16,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * SQLite-backed implementation of {@link Database} that manages all persistent
+ * state for teams, members, roles, chunks, and permissions.
+ *
+ * <p>All methods obtain a JDBC {@link Connection} via {@link DatabaseManager#getConnection()}
+ * and use prepared statements with try-with-resources for safe resource cleanup.
+ * SQL errors are logged and re-thrown as {@link RuntimeException}.</p>
+ *
+ * <p>The underlying schema uses cascade deletes — removing a team automatically
+ * removes its members, roles, and claimed chunks.</p>
+ */
 public class CapitolDatabase extends Database {
 
+	/**
+	 * Returns the shared JDBC connection from {@link DatabaseManager}.
+	 *
+	 * @return the active database connection
+	 */
 	public Connection getConnection(){
 		return DatabaseManager.getConnection();
 	}
 
+	/**
+	 * Inserts a new role into the {@code team_roles} table.
+	 *
+	 * @param teamId     the UUID of the team this role belongs to
+	 * @param name       the role name (e.g. "owner", "default")
+	 * @param permissions the bitfield of {@link com.createcivilization.capitol.common.data.Permission} flags
+	 */
 	public void addRole(UUID teamId, String name, int permissions) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"INSERT INTO team_roles (team_id, name, permissions) VALUES (?, ?, ?)")) {
@@ -35,6 +58,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Retrieves a role by its auto-incremented database ID.
+	 *
+	 * @param roleId the role's primary key
+	 * @return the {@link TeamRole}, or {@code null} if not found
+	 */
 	public TeamRole getRole(int roleId) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT * FROM team_roles WHERE id = ?")) {
 			preparedStatement.setInt(1, roleId);
@@ -48,6 +77,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Retrieves a role by team UUID and role name.
+	 *
+	 * @param teamId   the team's UUID
+	 * @param roleName the role name to look up (e.g. "owner")
+	 * @return the matching {@link TeamRole}, or {@code null} if not found
+	 */
 	public TeamRole getRoleByName(UUID teamId, String roleName) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT * FROM team_roles WHERE team_id = ? AND name = ?")) {
@@ -63,6 +99,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Returns all roles belonging to a team.
+	 *
+	 * @param teamId the team's UUID
+	 * @return list of {@link TeamRole}s (may be empty)
+	 */
 	public List<TeamRole> getTeamRoles(UUID teamId) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT * FROM team_roles WHERE team_id = ?")) {
 			preparedStatement.setString(1, teamId.toString());
@@ -77,10 +119,22 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Convenience method that returns the "default" role for a team.
+	 *
+	 * @param teamId the team's UUID
+	 * @return the default {@link TeamRole}, or {@code null} if not found
+	 */
 	public TeamRole getDefaultRole(UUID teamId) {
 		return getRoleByName(teamId, TeamRole.DEFAULT_ROLE_NAME);
 	}
 
+	/**
+	 * Updates the permission bitfield for an existing role.
+	 *
+	 * @param roleId      the role's primary key
+	 * @param permissions the new permission bitfield
+	 */
 	public void updateRolePermissions(int roleId, int permissions) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement("UPDATE team_roles SET permissions = ? WHERE id = ?")) {
 			preparedStatement.setInt(1, permissions);
@@ -92,6 +146,11 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Deletes a role by its primary key.
+	 *
+	 * @param roleId the role's primary key
+	 */
 	public void deleteRole(int roleId) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"DELETE FROM team_roles WHERE id = ?")) {
@@ -103,11 +162,28 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Returns {@code true} if any team owns the chunk at the given position and dimension.</p>
+	 */
 	@Override
 	public boolean hasChunkAt(ChunkPos chunkPos, Level level) {
 		return getChunkOwner(chunkPos, level) != null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Joins {@code chunks}, {@code team_members}, and {@code team_roles} to resolve the
+	 * player's permission bitfield within the chunk's owning team. Returns {@code 0} if the
+	 * player is not a member of the team that owns this chunk.</p>
+	 *
+	 * @param player   the player to check permissions for
+	 * @param chunkPos the chunk position
+	 * @param level    the dimension/level the chunk is in
+	 * @return the permission bitfield, or {@code 0} if the player has no permissions here
+	 */
 	@Override
 	public int getPermissionInChunk(Player player, ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
@@ -130,6 +206,15 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Joins {@code chunks} and {@code teams} to return the owning team for a chunk.</p>
+	 *
+	 * @param chunkPos the chunk position
+	 * @param level    the dimension/level the chunk is in
+	 * @return the owning {@link Team}, or {@code null} if the chunk is unclaimed
+	 */
 	@Override
 	public Team getChunkOwner(ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
@@ -150,6 +235,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Inserts a new team into the {@code teams} table and creates the default
+	 * "owner" and "default" roles for it.
+	 *
+	 * @param team the team to persist
+	 */
 	public void addTeam(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO teams (id, name, tag, description, color, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
 			preparedStatement.setString(1, team.getId().toString());
@@ -168,6 +259,12 @@ public class CapitolDatabase extends Database {
 		addRole(team.getId(), TeamRole.DEFAULT_ROLE_NAME, TeamRole.defaultPermissions());
 	}
 
+	/**
+	 * Deletes a team from the {@code teams} table. Cascade deletes will remove
+	 * all associated members, roles, and claimed chunks.
+	 *
+	 * @param team the team to remove
+	 */
 	public void removeTeam(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"DELETE FROM teams WHERE id = ?")) {
@@ -179,6 +276,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Retrieves a team by its UUID.
+	 *
+	 * @param uuid the team's UUID
+	 * @return the {@link Team}, or {@code null} if not found
+	 */
 	public Team getTeam(UUID uuid) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT * FROM teams WHERE id = ?")) {
@@ -193,6 +296,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Finds the team a player belongs to by joining {@code team_members} and {@code teams}.
+	 *
+	 * @param player the player entity
+	 * @return the player's {@link Team}, or {@code null} if they are not in any team
+	 */
 	public Team getPlayerTeam(Player player) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.description, teams.created_at " +
@@ -210,6 +319,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Finds the team a player belongs to by UUID.
+	 *
+	 * @param playerUUID the player's UUID
+	 * @return the player's {@link Team}, or {@code null} if they are not in any team
+	 */
 	public Team getPlayerTeam(UUID playerUUID) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.description, teams.created_at " +
@@ -229,6 +344,13 @@ public class CapitolDatabase extends Database {
 
 
 
+	/**
+	 * Adds a player to a team with the specified role.
+	 *
+	 * @param player the player to add
+	 * @param team   the team to join
+	 * @param role   the role to assign
+	 */
 	public void addPlayerToTeam(Player player, Team team, TeamRole role) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"INSERT INTO team_members (team_id, player_uuid, role_id) VALUES (?, ?, ?)")) {
@@ -242,6 +364,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Removes a player from a team.
+	 *
+	 * @param player the player to remove
+	 * @param team   the team to remove them from
+	 */
 	public void removePlayerFromTeam(Player player, Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"DELETE FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
@@ -254,6 +382,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Removes a player from a team by player UUID.
+	 *
+	 * @param playerUUID the UUID of the player to remove
+	 * @param team       the team to remove them from
+	 */
 	public void removePlayerFromTeam(UUID playerUUID, Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"DELETE FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
@@ -266,6 +400,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Changes a player's role within a team.
+	 *
+	 * @param player  the player whose role is being changed
+	 * @param team    the team the player belongs to
+	 * @param newRole the new role to assign
+	 */
 	public void updatePlayerRole(Player player, Team team, TeamRole newRole) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"UPDATE team_members SET role_id = ? WHERE team_id = ? AND player_uuid = ?")) {
@@ -279,6 +420,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Gets the role a player holds within a specific team.
+	 *
+	 * @param player the player to look up
+	 * @param team   the team to check membership in
+	 * @return the player's {@link TeamRole}, or {@code null} if they are not a member
+	 */
 	public TeamRole getPlayerRole(Player player, Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT team_roles.* FROM team_members " +
@@ -296,6 +444,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Checks whether a player is a member of a team.
+	 *
+	 * @param player the player to check
+	 * @param team   the team to check against
+	 * @return {@code true} if the player is a member
+	 */
 	public boolean isPlayerInTeam(Player player, Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT 1 FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
@@ -310,6 +465,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Checks whether a player is a member of a team by player UUID.
+	 *
+	 * @param playerUUID the player's UUID
+	 * @param team       the team to check against
+	 * @return {@code true} if the player is a member
+	 */
 	public boolean isPlayerInTeam(UUID playerUUID, Team team){
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT 1 FROM team_members WHERE team_id = ? AND player_uuid = ?"
@@ -325,6 +487,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Returns all members of a team, including their role names.
+	 *
+	 * @param team the team to query
+	 * @return list of {@link TeamMember}s (may be empty)
+	 */
 	public List<TeamMember> getTeamMembers(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT team_members.*, team_roles.name AS role_name " +
@@ -343,6 +511,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Returns the permission bitfield for a player within a specific team.
+	 *
+	 * @param player the player to look up
+	 * @param team   the team to check permissions in
+	 * @return the permission bitfield, or {@code 0} if the player is not a member
+	 */
 	public int getPlayerPermission(Player player, Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT team_roles.permissions FROM team_members " +
@@ -360,6 +535,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Claims a chunk for a team by inserting it into the {@code chunks} table.
+	 *
+	 * @param team     the team claiming the chunk
+	 * @param chunkPos the chunk position to claim
+	 * @param level    the dimension/level the chunk is in
+	 */
 	public void claimChunk(Team team, ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id) VALUES (?, ?, ?, ?)")) {
@@ -374,6 +556,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Unclaims a chunk by removing it from the {@code chunks} table.
+	 *
+	 * @param chunkPos the chunk position to unclaim
+	 * @param level    the dimension/level the chunk is in
+	 */
 	public void unclaimChunk(ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"DELETE FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
@@ -387,6 +575,12 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Returns all chunks claimed by a team.
+	 *
+	 * @param team the team to query
+	 * @return list of {@link ClaimedChunk}s (may be empty)
+	 */
 	public List<ClaimedChunk> getTeamChunks(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT * FROM chunks WHERE team_id = ?")) {
@@ -402,6 +596,11 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Removes all chunk claims for a team.
+	 *
+	 * @param team the team whose chunks should be unclaimed
+	 */
 	public void unclaimAllChunks(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"DELETE FROM chunks WHERE team_id = ?")) {
@@ -413,6 +612,13 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	/**
+	 * Retrieves a claimed chunk record by position and dimension.
+	 *
+	 * @param chunkPos the chunk position
+	 * @param level    the dimension/level the chunk is in
+	 * @return the {@link ClaimedChunk}, or {@code null} if unclaimed
+	 */
 	public ClaimedChunk getChunk(ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT * FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {

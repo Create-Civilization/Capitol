@@ -18,3 +18,11 @@ To keep branches understandable, create a small log underneath about the purpose
 - `BorderRenderer` renders a **temporary** placeholder wireframe over claimed chunks — to be replaced with a proximity-fade wall effect
 - Client cache cleared on disconnect; chunk load/unload events keep cache in sync for already-loaded chunks
 - C2S request packet for syncing chunks on player join still TODO (bulk send intentionally avoided due to scale)
+
+## Branch 1.21.1-rc-commands:
+- Rewrites `TeamCommand` with full subcommand structure: `create`, `delete` (with clickable confirmation prompt), and `kick` (with player name autocomplete)
+- `team create` now accepts `<name> <tag> <color> [description]` instead of just name and color
+- Permission-gated: `delete` requires `MANAGE_TEAM`, `kick` requires `KICK_MEMBERS`
+- `ClaimCommand` carries over `chunk` and `info` subcommands from the database branch
+- Updated command documentation in `docs/docs/commands.md`
+- Still TODO: `team invite`, `team manage`, `team info` subcommands
