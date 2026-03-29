@@ -79,7 +79,7 @@ public class Team {
 	public boolean hasPlayer(Player player) {
 		UUID playerUuid = player.getUUID();
 		return members.stream()
-			.anyMatch(m -> m.playerUuid().equals(playerUuid));
+			.anyMatch(m -> m.playerUUID().equals(playerUuid));
 	}
 
 	public void addMember(TeamMember member) {
@@ -87,7 +87,7 @@ public class Team {
 	}
 
 	public void removeMember(UUID playerUuid) {
-		members.removeIf(m -> m.playerUuid().equals(playerUuid));
+		members.removeIf(m -> m.playerUUID().equals(playerUuid));
 	}
 
 	public void addChunk(ChunkPos pos) {

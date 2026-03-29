@@ -1,12 +1,10 @@
 package com.createcivilization.capitol.server.commands;
 
-import com.createcivilization.capitol.common.data.ClaimedChunk;
-import com.createcivilization.capitol.common.data.Permission;
-import com.createcivilization.capitol.common.data.Team;
-import com.createcivilization.capitol.common.data.TeamRole;
+import com.createcivilization.capitol.common.data.*;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -20,6 +18,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -27,7 +26,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TeamCommand {
@@ -43,6 +44,21 @@ public class TeamCommand {
 							.executes(TeamCommand::createTeam)))))
 			.then(Commands.literal("delete")
 				.executes(TeamCommand::promptDeleteTeam))
+			.then(Commands.literal("kick")
+				.then(Commands.argument("player", StringArgumentType.string())
+					.suggests(((context, builder) ->{
+						CapitolDatabase database = DatabaseManager.database;
+						Team team = database.getPlayerTeam(context.getSource().getPlayer());
+						List<TeamMember> members = database.getTeamMembers(team);
+						GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
+						for (TeamMember member : members){
+							profileCache.get(member.playerUUID()).ifPresent(
+								gameProfile -> builder.suggest(gameProfile.getName())
+							);
+						}
+						return builder.buildFuture();
+					}))
+					.executes(TeamCommand::kickPlayer)))
 			.then(Commands.literal("confirmdelete")
 				.executes(TeamCommand::confirmDeleteTeam));
 	}
@@ -149,6 +165,41 @@ public class TeamCommand {
 		}
 
 		context.getSource().sendSuccess(() -> Component.literal("Team deleted.").withStyle(ChatFormatting.GREEN), true);
+		return 1;
+	}
+
+	private static int kickPlayer(CommandContext<CommandSourceStack> context) {
+
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+		Team team = database.getPlayerTeam(player);
+		String playerName = StringArgumentType.getString(context, "player");
+		if (team == null) {
+			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if (!Permission.KICK_MEMBERS.hasPermission(database.getPlayerPermission(player, team))) {
+			context.getSource().sendFailure(Component.literal("You do not have permission to kick players from this team")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
+		Optional<GameProfile> profile = profileCache.get(playerName);
+		if(profile.isEmpty()){
+			context.getSource().sendFailure(Component.literal("There is no player called " + profile.get().getName())
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		GameProfile gameProfile = profile.get();
+
+		database.removePlayerFromTeam(gameProfile.getId(), team);
+
+		context.getSource().sendSuccess(() -> Component.literal("Kicked " + gameProfile.getName() + " from the team")
+			.withStyle(ChatFormatting.GREEN), true);
+
 		return 1;
 	}
 }

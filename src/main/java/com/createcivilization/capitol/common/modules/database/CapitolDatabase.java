@@ -3,6 +3,7 @@ package com.createcivilization.capitol.common.modules.database;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.data.ClaimedChunk;
 import com.createcivilization.capitol.common.data.Team;
+import com.createcivilization.capitol.common.data.TeamMember;
 import com.createcivilization.capitol.common.data.TeamRole;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import net.minecraft.world.entity.player.Player;
@@ -209,6 +210,25 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	public Team getPlayerTeam(UUID playerUUID) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.description, teams.created_at " +
+				"FROM team_members " +
+				"JOIN teams ON teams.id = team_members.team_id " +
+				"WHERE team_members.player_uuid = ?")) {
+			preparedStatement.setString(1, playerUUID.toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				if (rs.next()) return Team.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting player's team from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+
+
 	public void addPlayerToTeam(Player player, Team team, TeamRole role) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"INSERT INTO team_members (team_id, player_uuid, role_id) VALUES (?, ?, ?)")) {
@@ -227,6 +247,18 @@ public class CapitolDatabase extends Database {
 			"DELETE FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, player.getUUID().toString());
+			preparedStatement.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while removing player from team in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void removePlayerFromTeam(UUID playerUUID, Team team) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"DELETE FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.setString(2, playerUUID.toString());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while removing player from team in database.", e);
@@ -274,6 +306,39 @@ public class CapitolDatabase extends Database {
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while checking player membership in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean isPlayerInTeam(UUID playerUUID, Team team){
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT 1 FROM team_members WHERE team_id = ? AND player_uuid = ?"
+		)) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.setString(2, playerUUID.toString());
+			try (ResultSet rs = preparedStatement.executeQuery()){
+				return rs.next();
+			}
+		} catch (SQLException e){
+			Capitol.LOGGER.error("Error while checking player membership in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public List<TeamMember> getTeamMembers(Team team) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT team_members.*, team_roles.name AS role_name " +
+				"FROM team_members " +
+				"JOIN team_roles ON team_roles.id = team_members.role_id " +
+				"WHERE team_members.team_id = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				List<TeamMember> members = new ArrayList<>();
+				while (rs.next()) members.add(TeamMember.fromResultSet(rs));
+				return members;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting team members in database.", e);
 			throw new RuntimeException(e);
 		}
 	}
