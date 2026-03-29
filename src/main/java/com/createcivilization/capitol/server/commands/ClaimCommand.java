@@ -18,16 +18,16 @@ import org.joml.Vector3f;
 
 import java.util.Objects;
 
-public class Claim {
+public class ClaimCommand {
 
 	//TODO REMOVE THIS AS THIS IS TEMPORARY
 
 	static LiteralArgumentBuilder<CommandSourceStack> register(){
 		return Commands.literal("claim")
 			.then(Commands.literal("chunk")
-				.executes(Claim::claim))
+				.executes(ClaimCommand::claim))
 			.then(Commands.literal("info")
-				.executes(Claim::info));
+				.executes(ClaimCommand::info));
 	}
 
 	private static int claim(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

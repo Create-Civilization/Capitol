@@ -17,7 +17,9 @@ public class Team {
 
 	private final UUID id;
 	private final String name;
+	private final String tag;
 	private final Color color;
+	private final String description;
 	private final long createdAt;
 	private final List<WeakReference<ChunkPos>> chunks;
 	private final List<TeamMember> members;
@@ -25,7 +27,9 @@ public class Team {
 	private Team(Builder builder) {
 		this.id = Objects.requireNonNull(builder.id, "Must Have Team ID");
 		this.name = Objects.requireNonNull(builder.name, "Must Have Team Name");
+		this.tag = Objects.requireNonNull(builder.tag, "Must Have Team Tag");
 		this.color = Objects.requireNonNull(builder.color, "Must Have Team Color");
+		this.description = builder.description;
 		this.createdAt = builder.createdAt;
 		this.chunks = new ArrayList<>(builder.chunks);
 		this.members = new ArrayList<>(builder.members);
@@ -34,6 +38,8 @@ public class Team {
 	public Team(ByteBuf buffer) {
 		this.id = UUID.fromString(ByteBufCodecs.STRING_UTF8.decode(buffer));
 		this.name = ByteBufCodecs.STRING_UTF8.decode(buffer);
+		this.tag = ByteBufCodecs.STRING_UTF8.decode(buffer);
+		this.description = ByteBufCodecs.STRING_UTF8.decode(buffer);
 		this.color = new Color(ByteBufCodecs.INT.decode(buffer), true);
 		this.createdAt = ByteBufCodecs.VAR_LONG.decode(buffer);
 		this.chunks = new ArrayList<>();
@@ -44,6 +50,8 @@ public class Team {
 		return builder()
 			.id(UUID.fromString(rs.getString("id")))
 			.name(rs.getString("name"))
+			.tag(rs.getString("tag"))
+			.description(rs.getString("description"))
 			.color(new Color(rs.getInt("color"), true))
 			.createdAt(rs.getLong("created_at"))
 			.build();
@@ -52,6 +60,8 @@ public class Team {
 	public void encode(ByteBuf buf){
 		ByteBufCodecs.STRING_UTF8.encode(buf, id.toString());
 		ByteBufCodecs.STRING_UTF8.encode(buf, name);
+		ByteBufCodecs.STRING_UTF8.encode(buf, tag);
+		ByteBufCodecs.STRING_UTF8.encode(buf, description);
 		ByteBufCodecs.INT.encode(buf, color.getRGB());
 		ByteBufCodecs.VAR_LONG.encode(buf, createdAt);
 	}
@@ -91,12 +101,16 @@ public class Team {
 	public UUID getId() { return id; }
 	public String getName() { return name; }
 	public Color getColor() { return color; }
+	public String getTag() {return tag; }
+	public String getDescription() {return description; }
 	public long getCreatedAt() { return createdAt; }
 	public List<TeamMember> getMembers() { return Collections.unmodifiableList(members); }
 
 	public static class Builder {
 		private UUID id;
 		private String name;
+		private String tag;
+		private String description;
 		private Color color;
 		private long createdAt;
 		private final List<WeakReference<ChunkPos>> chunks = new ArrayList<>();
@@ -111,6 +125,16 @@ public class Team {
 
 		public Builder name(String name) {
 			this.name = name;
+			return this;
+		}
+
+		public Builder tag(String tag){
+			this.tag = tag;
+			return this;
+		}
+
+		public Builder description(String description){
+			this.description = description;
 			return this;
 		}
 
