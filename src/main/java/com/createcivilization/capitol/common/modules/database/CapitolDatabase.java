@@ -218,7 +218,7 @@ public class CapitolDatabase extends Database {
 	@Override
 	public Team getChunkOwner(ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.description, teams.created_at " +
 				"FROM chunks " +
 				"JOIN teams ON teams.id = chunks.team_id " +
 				"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?")) {
@@ -242,13 +242,14 @@ public class CapitolDatabase extends Database {
 	 * @param team the team to persist
 	 */
 	public void addTeam(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO teams (id, name, tag, description, color, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO teams (id, name, tag, current_claims, description, color, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, team.getName());
 			preparedStatement.setString(3, team.getTag());
-			preparedStatement.setString(4, team.getDescription());
-			preparedStatement.setInt(5, team.getColor().getRGB());
-			preparedStatement.setLong(6, Instant.now().toEpochMilli());
+			preparedStatement.setInt(4, 0);
+			preparedStatement.setString(5, team.getDescription());
+			preparedStatement.setInt(6, team.getColor().getRGB());
+			preparedStatement.setLong(7, Instant.now().toEpochMilli());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting team into database.", e);
@@ -304,7 +305,7 @@ public class CapitolDatabase extends Database {
 	 */
 	public Team getPlayerTeam(Player player) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.description, teams.created_at " +
 				"FROM team_members " +
 				"JOIN teams ON teams.id = team_members.team_id " +
 				"WHERE team_members.player_uuid = ?")) {
@@ -327,7 +328,7 @@ public class CapitolDatabase extends Database {
 	 */
 	public Team getPlayerTeam(UUID playerUUID) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.description, teams.created_at " +
 				"FROM team_members " +
 				"JOIN teams ON teams.id = team_members.team_id " +
 				"WHERE team_members.player_uuid = ?")) {
@@ -536,7 +537,8 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
-	 * Claims a chunk for a team by inserting it into the {@code chunks} table.
+	 * Claims a chunk for a team by inserting it into the {@code chunks} table
+	 * and incrementing the team's {@code current_claims} counter.
 	 *
 	 * @param team     the team claiming the chunk
 	 * @param chunkPos the chunk position to claim
@@ -554,15 +556,18 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error while inserting chunk into database.", e);
 			throw new RuntimeException(e);
 		}
+		updateCurrentClaims(team, 1);
 	}
 
 	/**
-	 * Unclaims a chunk by removing it from the {@code chunks} table.
+	 * Unclaims a chunk by removing it from the {@code chunks} table
+	 * and decrementing the owning team's {@code current_claims} counter.
 	 *
+	 * @param team     the team that owns the chunk
 	 * @param chunkPos the chunk position to unclaim
 	 * @param level    the dimension/level the chunk is in
 	 */
-	public void unclaimChunk(ChunkPos chunkPos, Level level) {
+	public void unclaimChunk(Team team, ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"DELETE FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
 			preparedStatement.setString(1, level.dimension().location().toString());
@@ -573,6 +578,7 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error while deleting chunk from database.", e);
 			throw new RuntimeException(e);
 		}
+		updateCurrentClaims(team, -1);
 	}
 
 	/**
@@ -597,7 +603,7 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
-	 * Removes all chunk claims for a team.
+	 * Removes all chunk claims for a team and resets its {@code current_claims} to 0.
 	 *
 	 * @param team the team whose chunks should be unclaimed
 	 */
@@ -608,6 +614,41 @@ public class CapitolDatabase extends Database {
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting all chunks for team from database.", e);
+			throw new RuntimeException(e);
+		}
+		resetCurrentClaims(team);
+	}
+
+	/**
+	 * Adjusts a team's {@code current_claims} counter by the given delta.
+	 *
+	 * @param team  the team to update
+	 * @param delta the amount to add (positive) or subtract (negative)
+	 */
+	private void updateCurrentClaims(Team team, int delta) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"UPDATE teams SET current_claims = current_claims + ? WHERE id = ?")) {
+			preparedStatement.setInt(1, delta);
+			preparedStatement.setString(2, team.getId().toString());
+			preparedStatement.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while updating current_claims for team.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Resets a team's {@code current_claims} counter to 0.
+	 *
+	 * @param team the team to reset
+	 */
+	private void resetCurrentClaims(Team team) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"UPDATE teams SET current_claims = 0 WHERE id = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while resetting current_claims for team.", e);
 			throw new RuntimeException(e);
 		}
 	}

@@ -48,6 +48,8 @@ public class DatabaseManager {
 					"id TEXT PRIMARY KEY NOT NULL," +
 					"name TEXT NOT NULL," +
 					"tag TEXT NOT NULL," +
+					"current_claims INT NOT NULL, " +
+					"max_claims INT," +
 					"color INT NOT NULL," +
 					"description TEXT," +
 					"created_at LONG NOT NULL)"

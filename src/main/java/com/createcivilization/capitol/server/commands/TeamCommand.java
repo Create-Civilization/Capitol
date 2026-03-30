@@ -42,7 +42,8 @@ public class TeamCommand {
 							.then(Commands.argument("description", StringArgumentType.string())
 								.executes(TeamCommand::createTeam))
 							.executes(TeamCommand::createTeam)))))
-			.then(Commands.literal("delete")
+			.then(Commands.literal("info"))
+			.then(Commands.literal("disband")
 				.executes(TeamCommand::promptDeleteTeam))
 			.then(Commands.literal("kick")
 				.then(Commands.argument("player", StringArgumentType.string())
@@ -59,8 +60,25 @@ public class TeamCommand {
 						return builder.buildFuture();
 					}))
 					.executes(TeamCommand::kickPlayer)))
-			.then(Commands.literal("confirmdelete")
+			.then(Commands.literal("confirm_disband")
 				.executes(TeamCommand::confirmDeleteTeam));
+	}
+
+	private static int teamInfo(CommandContext<CommandSourceStack> context){
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+
+		Team team = database.getPlayerTeam(player);
+		if(team == null){
+			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		//TODO: Make the info stuff look nice. I am to lazy to do so.
+		Component chatMsg = Component.literal("Put Info Here");
+
+		context.getSource().sendSuccess(() -> chatMsg, true);
+		return 1;
 	}
 
 	private static int createTeam(CommandContext<CommandSourceStack> context) {
@@ -126,7 +144,7 @@ public class TeamCommand {
 					.withStyle(style -> style
 						.withColor(ChatFormatting.GREEN)
 						.withBold(true)
-						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitol team confirmdelete"))
+						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitol team confirm_disband"))
 						.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to confirm deletion")))))
 				.append(Component.literal(" "))
 				.append(Component.literal("[NO]")
