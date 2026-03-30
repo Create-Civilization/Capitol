@@ -42,6 +42,10 @@ public enum Permission {
 		return bits & ~this.bit;
 	}
 
+	public int toggle(int bits){
+		return bits ^ this.bit;
+	}
+
 	public boolean hasPermission(int bits){
 		int hasPerms = bits & this.bit;
 		return hasPerms != 0;

@@ -41,14 +41,14 @@ public class CapitolDatabase extends Database {
 	/**
 	 * Inserts a new role into the {@code team_roles} table.
 	 *
-	 * @param teamId     the UUID of the team this role belongs to
-	 * @param name       the role name (e.g. "owner", "default")
+	 * @param team        the team this role belongs to
+	 * @param name        the role name (e.g. "owner", "default")
 	 * @param permissions the bitfield of {@link com.createcivilization.capitol.common.data.Permission} flags
 	 */
-	public void addRole(UUID teamId, String name, int permissions) {
+	public void addRole(Team team, String name, int permissions) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"INSERT INTO team_roles (team_id, name, permissions) VALUES (?, ?, ?)")) {
-			preparedStatement.setString(1, teamId.toString());
+			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, name);
 			preparedStatement.setInt(3, permissions);
 			preparedStatement.execute();
@@ -78,16 +78,16 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
-	 * Retrieves a role by team UUID and role name.
+	 * Retrieves a role by team and role name.
 	 *
-	 * @param teamId   the team's UUID
+	 * @param team     the team to search in
 	 * @param roleName the role name to look up (e.g. "owner")
 	 * @return the matching {@link TeamRole}, or {@code null} if not found
 	 */
-	public TeamRole getRoleByName(UUID teamId, String roleName) {
+	public TeamRole getRoleByName(Team team, String roleName) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT * FROM team_roles WHERE team_id = ? AND name = ?")) {
-			preparedStatement.setString(1, teamId.toString());
+			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, roleName);
 			try (ResultSet rs = preparedStatement.executeQuery()) {
 				if (rs.next()) return TeamRole.fromResultSet(rs);
@@ -102,12 +102,12 @@ public class CapitolDatabase extends Database {
 	/**
 	 * Returns all roles belonging to a team.
 	 *
-	 * @param teamId the team's UUID
+	 * @param team the team to query
 	 * @return list of {@link TeamRole}s (may be empty)
 	 */
-	public List<TeamRole> getTeamRoles(UUID teamId) {
+	public List<TeamRole> getTeamRoles(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT * FROM team_roles WHERE team_id = ?")) {
-			preparedStatement.setString(1, teamId.toString());
+			preparedStatement.setString(1, team.getId().toString());
 			try (ResultSet rs = preparedStatement.executeQuery()) {
 				List<TeamRole> roles = new ArrayList<>();
 				while (rs.next()) roles.add(TeamRole.fromResultSet(rs));
@@ -122,23 +122,26 @@ public class CapitolDatabase extends Database {
 	/**
 	 * Convenience method that returns the "default" role for a team.
 	 *
-	 * @param teamId the team's UUID
+	 * @param team the team to query
 	 * @return the default {@link TeamRole}, or {@code null} if not found
 	 */
-	public TeamRole getDefaultRole(UUID teamId) {
-		return getRoleByName(teamId, TeamRole.DEFAULT_ROLE_NAME);
+	public TeamRole getDefaultRole(Team team) {
+		return getRoleByName(team, TeamRole.DEFAULT_ROLE_NAME);
 	}
 
 	/**
-	 * Updates the permission bitfield for an existing role.
+	 * Updates the permission bitfield for a role identified by team and role name.
 	 *
-	 * @param roleId      the role's primary key
+	 * @param team        the team the role belongs to
+	 * @param roleName    the name of the role to update
 	 * @param permissions the new permission bitfield
 	 */
-	public void updateRolePermissions(int roleId, int permissions) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement("UPDATE team_roles SET permissions = ? WHERE id = ?")) {
+	public void updateRolePermissions(Team team, String roleName, int permissions) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"UPDATE team_roles SET permissions = ? WHERE team_id = ? AND name = ?")) {
 			preparedStatement.setInt(1, permissions);
-			preparedStatement.setInt(2, roleId);
+			preparedStatement.setString(2, team.getId().toString());
+			preparedStatement.setString(3, roleName);
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while updating role permissions in database.", e);
@@ -146,15 +149,30 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
-	/**
-	 * Deletes a role by its primary key.
-	 *
-	 * @param roleId the role's primary key
-	 */
-	public void deleteRole(int roleId) {
+	public void updateRoleName(Team team, String roleName, String newName){
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"DELETE FROM team_roles WHERE id = ?")) {
-			preparedStatement.setInt(1, roleId);
+		"UPDATE team_roles SET name = ? WHERE team_id = ? AND name = ?")) {
+			preparedStatement.setString(1, newName);
+			preparedStatement.setString(2, team.getId().toString());
+			preparedStatement.setString(3, roleName);
+			preparedStatement.execute();
+		} catch (SQLException e){
+			Capitol.LOGGER.error("Error while updating role name in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Deletes a role by team and role name.
+	 *
+	 * @param team     the team the role belongs to
+	 * @param roleName the name of the role to delete
+	 */
+	public void deleteRole(Team team, String roleName) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"DELETE FROM team_roles WHERE team_id = ? AND name = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.setString(2, roleName);
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting role from database.", e);
@@ -256,8 +274,8 @@ public class CapitolDatabase extends Database {
 			throw new RuntimeException(e);
 		}
 
-		addRole(team.getId(), TeamRole.OWNER_ROLE_NAME, TeamRole.ownerPermissions());
-		addRole(team.getId(), TeamRole.DEFAULT_ROLE_NAME, TeamRole.defaultPermissions());
+		addRole(team, TeamRole.OWNER_ROLE_NAME, TeamRole.ownerPermissions());
+		addRole(team, TeamRole.DEFAULT_ROLE_NAME, TeamRole.defaultPermissions());
 	}
 
 	/**

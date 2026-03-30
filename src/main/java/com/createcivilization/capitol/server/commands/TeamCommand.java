@@ -26,10 +26,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public class TeamCommand {
 
@@ -42,7 +40,55 @@ public class TeamCommand {
 							.then(Commands.argument("description", StringArgumentType.string())
 								.executes(TeamCommand::createTeam))
 							.executes(TeamCommand::createTeam)))))
-			.then(Commands.literal("info"))
+			.then(Commands.literal("info").executes(TeamCommand::teamInfo))
+			.then(Commands.literal("manage")
+				.then(Commands.literal("roles")
+					.then(Commands.literal("create")
+						.then(Commands.argument("role_name", StringArgumentType.string())
+							.executes(TeamCommand::createRole)))
+					.then(Commands.literal("edit")
+						.then(Commands.argument("role_name", StringArgumentType.string())
+							.suggests((context, builder) -> {
+								CapitolDatabase database = DatabaseManager.database;
+								Team team = database.getPlayerTeam(context.getSource().getPlayer());
+								if(team == null){
+									builder.suggest("YOU ARE NOT IN A TEAM");
+									return builder.buildFuture();
+								}
+								List<TeamRole> roles = database.getTeamRoles(team);
+								for(TeamRole role : roles){
+									builder.suggest(role.name());
+								}
+								return builder.buildFuture();
+							})
+							.then(Commands.literal("permission")
+								.then(Commands.argument("permission", StringArgumentType.string())
+									.suggests(((context, builder) -> {
+										for(Permission perm : Permission.values()){
+											builder.suggest(perm.name());
+										}
+										return builder.buildFuture();
+									}))
+									.executes(TeamCommand::editRolePerms)))
+							.then(Commands.literal("name")
+								.then(Commands.argument("new_name", StringArgumentType.string())
+									.executes(TeamCommand::editRoleName)))))
+					.then(Commands.literal("remove")
+						.then(Commands.argument("role_name", StringArgumentType.string())
+							.suggests((context, builder) -> {
+								CapitolDatabase database = DatabaseManager.database;
+								Team team = database.getPlayerTeam(context.getSource().getPlayer());
+								if(team == null){
+									builder.suggest("YOU ARE NOT IN A TEAM");
+									return builder.buildFuture();
+								}
+								List<TeamRole> roles = database.getTeamRoles(team);
+								for(TeamRole role : roles){
+									builder.suggest(role.name());
+								}
+								return builder.buildFuture();
+							})
+							.executes(TeamCommand::removeRole)))
 			.then(Commands.literal("disband")
 				.executes(TeamCommand::promptDeleteTeam))
 			.then(Commands.literal("kick")
@@ -50,6 +96,10 @@ public class TeamCommand {
 					.suggests(((context, builder) ->{
 						CapitolDatabase database = DatabaseManager.database;
 						Team team = database.getPlayerTeam(context.getSource().getPlayer());
+						if(team == null){
+							builder.suggest("YOU ARE NOT IN A TEAM");
+							return builder.buildFuture();
+						}
 						List<TeamMember> members = database.getTeamMembers(team);
 						GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
 						for (TeamMember member : members){
@@ -61,7 +111,162 @@ public class TeamCommand {
 					}))
 					.executes(TeamCommand::kickPlayer)))
 			.then(Commands.literal("confirm_disband")
-				.executes(TeamCommand::confirmDeleteTeam));
+				.executes(TeamCommand::confirmDeleteTeam))));
+	}
+
+	private static int removeRole(CommandContext<CommandSourceStack> context){
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+		Team team = database.getPlayerTeam(player);
+		if(team == null){
+			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if(!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))){
+			context.getSource().sendFailure(Component.literal("You do not have permission to edit this role")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+		String roleName = StringArgumentType.getString(context, "role_name");
+
+		if(Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)){
+			context.getSource().sendFailure(Component.literal("You cannot remove owner role.")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if(Objects.equals(roleName, TeamRole.DEFAULT_ROLE_NAME)){
+			context.getSource().sendFailure(Component.literal("You cannot remove default role.")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+
+		TeamRole role = database.getRoleByName(team, roleName);
+
+		if(role == null){
+			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		database.deleteRole(team, roleName);
+
+
+		context.getSource().sendSuccess(() -> Component.literal("Deleted Role: " + roleName).withStyle(ChatFormatting.RED), true);
+		return 1;
+
+	}
+
+	private static int editRoleName(CommandContext<CommandSourceStack> context){
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+		Team team = database.getPlayerTeam(player);
+		if(team == null){
+			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if(!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))){
+			context.getSource().sendFailure(Component.literal("You do not have permission to edit this role")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+		String roleName = StringArgumentType.getString(context, "role_name");
+
+		if(Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)){
+			context.getSource().sendFailure(Component.literal("You cannot edit owner role.")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		TeamRole role = database.getRoleByName(team, roleName);
+
+		if(role == null){
+			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		String newRoleName = StringArgumentType.getString(context, "new_name");
+
+		database.updateRoleName(team, roleName, newRoleName);
+
+		context.getSource().sendSuccess(() -> Component.literal("Updated Role: " + roleName + ". New Role Name: " + newRoleName + ".").withStyle(ChatFormatting.GREEN), true);
+		return 1;
+	}
+
+	private static int editRolePerms(CommandContext<CommandSourceStack> context){
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+		Team team = database.getPlayerTeam(player);
+		if(team == null){
+			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if(!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))){
+			context.getSource().sendFailure(Component.literal("You do not have permission to edit this role")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+		String roleName = StringArgumentType.getString(context, "role_name");
+
+		if(Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)){
+			context.getSource().sendFailure(Component.literal("You cannot edit owner role.")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		TeamRole role = database.getRoleByName(team, roleName);
+
+		if(role == null){
+			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		String permissionName = StringArgumentType.getString(context, "permission");
+		Permission permission;
+		try {
+			permission = Permission.valueOf(permissionName);
+		} catch (IllegalArgumentException e){
+			context.getSource().sendFailure(Component.literal(permissionName + "is not a valid permission.")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		int rolePerms = role.permissions();
+		boolean oldState = permission.hasPermission(rolePerms);
+		rolePerms = permission.toggle(rolePerms);
+		boolean newState = permission.hasPermission(rolePerms);
+
+		database.updateRolePermissions(team, roleName, rolePerms);
+
+		context.getSource().sendSuccess(() -> Component.literal("Updated " + permissionName + " for " + roleName + " OLD VALUE -> " + oldState + " NEW VALUE -> " + newState).withStyle(ChatFormatting.GREEN), true);
+		return 1;
+	}
+
+	private static int createRole(CommandContext<CommandSourceStack> context){
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+		Team team = database.getPlayerTeam(player);
+		if(team == null){
+			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if(!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))){
+			context.getSource().sendFailure(Component.literal("You do not have permission to create a role")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+		String roleName = StringArgumentType.getString(context, "role_name");
+
+		database.addRole(team, roleName, 0);
+		context.getSource().sendSuccess(() -> Component.literal("Added Role: " + roleName + " to " + team.getName()).withStyle(ChatFormatting.GREEN), true);
+		return 1;
 	}
 
 	private static int teamInfo(CommandContext<CommandSourceStack> context){
@@ -112,7 +317,7 @@ public class TeamCommand {
 
 		Team team = Team.builder().name(name).id(UUID.randomUUID()).color(color).description(description).tag(tag).build();
 		database.addTeam(team);
-		TeamRole ownerRole = database.getRoleByName(team.getId(), TeamRole.OWNER_ROLE_NAME);
+		TeamRole ownerRole = database.getRoleByName(team, TeamRole.OWNER_ROLE_NAME);
 		database.addPlayerToTeam(player, team, ownerRole);
 		context.getSource().sendSuccess(() -> Component.literal("Team Created!").withStyle(ChatFormatting.GREEN), true);
 		return 1;

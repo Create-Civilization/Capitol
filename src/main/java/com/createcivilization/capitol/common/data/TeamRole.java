@@ -35,12 +35,6 @@ public record TeamRole(int id, UUID teamId, String name, int permissions) {
 	}
 
 	public static int defaultPermissions() {
-		return Permission.of(
-			Permission.BREAK_BLOCKS, Permission.PLACE_BLOCKS,
-			Permission.INTERACT_BLOCKS, Permission.OPEN_CONTAINERS,
-			Permission.USE_REDSTONE, Permission.INTERACT_ENTITIES,
-			Permission.KILL_FRIENDLIES, Permission.KILL_HOSTILES,
-			Permission.USE_ITEMS, Permission.PICKUP_ITEMS
-		);
+		return Permission.of();
 	}
 }
