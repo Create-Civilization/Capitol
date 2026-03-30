@@ -20,7 +20,7 @@ public class BorderWallRenderer {
 	public static float REVEAL_RADIUS = 8.0f;
 	public static float INNER_RADIUS = 1.5f;
 	public static float MAX_ALPHA = 0.35f;
-	private static final float Z_FIGHT_OFFSET = 0.002f;
+	private static final float Z_FIGHT_OFFSET = -0.002f;
 
 	@SubscribeEvent
 	public static void onRenderLevel(RenderLevelStageEvent event) {
