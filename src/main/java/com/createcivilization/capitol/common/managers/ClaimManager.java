@@ -12,7 +12,7 @@ public class ClaimManager {
 	}
 
 	public static boolean playerHasPermissionInChunk(Player player, ChunkPos chunkPos, Level level, Permission perm) {
-		int playerPerms = DatabaseManager.database.getPermissionInChunk(player, chunkPos, level);
+		long playerPerms = DatabaseManager.database.getPermissionInChunk(player, chunkPos, level);
 		return perm.hasPermission(playerPerms);
 	}
 }

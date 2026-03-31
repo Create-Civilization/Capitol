@@ -88,7 +88,7 @@ public class TeamCommand {
 								}
 								return builder.buildFuture();
 							})
-							.executes(TeamCommand::removeRole)))
+							.executes(TeamCommand::removeRole)))))
 			.then(Commands.literal("disband")
 				.executes(TeamCommand::promptDeleteTeam))
 			.then(Commands.literal("kick")
@@ -111,7 +111,7 @@ public class TeamCommand {
 					}))
 					.executes(TeamCommand::kickPlayer)))
 			.then(Commands.literal("confirm_disband")
-				.executes(TeamCommand::confirmDeleteTeam))));
+				.executes(TeamCommand::confirmDeleteTeam));
 	}
 
 	private static int removeRole(CommandContext<CommandSourceStack> context){
@@ -237,7 +237,7 @@ public class TeamCommand {
 			return 0;
 		}
 
-		int rolePerms = role.permissions();
+		long rolePerms = role.permissions();
 		boolean oldState = permission.hasPermission(rolePerms);
 		rolePerms = permission.toggle(rolePerms);
 		boolean newState = permission.hasPermission(rolePerms);
@@ -264,7 +264,7 @@ public class TeamCommand {
 		}
 		String roleName = StringArgumentType.getString(context, "role_name");
 
-		database.addRole(team, roleName, 0);
+		database.addRole(team, roleName, 0L);
 		context.getSource().sendSuccess(() -> Component.literal("Added Role: " + roleName + " to " + team.getName()).withStyle(ChatFormatting.GREEN), true);
 		return 1;
 	}

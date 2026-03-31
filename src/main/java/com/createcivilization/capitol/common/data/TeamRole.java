@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-public record TeamRole(int id, UUID teamId, String name, int permissions) {
+public record TeamRole(int id, UUID teamId, String name, long permissions) {
 
 	public static final String OWNER_ROLE_NAME = "owner";
 	public static final String DEFAULT_ROLE_NAME = "default";
@@ -26,15 +26,15 @@ public record TeamRole(int id, UUID teamId, String name, int permissions) {
 			rs.getInt("id"),
 			UUID.fromString(rs.getString("team_id")),
 			rs.getString("name"),
-			rs.getInt("permissions")
+			rs.getLong("permissions")
 		);
 	}
 
-	public static int ownerPermissions() {
+	public static long ownerPermissions() {
 		return Permission.of(Permission.values());
 	}
 
-	public static int defaultPermissions() {
+	public static long defaultPermissions() {
 		return Permission.of();
 	}
 }
