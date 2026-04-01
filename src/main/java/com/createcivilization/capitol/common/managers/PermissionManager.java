@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.common.managers;
 
+import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;

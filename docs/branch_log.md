@@ -19,6 +19,13 @@ To keep branches understandable, create a small log underneath about the purpose
 - Client cache cleared on disconnect; chunk load/unload events keep cache in sync for already-loaded chunks
 - C2S request packet for syncing chunks on player join still TODO (bulk send intentionally avoided due to scale)
 
+## Branch 1.21.1-rc-protection:
+- Upgrades permission bitfield from `int` to `long` (64 permissions)
+- Adds `PlayerInteractionEvents` for server-side claim protection via NeoForge events
+- Enforces: block break/place, block interaction, container access (MenuProvider check), entity interaction, entity killing (hostile/friendly/player split), and item use
+- 13 of 43 permissions currently enforced — see `docs/to-do/claim_protection.md` for full checklist
+- Still TODO: redstone, environmental, spawning, portal, and remaining item permissions
+
 ## Branch 1.21.1-rc-commands:
 - Rewrites `TeamCommand` with full subcommand structure: `create`, `delete` (with clickable confirmation prompt), and `kick` (with player name autocomplete)
 - `team create` now accepts `<name> <tag> <color> [description]` instead of just name and color
