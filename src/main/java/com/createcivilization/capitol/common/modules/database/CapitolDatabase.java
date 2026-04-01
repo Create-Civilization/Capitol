@@ -427,11 +427,15 @@ public class CapitolDatabase extends Database {
 	 * @param newRole the new role to assign
 	 */
 	public void updatePlayerRole(Player player, Team team, TeamRole newRole) {
+		updatePlayerRole(player.getUUID(), team, newRole);
+	}
+
+	public void updatePlayerRole(UUID playerUUID, Team team, TeamRole newRole) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"UPDATE team_members SET role_id = ? WHERE team_id = ? AND player_uuid = ?")) {
 			preparedStatement.setInt(1, newRole.id());
 			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.setString(3, player.getUUID().toString());
+			preparedStatement.setString(3, playerUUID.toString());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while updating player role in database.", e);
