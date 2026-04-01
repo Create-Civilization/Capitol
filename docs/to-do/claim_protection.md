@@ -33,8 +33,8 @@ or issues, default to denying events.
 ### Item Protection
 - [x] `USE_ITEMS` — `RightClickItem` event
 - [x] `PICKUP_ITEMS` — `ItemEntityPickupEvent.Pre`
-- [ ] `PICKUP_XP`
-- [ ] `TOSS_ITEMS`
+- [x] `PICKUP_XP` — `PlayerXpEvent.PickupXp`
+- [x] `TOSS_ITEMS` — `ItemTossEvent`
 - [x] `MOB_LOOT` — `ItemEntityPickupEvent.Pre` (MobDeathDrop tag)
 - [x] `PLAYER_DEATH_LOOT` — `ItemEntityPickupEvent.Pre` (DeathDrop tag)
 
@@ -48,8 +48,8 @@ or issues, default to denying events.
 - [ ] `FLUID_FLOW`
 
 ### Portal / Teleportation
-- [ ] `USE_NETHER_PORTALS`
-- [ ] `CHORUS_FRUIT_TELEPORT`
+- [x] `USE_NETHER_PORTALS` — `EntityTravelToDimensionEvent`
+- [x] `CHORUS_FRUIT_TELEPORT` — `EntityTeleportEvent.ChorusFruit`
 
 ### Spawning
 - [ ] `NATURAL_SPAWN_HOSTILE`
