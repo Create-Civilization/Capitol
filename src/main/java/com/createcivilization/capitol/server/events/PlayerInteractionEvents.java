@@ -17,6 +17,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FrostedIceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.ICancellableEvent;
@@ -28,8 +30,9 @@ import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.*;
+import net.neoforged.neoforge.event.level.BlockEvent;
 
-import java.awt.*;
+import net.minecraft.ChatFormatting;
 
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class PlayerInteractionEvents {
@@ -42,7 +45,7 @@ public class PlayerInteractionEvents {
 		Level level = event.getLevel();
 		if (!PermissionManager.playerHasPermission(player, Permission.BREAK_BLOCKS, level, pos)) {
 			setCancelled(event);
-			sendActionbarMessage("You can't break blocks here!", Color.RED, player);
+			sendActionbarMessage("You can't break blocks here!", player);
 		}
 	}
 
@@ -68,7 +71,7 @@ public class PlayerInteractionEvents {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			player.inventoryMenu.sendAllDataToRemote();
-			sendActionbarMessage("You can't place blocks here!", Color.RED, player);
+			sendActionbarMessage("You can't place blocks here!", player);
 		}
 	}
 
@@ -84,14 +87,23 @@ public class PlayerInteractionEvents {
 			}
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
-			sendActionbarMessage("You can't open containers here!", Color.RED, player);
+			sendActionbarMessage("You can't open containers here!", player);
 			return;
+		}
+
+		if(blockState.isSignalSource()){
+			if(!PermissionManager.playerHasPermission(player, Permission.INTERACT_REDSTONE, level, pos)){
+				event.setCancellationResult(InteractionResult.FAIL);
+				event.setCanceled(true);
+				sendActionbarMessage("You can't interact with redstone here!", player);
+				return;
+			}
 		}
 
 		if (!PermissionManager.playerHasPermission(player, Permission.INTERACT_BLOCKS, level, pos)) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
-			sendActionbarMessage("You can't interact with this block!", Color.RED, player);
+			sendActionbarMessage("You can't interact with this block!", player);
 		}
 	}
 
@@ -105,7 +117,7 @@ public class PlayerInteractionEvents {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			player.inventoryMenu.sendAllDataToRemote();
-			sendActionbarMessage("You can't use items here!", Color.RED, player);
+			sendActionbarMessage("You can't use items here!", player);
 		}
 	}
 
@@ -118,7 +130,7 @@ public class PlayerInteractionEvents {
 		if (!PermissionManager.playerHasPermission(player, Permission.INTERACT_ENTITIES, level, pos)) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
-			sendActionbarMessage("You can't interact with this entity!", Color.RED, player);
+			sendActionbarMessage("You can't interact with this entity!", player);
 		}
 	}
 
@@ -133,7 +145,7 @@ public class PlayerInteractionEvents {
 		if (target instanceof Player) {
 			if (!PermissionManager.playerHasPermission(player, Permission.PLAYER_ATTACK, level, pos)) {
 				event.setCanceled(true);
-				sendActionbarMessage("You can't attack players here!", Color.RED, player);
+				sendActionbarMessage("You can't attack players here!", player);
 			}
 			return;
 		}
@@ -141,14 +153,14 @@ public class PlayerInteractionEvents {
 		if (target instanceof Monster) {
 			if (!PermissionManager.playerHasPermission(player, Permission.KILL_HOSTILE, level, pos)) {
 				event.setCanceled(true);
-				sendActionbarMessage("You can't kill hostile mobs here!", Color.RED, player);
+				sendActionbarMessage("You can't kill hostile mobs here!", player);
 			}
 			return;
 		}
 
 		if (!PermissionManager.playerHasPermission(player, Permission.KILL_ENTITIES, level, pos)) {
 			event.setCanceled(true);
-			sendActionbarMessage("You can't kill entities here!", Color.RED, player);
+			sendActionbarMessage("You can't kill entities here!", player);
 		}
 	}
 
@@ -178,7 +190,34 @@ public class PlayerInteractionEvents {
 		if (!PermissionManager.playerHasPermission(player, Permission.TOSS_ITEMS, level, chunkPos)) {
 			event.setCanceled(true);
 			player.addItem(itemStack);
-			sendActionbarMessage("You can't drop items here!", Color.RED, player);
+			sendActionbarMessage("You can't drop items here!", player);
+		}
+	}
+
+	@SubscribeEvent
+	public static void onFarmLandTrample(BlockEvent.FarmlandTrampleEvent event){
+		if(event.getEntity() instanceof Player player){
+			BlockPos pos = event.getPos();
+			ChunkPos chunkPos = new ChunkPos(pos);
+			Level level = event.getEntity().level();
+			if(!PermissionManager.playerHasPermission(player, Permission.CROP_TRAMPLE, level, chunkPos)){
+				event.setCanceled(true);
+				sendActionbarMessage("You can't trample crops here!", player);
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public static void onFrostWalk(BlockEvent.EntityPlaceEvent event) {
+		if (event.getEntity() instanceof Player player) {
+			BlockPos pos = event.getPos();
+			ChunkPos chunkPos = new ChunkPos(pos);
+			Level level = player.level();
+			if (event.getPlacedBlock().getBlock() instanceof FrostedIceBlock) {
+				if (!PermissionManager.playerHasPermission(player, Permission.FROST_WALKING, level, chunkPos)) {
+					event.setCanceled(true);
+				}
+			}
 		}
 	}
 
@@ -191,6 +230,7 @@ public class PlayerInteractionEvents {
 
 		if (!PermissionManager.playerHasPermission(player, Permission.PICKUP_ITEMS, level, chunkPos)) {
 			event.setCanPickup(TriState.FALSE);
+			sendActionbarMessage("You can't pick up items here!", player);
 			return;
 		}
 
@@ -199,6 +239,7 @@ public class PlayerInteractionEvents {
 		if (item.getPersistentData().getBoolean("MobDeathDrop")) {
 			if (!PermissionManager.playerHasPermission(player, Permission.MOB_LOOT, level, chunkPos)) {
 				event.setCanPickup(TriState.FALSE);
+				sendActionbarMessage("You can't pick up mob loot here!", player);
 				return;
 			}
 		}
@@ -206,6 +247,7 @@ public class PlayerInteractionEvents {
 		if (item.getPersistentData().getBoolean("DeathDrop")) {
 			if (!PermissionManager.playerHasPermission(player, Permission.PLAYER_DEATH_LOOT, level, chunkPos)) {
 				event.setCanPickup(TriState.FALSE);
+				sendActionbarMessage("You can't pick up death loot here!", player);
 			}
 		}
 	}
@@ -219,6 +261,7 @@ public class PlayerInteractionEvents {
 
 		if (!PermissionManager.playerHasPermission(player, Permission.PICKUP_XP, level, chunkPos)) {
 			event.setCanceled(true);
+			sendActionbarMessage("You can't pick up XP here!", player);
 		}
 	}
 
@@ -231,6 +274,7 @@ public class PlayerInteractionEvents {
 
 			if (!PermissionManager.playerHasPermission(player, Permission.CHORUS_FRUIT_TELEPORT, level, chunkPos)) {
 				event.setCanceled(true);
+				sendActionbarMessage("You can't teleport here!", player);
 			}
 		}
 	}
@@ -246,6 +290,7 @@ public class PlayerInteractionEvents {
 
 			if (!PermissionManager.playerHasPermission(player, Permission.USE_NETHER_PORTALS, level, chunkPos)) {
 				event.setCanceled(true);
+				sendActionbarMessage("You can't use portals here!", player);
 			}
 		}
 	}
@@ -255,9 +300,9 @@ public class PlayerInteractionEvents {
 		cancellableEvent.setCanceled(true);
 	}
 
-	public static void sendActionbarMessage(String message, Color color, Player player) {
+	public static void sendActionbarMessage(String message, Player player) {
 		player.displayClientMessage(
-			Component.literal(message).withStyle(style -> style.withColor(color.getRGB() & 0xFFFFFF)),
+			Component.literal(message).withStyle(ChatFormatting.RED),
 			true
 		);
 	}
