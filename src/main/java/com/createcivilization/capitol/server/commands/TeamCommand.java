@@ -296,7 +296,7 @@ public class TeamCommand {
 			return 0;
 		}
 
-		int rolePerms = role.permissions();
+		long rolePerms = role.permissions();
 		boolean oldState = permission.hasPermission(rolePerms);
 		rolePerms = permission.toggle(rolePerms);
 		boolean newState = permission.hasPermission(rolePerms);
