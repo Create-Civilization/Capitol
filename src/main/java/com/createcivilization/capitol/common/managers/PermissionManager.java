@@ -7,6 +7,7 @@ import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 public class PermissionManager {
 
@@ -23,6 +24,12 @@ public class PermissionManager {
 		long perms = database.getPlayerPermission(player, team);
 		return permission.hasPermission(perms);
 
+	}
+
+	public static boolean playerHasPermission(Player player, Permission permission, Team team){
+		CapitolDatabase database = DatabaseManager.database;
+		long perms = database.getPlayerPermission(player, team);
+		return permission.hasPermission(perms);
 	}
 
 	public static boolean playerHasBypass(Player player) {
