@@ -36,7 +36,7 @@ or issues, default to denying events.
 - [x] `MOB_LOOT` — `ItemEntityPickupEvent.Pre` (MobDeathDrop tag)
 - [x] `PLAYER_DEATH_LOOT` — `ItemEntityPickupEvent.Pre` (DeathDrop tag)
 
-### Redstone / Mechanical
+### Redstone
 - [x] `INTERACT_REDSTONE` — `RightClickBlock` event (isSignalSource check)
 
 ### Portal / Teleportation

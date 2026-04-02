@@ -43,7 +43,7 @@ public class TeamCommand {
 			.then(Commands.literal("info").executes(TeamCommand::teamInfo))
 			.then(Commands.literal("manage")
 				.then(Commands.literal("role")
-					.then(Commands.argument("role_name", StringArgumentType.string())
+					.then(Commands.argument("role_name", StringArgumentType.word())
 						.suggests((context, builder) -> {
 							CapitolDatabase database = DatabaseManager.database;
 							Team team = database.getPlayerTeam(context.getSource().getPlayer());
@@ -79,10 +79,10 @@ public class TeamCommand {
 								})
 								.executes(TeamCommand::assignRole)))
 						.then(Commands.literal("permission")
-							.then(Commands.argument("permission", StringArgumentType.string())
+							.then(Commands.argument("permission_value", StringArgumentType.word())
 								.suggests((context, builder) -> {
 									for (Permission perm : Permission.values()) {
-										builder.suggest(perm.name());
+										builder.suggest(perm.name().toLowerCase());
 									}
 									return builder.buildFuture();
 								})
@@ -91,7 +91,7 @@ public class TeamCommand {
 							.then(Commands.argument("new_name", StringArgumentType.string())
 								.executes(TeamCommand::editRoleName)))
 						.then(Commands.literal("remove")
-							.executes(TeamCommand::removeRole))))
+							.executes(TeamCommand::removeRole)))))
 				.then(Commands.literal("disband")
 					.executes(TeamCommand::promptDeleteTeam))
 				.then(Commands.literal("kick")
@@ -114,7 +114,7 @@ public class TeamCommand {
 						})
 						.executes(TeamCommand::kickPlayer)))
 				.then(Commands.literal("confirm_disband")
-					.executes(TeamCommand::confirmDeleteTeam)));
+					.executes(TeamCommand::confirmDeleteTeam));
 	}
 
 	private static int removeRole(CommandContext<CommandSourceStack> context){
@@ -286,12 +286,12 @@ public class TeamCommand {
 			return 0;
 		}
 
-		String permissionName = StringArgumentType.getString(context, "permission");
+		String permissionName = StringArgumentType.getString(context, "permission_value").toUpperCase();
 		Permission permission;
 		try {
 			permission = Permission.valueOf(permissionName);
 		} catch (IllegalArgumentException e){
-			context.getSource().sendFailure(Component.literal(permissionName + "is not a valid permission.")
+			context.getSource().sendFailure(Component.literal(permissionName + " is not a valid permission.")
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}

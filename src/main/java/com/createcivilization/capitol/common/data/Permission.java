@@ -16,30 +16,29 @@ public enum Permission {
 	PLACE_BLOCKS                (1L << 9),
 	INTERACT_BLOCKS             (1L << 10), // doors, buttons, levers, etc.
 	OPEN_CONTAINERS             (1L << 11), // chests, barrels, hoppers, furnaces
-	USE_REDSTONE                (1L << 12), // repeaters, comparators, etc.
-	CROP_TRAMPLE                (1L << 13),
-	FROST_WALKING               (1L << 14),
+	CROP_TRAMPLE                (1L << 12),
+	FROST_WALKING               (1L << 13),
 
 	// --- Entity Protection ---
-	INTERACT_ENTITIES           (1L << 15), // villagers, item frames, armor stands
-	KILL_ENTITIES               (1L << 16), // killing friendly entities
-	KILL_HOSTILE                (1L << 17), // killing hostile entities
-	PLAYER_ATTACK               (1L << 18), // PvP within claims
+	INTERACT_ENTITIES           (1L << 14), // villagers, item frames, armor stands
+	KILL_ENTITIES               (1L << 15), // killing friendly entities
+	KILL_HOSTILE                (1L << 16), // killing hostile entities
+	PLAYER_ATTACK               (1L << 17), // PvP within claims
 
 	// --- Item Protection ---
-	USE_ITEMS                   (1L << 19), // buckets, flint & steel, etc.
-	PICKUP_ITEMS                (1L << 20),
-	PICKUP_XP                   (1L << 21),
-	TOSS_ITEMS                  (1L << 22),
-	MOB_LOOT                    (1L << 23), // loot drops from mob kills
-	PLAYER_DEATH_LOOT           (1L << 24), // accessing player death drops
+	USE_ITEMS                   (1L << 18), // buckets, flint & steel, etc.
+	PICKUP_ITEMS                (1L << 19),
+	PICKUP_XP                   (1L << 20),
+	TOSS_ITEMS                  (1L << 21),
+	MOB_LOOT                    (1L << 22), // loot drops from mob kills
+	PLAYER_DEATH_LOOT           (1L << 23), // accessing player death drops
 
 	// --- Redstone / Mechanical ---
-	INTERACT_REDSTONE           (1L << 25), // pressure plates, tripwires, buttons, pistons, dispensers, etc.
+	INTERACT_REDSTONE           (1L << 24), // pressure plates, tripwires, buttons, pistons, dispensers, etc.
 
 	// --- Portal / Teleportation ---
-	USE_NETHER_PORTALS          (1L << 26),
-	CHORUS_FRUIT_TELEPORT       (1L << 27);
+	USE_NETHER_PORTALS          (1L << 25),
+	CHORUS_FRUIT_TELEPORT       (1L << 26);
 
 
 	private final long bit;
