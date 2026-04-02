@@ -3,7 +3,6 @@ package com.createcivilization.capitol.common.data;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
 import java.awt.*;

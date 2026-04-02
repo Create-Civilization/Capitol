@@ -45,12 +45,12 @@ public class CapitolDatabase extends Database {
 	 * @param name        the role name (e.g. "owner", "default")
 	 * @param permissions the bitfield of {@link com.createcivilization.capitol.common.data.Permission} flags
 	 */
-	public void addRole(Team team, String name, int permissions) {
+	public void addRole(Team team, String name, long permissions) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"INSERT INTO team_roles (team_id, name, permissions) VALUES (?, ?, ?)")) {
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, name);
-			preparedStatement.setInt(3, permissions);
+			preparedStatement.setLong(3, permissions);
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while adding role to database.", e);
@@ -136,10 +136,10 @@ public class CapitolDatabase extends Database {
 	 * @param roleName    the name of the role to update
 	 * @param permissions the new permission bitfield
 	 */
-	public void updateRolePermissions(Team team, String roleName, int permissions) {
+	public void updateRolePermissions(Team team, String roleName, long permissions) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"UPDATE team_roles SET permissions = ? WHERE team_id = ? AND name = ?")) {
-			preparedStatement.setInt(1, permissions);
+			preparedStatement.setLong(1, permissions);
 			preparedStatement.setString(2, team.getId().toString());
 			preparedStatement.setString(3, roleName);
 			preparedStatement.execute();
@@ -203,7 +203,7 @@ public class CapitolDatabase extends Database {
 	 * @return the permission bitfield, or {@code 0} if the player has no permissions here
 	 */
 	@Override
-	public int getPermissionInChunk(Player player, ChunkPos chunkPos, Level level) {
+	public long getPermissionInChunk(Player player, ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT team_roles.permissions " +
 			"FROM chunks " +
@@ -215,8 +215,8 @@ public class CapitolDatabase extends Database {
 			preparedStatement.setInt(3, chunkPos.x);
 			preparedStatement.setInt(4, chunkPos.z);
 			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return rs.getInt("permissions");
-				return 0;
+				if (rs.next()) return rs.getLong("permissions");
+				return 0L;
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting player permissions in chunk", e);
@@ -541,7 +541,7 @@ public class CapitolDatabase extends Database {
 	 * @param team   the team to check permissions in
 	 * @return the permission bitfield, or {@code 0} if the player is not a member
 	 */
-	public int getPlayerPermission(Player player, Team team) {
+	public long getPlayerPermission(Player player, Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
 			"SELECT team_roles.permissions FROM team_members " +
 				"JOIN team_roles ON team_roles.id = team_members.role_id " +
@@ -549,8 +549,9 @@ public class CapitolDatabase extends Database {
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, player.getUUID().toString());
 			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return rs.getInt("permissions");
-				return 0;
+				if (rs.next()) return rs.getLong("permissions");
+				TeamRole role = getRoleByName(team, "default");
+				return role.permissions();
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting player permissions from database.", e);
