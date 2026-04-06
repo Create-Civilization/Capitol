@@ -5,13 +5,11 @@ import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.server.commands.CapitolCommands;
 import com.createcivilization.capitol.common.networking.CapitolNetworking;
 
-import com.createcivilization.capitol.server.events.CreateEvents;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 
@@ -43,11 +41,7 @@ public class Capitol {
 
 		CapitolCommands.init(NeoForge.EVENT_BUS);
 		CapitolNetworking.init(modEventBus);
-
-//		if (ModList.get().isLoaded("create")) {
-//			NeoForge.EVENT_BUS.register(CreateEvents.class);
-//		}
-    }
+	}
 
 
 	private void onServerStart(ServerStartingEvent event) {
