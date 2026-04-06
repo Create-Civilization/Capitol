@@ -8,6 +8,6 @@ import net.minecraft.world.level.Level;
 public abstract class Database {
 
 	public abstract boolean hasChunkAt(ChunkPos chunkPos, Level level);
-	public abstract int getPermissionInChunk(Player player, ChunkPos chunkPos, Level level);
+	public abstract long getPermissionInChunk(Player player, ChunkPos chunkPos, Level level);
 	public abstract Team getChunkOwner(ChunkPos chunkPos, Level level);
 }

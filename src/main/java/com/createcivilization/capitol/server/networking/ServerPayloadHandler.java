@@ -7,7 +7,6 @@ import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;

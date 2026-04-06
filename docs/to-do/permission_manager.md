@@ -1,5 +1,5 @@
 # Permission manager
-Permissions are stored as a bitfield (`int`) per player in `team_members`. The `Permission` enum defines each flag and provides instance helpers:
+Permissions are stored as a bitfield (`long`) per player in `team_members`. The `Permission` enum defines 43 flags and provides instance helpers:
 
 - `Permission.of(...)` — combine permissions into a bitfield
 - `perm.add(bits)` / `perm.remove(bits)` — set/clear a bit

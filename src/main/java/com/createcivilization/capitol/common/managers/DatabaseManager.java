@@ -47,18 +47,32 @@ public class DatabaseManager {
 				"CREATE TABLE IF NOT EXISTS teams (" +
 					"id TEXT PRIMARY KEY NOT NULL," +
 					"name TEXT NOT NULL," +
+					"tag TEXT NOT NULL," +
+					"current_claims INT NOT NULL, " +
+					"max_claims INT," +
 					"color INT NOT NULL," +
+					"description TEXT," +
 					"created_at LONG NOT NULL)"
+			);
+
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS team_roles (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+					"team_id TEXT NOT NULL," +
+					"name TEXT NOT NULL," +
+					"permissions INTEGER NOT NULL DEFAULT 0," +
+					"UNIQUE (team_id, name)," +
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
 			stmt.execute(
 				"CREATE TABLE IF NOT EXISTS team_members (" +
 					"team_id TEXT NOT NULL," +
 					"player_uuid TEXT NOT NULL," +
-					"role TEXT NOT NULL DEFAULT 'member'," + // 'member', 'officer', 'owner' (Change this if we want)
-					"permissions INTEGER NOT NULL DEFAULT 0," +
+					"role_id INTEGER NOT NULL," +
 					"PRIMARY KEY (team_id, player_uuid)," +
-					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE," +
+					"FOREIGN KEY (role_id) REFERENCES team_roles (id) ON DELETE RESTRICT)"
 			);
 
 			stmt.execute(

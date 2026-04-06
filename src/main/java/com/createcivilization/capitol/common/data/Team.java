@@ -3,7 +3,6 @@ package com.createcivilization.capitol.common.data;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
 import java.awt.*;
@@ -17,33 +16,43 @@ public class Team {
 
 	private final UUID id;
 	private final String name;
+	private final String tag;
 	private final Color color;
+	private final int currentClaims;
+	private final int max_claims;
+	private final String description;
 	private final long createdAt;
-	private final List<WeakReference<ChunkPos>> chunks;
-	private final List<TeamMember> members;
 
 	private Team(Builder builder) {
 		this.id = Objects.requireNonNull(builder.id, "Must Have Team ID");
 		this.name = Objects.requireNonNull(builder.name, "Must Have Team Name");
+		this.tag = Objects.requireNonNull(builder.tag, "Must Have Team Tag");
 		this.color = Objects.requireNonNull(builder.color, "Must Have Team Color");
+		this.max_claims = Objects.requireNonNull(builder.max_claims, "Team Must Have A Max_Chunks");
+		this.currentClaims = builder.currentClaims;
+		this.description = builder.description;
 		this.createdAt = builder.createdAt;
-		this.chunks = new ArrayList<>(builder.chunks);
-		this.members = new ArrayList<>(builder.members);
 	}
 
 	public Team(ByteBuf buffer) {
 		this.id = UUID.fromString(ByteBufCodecs.STRING_UTF8.decode(buffer));
 		this.name = ByteBufCodecs.STRING_UTF8.decode(buffer);
+		this.tag = ByteBufCodecs.STRING_UTF8.decode(buffer);
+		this.currentClaims = ByteBufCodecs.INT.decode(buffer);
+		this.max_claims = ByteBufCodecs.INT.decode(buffer);
+		this.description = ByteBufCodecs.STRING_UTF8.decode(buffer);
 		this.color = new Color(ByteBufCodecs.INT.decode(buffer), true);
 		this.createdAt = ByteBufCodecs.VAR_LONG.decode(buffer);
-		this.chunks = new ArrayList<>();
-		this.members = new ArrayList<>();
 	}
 
 	public static Team fromResultSet(ResultSet rs) throws SQLException {
 		return builder()
 			.id(UUID.fromString(rs.getString("id")))
 			.name(rs.getString("name"))
+			.tag(rs.getString("tag"))
+			.currentClaims(rs.getInt("current_claims"))
+			.maxChunks(rs.getInt("max_claims"))
+			.description(rs.getString("description"))
 			.color(new Color(rs.getInt("color"), true))
 			.createdAt(rs.getLong("created_at"))
 			.build();
@@ -52,6 +61,10 @@ public class Team {
 	public void encode(ByteBuf buf){
 		ByteBufCodecs.STRING_UTF8.encode(buf, id.toString());
 		ByteBufCodecs.STRING_UTF8.encode(buf, name);
+		ByteBufCodecs.STRING_UTF8.encode(buf, tag);
+		ByteBufCodecs.INT.encode(buf, currentClaims);
+		ByteBufCodecs.INT.encode(buf, max_claims);
+		ByteBufCodecs.STRING_UTF8.encode(buf, description);
 		ByteBufCodecs.INT.encode(buf, color.getRGB());
 		ByteBufCodecs.VAR_LONG.encode(buf, createdAt);
 	}
@@ -60,44 +73,23 @@ public class Team {
 		return new Builder();
 	}
 
-	public boolean hasChunkAt(ChunkPos chunkPos) {
-		return chunks.stream()
-			.map(WeakReference::get)
-			.anyMatch(chunkPos::equals);
-	}
-
-	public boolean hasPlayer(Player player) {
-		UUID playerUuid = player.getUUID();
-		return members.stream()
-			.anyMatch(m -> m.playerUuid().equals(playerUuid));
-	}
-
-	public void addMember(TeamMember member) {
-		members.add(member);
-	}
-
-	public void removeMember(UUID playerUuid) {
-		members.removeIf(m -> m.playerUuid().equals(playerUuid));
-	}
-
-	public void addChunk(ChunkPos pos) {
-		chunks.add(new WeakReference<>(pos));
-	}
-
-	public void removeChunk(ChunkPos pos) {
-		chunks.removeIf(ref -> pos.equals(ref.get()));
-	}
-
 	public UUID getId() { return id; }
 	public String getName() { return name; }
 	public Color getColor() { return color; }
+	public String getTag() {return tag; }
+	public int getCurrentClaims() {return currentClaims; }
+	public int getMax_chunks() {return max_claims; }
+	public String getDescription() {return description; }
 	public long getCreatedAt() { return createdAt; }
-	public List<TeamMember> getMembers() { return Collections.unmodifiableList(members); }
 
 	public static class Builder {
 		private UUID id;
 		private String name;
+		private String tag;
+		private String description;
 		private Color color;
+		private int currentClaims;
+		private int max_claims;
 		private long createdAt;
 		private final List<WeakReference<ChunkPos>> chunks = new ArrayList<>();
 		private final List<TeamMember> members = new ArrayList<>();
@@ -114,6 +106,26 @@ public class Team {
 			return this;
 		}
 
+		public Builder tag(String tag){
+			this.tag = tag;
+			return this;
+		}
+
+		public Builder currentClaims(int currentClaims){
+			this.currentClaims = currentClaims;
+			return this;
+		}
+
+		public Builder maxChunks(int max_claims){
+			this.max_claims = max_claims;
+			return this;
+		}
+
+		public Builder description(String description){
+			this.description = description;
+			return this;
+		}
+
 		public Builder color(Color color) {
 			this.color = color;
 			return this;
@@ -121,16 +133,6 @@ public class Team {
 
 		public Builder createdAt(long createdAt) {
 			this.createdAt = createdAt;
-			return this;
-		}
-
-		public Builder addMember(TeamMember member) {
-			this.members.add(member);
-			return this;
-		}
-
-		public Builder addChunk(ChunkPos pos) {
-			this.chunks.add(new WeakReference<>(pos));
 			return this;
 		}
 

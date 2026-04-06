@@ -41,7 +41,7 @@ public class Capitol {
 
 		CapitolCommands.init(NeoForge.EVENT_BUS);
 		CapitolNetworking.init(modEventBus);
-    }
+	}
 
 
 	private void onServerStart(ServerStartingEvent event) {

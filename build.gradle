@@ -21,8 +21,12 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+configurations {
+    sqliteRuntime
+}
+
 neoForge {
-    version = project.neo_version
+   version = project.neo_version
 
     parchment {
         mappingsVersion = project.parchment_mappings_version
@@ -55,7 +59,7 @@ neoForge {
 
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
-            additionalRuntimeClasspathConfiguration.extendsFrom(configurations.getByName("implementation"))
+            additionalRuntimeClasspathConfiguration.extendsFrom(configurations.getByName("sqliteRuntime"))
         }
     }
 
@@ -75,14 +79,21 @@ configurations {
 repositories {
     maven { url = "https://jm.gserv.me/repository/maven-public/" }
     maven { url = "https://cursemaven.com" }
+    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
+    maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
 }
 
 dependencies {
-    compileOnly(group: 'info.journeymap', name: 'journeymap-api-neoforge', version: '2.0.0-1.21.1-SNAPSHOT', changing: true)
-    runtimeOnly("curse.maven:journeymap-32274:6383889")
+    compileOnly("info.journeymap:journeymap-api-neoforge:${journeymap_api_version}")
+    runtimeOnly("curse.maven:journeymap-32274:${journeymap_curse_file_id}")
 
-    implementation('curse.maven:wiiu-lib-1182545:6409744')
-    implementation 'org.xerial:sqlite-jdbc:3.45.1.0'
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    sqliteRuntime 'org.xerial:sqlite-jdbc:3.45.1.0'
     jarJar('org.xerial:sqlite-jdbc') {
         version {
             strictly '[3.45.0.0, 3.50.0.0)'
