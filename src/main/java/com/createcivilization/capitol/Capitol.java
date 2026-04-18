@@ -1,9 +1,9 @@
 package com.createcivilization.capitol;
 
-import com.createcivilization.capitol.client.networking.ClientClaimCache;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.ClaimedChunk;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
+import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.server.commands.CapitolCommands;
 import com.createcivilization.capitol.common.networking.CapitolNetworking;
 
@@ -23,7 +23,6 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import com.createcivilization.capitol.client.renderer.BorderRenderer;
 import com.createcivilization.capitol.client.renderer.BorderWallRenderer;
 import net.neoforged.neoforge.common.NeoForge;
@@ -62,6 +61,7 @@ public class Capitol {
 		Path worldPath = event.getServer()
 			.getWorldPath(LevelResource.ROOT);
 		DatabaseManager.init(worldPath);
+		ProtectionManager.reload();
 	}
 
 	private void onServerStarted(ServerStartedEvent event) {
@@ -78,11 +78,6 @@ public class Capitol {
 
 	private void onServerStop(ServerStoppingEvent event) {
 		DatabaseManager.closeConnection();
-	}
-
-
-	private void onClientDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
-		ClientClaimCache.clearClaims();
 	}
 
 

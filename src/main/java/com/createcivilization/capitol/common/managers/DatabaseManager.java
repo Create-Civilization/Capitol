@@ -86,6 +86,7 @@ public class DatabaseManager {
 					"PRIMARY KEY (dimension, chunk_x, chunk_z)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
+
 		}
 	}
 

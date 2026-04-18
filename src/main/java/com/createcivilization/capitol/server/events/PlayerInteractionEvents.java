@@ -2,7 +2,9 @@ package com.createcivilization.capitol.server.events;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.data.Permission;
-import com.createcivilization.capitol.common.managers.PermissionManager;
+import com.createcivilization.capitol.common.managers.ProtectionManager;
+import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -17,7 +19,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FrostedIceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
@@ -32,8 +33,6 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.*;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
-import net.minecraft.ChatFormatting;
-
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class PlayerInteractionEvents {
 
@@ -41,11 +40,10 @@ public class PlayerInteractionEvents {
 	public static void onPlayerBreakBlock(PlayerInteractEvent.LeftClickBlock event) {
 		Player player = event.getEntity();
 		BlockPos blockPos = event.getPos();
-		ChunkPos pos = new ChunkPos(blockPos);
 		Level level = event.getLevel();
-		if (!PermissionManager.playerHasPermission(player, Permission.BREAK_BLOCKS, level, pos)) {
+		if (ProtectionManager.checkBlockBreak(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
 			setCancelled(event);
-			sendActionbarMessage("You can't break blocks here!", player);
+			sendDenied("You can't break blocks here!", player);
 		}
 	}
 
@@ -63,74 +61,66 @@ public class PlayerInteractionEvents {
 		else onPlayerInteractBlock(event, player);
 	}
 
-	public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player) {
+	private static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player) {
 		BlockPos blockPos = event.getPos();
-		ChunkPos pos = new ChunkPos(blockPos);
 		Level level = event.getLevel();
-		if (!PermissionManager.playerHasPermission(player, Permission.PLACE_BLOCKS, level, pos)) {
+		if (ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			player.inventoryMenu.sendAllDataToRemote();
-			sendActionbarMessage("You can't place blocks here!", player);
+			sendDenied("You can't place blocks here!", player);
 		}
 	}
 
-	public static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player) {
+	private static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player) {
 		BlockPos blockPos = event.getPos();
 		ChunkPos pos = new ChunkPos(blockPos);
 		Level level = event.getLevel();
-
 		BlockState blockState = level.getBlockState(blockPos);
+
 		if (blockState.getMenuProvider(level, blockPos) != null) {
-			if (PermissionManager.playerHasPermission(player, Permission.OPEN_CONTAINERS, level, pos)) {
-				return;
-			}
+			if (ProtectionManager.checkContainerOpen(player, blockState.getBlock(), level, pos) != Result.DENY) return;
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
-			sendActionbarMessage("You can't open containers here!", player);
+			sendDenied("You can't open containers here!", player);
 			return;
 		}
 
-		if(blockState.isSignalSource()){
-			if(!PermissionManager.playerHasPermission(player, Permission.INTERACT_REDSTONE, level, pos)){
+		if (blockState.isSignalSource()) {
+			if (ProtectionManager.checkRedstoneInteract(player, blockState.getBlock(), level, pos) == Result.DENY) {
 				event.setCancellationResult(InteractionResult.FAIL);
 				event.setCanceled(true);
-				sendActionbarMessage("You can't interact with redstone here!", player);
+				sendDenied("You can't interact with redstone here!", player);
 				return;
 			}
 		}
 
-		if (!PermissionManager.playerHasPermission(player, Permission.INTERACT_BLOCKS, level, pos)) {
+		if (ProtectionManager.checkBlockInteract(player, blockState.getBlock(), level, pos) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
-			sendActionbarMessage("You can't interact with this block!", player);
+			sendDenied("You can't interact with this block!", player);
 		}
 	}
 
 	@SubscribeEvent
 	public static void onPlayerUseItem(PlayerInteractEvent.RightClickItem event) {
 		Player player = event.getEntity();
-		BlockPos blockPos = event.getPos();
-		ChunkPos pos = new ChunkPos(blockPos);
-		Level level = event.getLevel();
-		if (!PermissionManager.playerHasPermission(player, Permission.USE_ITEMS, level, pos)) {
+		if (ProtectionManager.checkItemUse(player, player.getMainHandItem().getItem(), event.getLevel(), new ChunkPos(event.getPos())) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			player.inventoryMenu.sendAllDataToRemote();
-			sendActionbarMessage("You can't use items here!", player);
+			sendDenied("You can't use items here!", player);
 		}
 	}
 
 	@SubscribeEvent
 	public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteractSpecific event) {
 		Player player = event.getEntity();
-		BlockPos blockPos = event.getPos();
-		ChunkPos pos = new ChunkPos(blockPos);
-		Level level = event.getLevel();
-		if (!PermissionManager.playerHasPermission(player, Permission.INTERACT_ENTITIES, level, pos)) {
+		Entity target = event.getTarget();
+		if (ProtectionManager.checkEntityAction(player, target, Permission.INTERACT_ENTITIES, target.level(), new ChunkPos(target.getOnPos())) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
-			sendActionbarMessage("You can't interact with this entity!", player);
+			sendDenied("You can't interact with this entity!", player);
 		}
 	}
 
@@ -138,29 +128,23 @@ public class PlayerInteractionEvents {
 	public static void onAttackEntity(AttackEntityEvent event) {
 		Player player = event.getEntity();
 		Entity target = event.getTarget();
-		BlockPos targetPos = target.getOnPos();
-		ChunkPos pos = new ChunkPos(targetPos);
-		Level level = event.getTarget().level();
+		ChunkPos pos = new ChunkPos(target.getOnPos());
+		Level level = target.level();
 
 		if (target instanceof Player) {
-			if (!PermissionManager.playerHasPermission(player, Permission.PLAYER_ATTACK, level, pos)) {
+			if (ProtectionManager.checkEntityAction(player, target, Permission.PLAYER_ATTACK, level, pos) == Result.DENY) {
 				event.setCanceled(true);
-				sendActionbarMessage("You can't attack players here!", player);
+				sendDenied("You can't attack players here!", player);
 			}
 			return;
 		}
 
-		if (target instanceof Monster) {
-			if (!PermissionManager.playerHasPermission(player, Permission.KILL_HOSTILE, level, pos)) {
-				event.setCanceled(true);
-				sendActionbarMessage("You can't kill hostile mobs here!", player);
-			}
-			return;
-		}
+		Permission perm = target instanceof Monster ? Permission.KILL_HOSTILE : Permission.KILL_ENTITIES;
+		String msg = target instanceof Monster ? "You can't kill hostile mobs here!" : "You can't kill entities here!";
 
-		if (!PermissionManager.playerHasPermission(player, Permission.KILL_ENTITIES, level, pos)) {
+		if (ProtectionManager.checkEntityAction(player, target, perm, level, pos) == Result.DENY) {
 			event.setCanceled(true);
-			sendActionbarMessage("You can't kill entities here!", player);
+			sendDenied(msg, player);
 		}
 	}
 
@@ -171,7 +155,6 @@ public class PlayerInteractionEvents {
 				itemEntity.getPersistentData().putBoolean("DeathDrop", true);
 			}
 		}
-
 		if (event.getEntity() instanceof Mob) {
 			for (ItemEntity itemEntity : event.getDrops()) {
 				itemEntity.getPersistentData().putBoolean("MobDeathDrop", true);
@@ -182,27 +165,20 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onItemDrop(ItemTossEvent event) {
 		Player player = event.getPlayer();
-		BlockPos blockPos = player.getOnPos();
-		ChunkPos chunkPos = new ChunkPos(blockPos);
-		Level level = player.level();
 		ItemStack itemStack = event.getEntity().getItem();
-
-		if (!PermissionManager.playerHasPermission(player, Permission.TOSS_ITEMS, level, chunkPos)) {
+		if (ProtectionManager.checkPlayerAction(player, Permission.TOSS_ITEMS, player.level(), new ChunkPos(player.getOnPos())) == Result.DENY) {
 			event.setCanceled(true);
 			player.addItem(itemStack);
-			sendActionbarMessage("You can't drop items here!", player);
+			sendDenied("You can't drop items here!", player);
 		}
 	}
 
 	@SubscribeEvent
-	public static void onFarmLandTrample(BlockEvent.FarmlandTrampleEvent event){
-		if(event.getEntity() instanceof Player player){
-			BlockPos pos = event.getPos();
-			ChunkPos chunkPos = new ChunkPos(pos);
-			Level level = event.getEntity().level();
-			if(!PermissionManager.playerHasPermission(player, Permission.CROP_TRAMPLE, level, chunkPos)){
+	public static void onFarmLandTrample(BlockEvent.FarmlandTrampleEvent event) {
+		if (event.getEntity() instanceof Player player) {
+			if (ProtectionManager.checkPlayerAction(player, Permission.CROP_TRAMPLE, player.level(), new ChunkPos(event.getPos())) == Result.DENY) {
 				event.setCanceled(true);
-				sendActionbarMessage("You can't trample crops here!", player);
+				sendDenied("You can't trample crops here!", player);
 			}
 		}
 	}
@@ -210,11 +186,8 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onFrostWalk(BlockEvent.EntityPlaceEvent event) {
 		if (event.getEntity() instanceof Player player) {
-			BlockPos pos = event.getPos();
-			ChunkPos chunkPos = new ChunkPos(pos);
-			Level level = player.level();
 			if (event.getPlacedBlock().getBlock() instanceof FrostedIceBlock) {
-				if (!PermissionManager.playerHasPermission(player, Permission.FROST_WALKING, level, chunkPos)) {
+				if (ProtectionManager.checkPlayerAction(player, Permission.FROST_WALKING, player.level(), new ChunkPos(event.getPos())) == Result.DENY) {
 					event.setCanceled(true);
 				}
 			}
@@ -224,30 +197,27 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onPickupEvent(ItemEntityPickupEvent.Pre event) {
 		Player player = event.getPlayer();
-		BlockPos pos = event.getItemEntity().getOnPos();
-		ChunkPos chunkPos = new ChunkPos(pos);
+		ChunkPos chunkPos = new ChunkPos(event.getItemEntity().getOnPos());
 		Level level = event.getItemEntity().level();
 
-		if (!PermissionManager.playerHasPermission(player, Permission.PICKUP_ITEMS, level, chunkPos)) {
+		if (ProtectionManager.checkPlayerAction(player, Permission.PICKUP_ITEMS, level, chunkPos) == Result.DENY) {
 			event.setCanPickup(TriState.FALSE);
-			sendActionbarMessage("You can't pick up items here!", player);
+			sendDenied("You can't pick up items here!", player);
 			return;
 		}
 
 		ItemEntity item = event.getItemEntity();
-
 		if (item.getPersistentData().getBoolean("MobDeathDrop")) {
-			if (!PermissionManager.playerHasPermission(player, Permission.MOB_LOOT, level, chunkPos)) {
+			if (ProtectionManager.checkPlayerAction(player, Permission.MOB_LOOT, level, chunkPos) == Result.DENY) {
 				event.setCanPickup(TriState.FALSE);
-				sendActionbarMessage("You can't pick up mob loot here!", player);
+				sendDenied("You can't pick up mob loot here!", player);
 				return;
 			}
 		}
-
 		if (item.getPersistentData().getBoolean("DeathDrop")) {
-			if (!PermissionManager.playerHasPermission(player, Permission.PLAYER_DEATH_LOOT, level, chunkPos)) {
+			if (ProtectionManager.checkPlayerAction(player, Permission.PLAYER_DEATH_LOOT, level, chunkPos) == Result.DENY) {
 				event.setCanPickup(TriState.FALSE);
-				sendActionbarMessage("You can't pick up death loot here!", player);
+				sendDenied("You can't pick up death loot here!", player);
 			}
 		}
 	}
@@ -255,26 +225,18 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onXpOrbPickUp(PlayerXpEvent.PickupXp event) {
 		Player player = event.getEntity();
-		BlockPos pos = event.getOrb().getOnPos();
-		ChunkPos chunkPos = new ChunkPos(pos);
-		Level level = event.getOrb().level();
-
-		if (!PermissionManager.playerHasPermission(player, Permission.PICKUP_XP, level, chunkPos)) {
+		if (ProtectionManager.checkPlayerAction(player, Permission.PICKUP_XP, event.getOrb().level(), new ChunkPos(event.getOrb().getOnPos())) == Result.DENY) {
 			event.setCanceled(true);
-			sendActionbarMessage("You can't pick up XP here!", player);
+			sendDenied("You can't pick up XP here!", player);
 		}
 	}
 
 	@SubscribeEvent
 	public static void onPlayerChorusFruit(EntityTeleportEvent.ChorusFruit event) {
 		if (event.getEntity() instanceof Player player) {
-			BlockPos blockPos = player.getOnPos();
-			ChunkPos chunkPos = new ChunkPos(blockPos);
-			Level level = player.level();
-
-			if (!PermissionManager.playerHasPermission(player, Permission.CHORUS_FRUIT_TELEPORT, level, chunkPos)) {
+			if (ProtectionManager.checkPlayerAction(player, Permission.CHORUS_FRUIT_TELEPORT, player.level(), new ChunkPos(player.getOnPos())) == Result.DENY) {
 				event.setCanceled(true);
-				sendActionbarMessage("You can't teleport here!", player);
+				sendDenied("You can't teleport here!", player);
 			}
 		}
 	}
@@ -282,28 +244,19 @@ public class PlayerInteractionEvents {
 	@SubscribeEvent
 	public static void onNetherPortalUse(EntityTravelToDimensionEvent event) {
 		if (event.getDimension() != Level.NETHER) return;
-
 		if (event.getEntity() instanceof Player player) {
-			BlockPos blockPos = player.getOnPos();
-			ChunkPos chunkPos = new ChunkPos(blockPos);
-			Level level = player.level();
-
-			if (!PermissionManager.playerHasPermission(player, Permission.USE_NETHER_PORTALS, level, chunkPos)) {
+			if (ProtectionManager.checkPlayerAction(player, Permission.USE_NETHER_PORTALS, player.level(), new ChunkPos(player.getOnPos())) == Result.DENY) {
 				event.setCanceled(true);
-				sendActionbarMessage("You can't use portals here!", player);
+				sendDenied("You can't use portals here!", player);
 			}
 		}
 	}
 
-	public static void setCancelled(PlayerInteractEvent event) {
-		if (!(event instanceof ICancellableEvent cancellableEvent)) return;
-		cancellableEvent.setCanceled(true);
+	private static void setCancelled(PlayerInteractEvent event) {
+		if (event instanceof ICancellableEvent cancellableEvent) cancellableEvent.setCanceled(true);
 	}
 
-	public static void sendActionbarMessage(String message, Player player) {
-		player.displayClientMessage(
-			Component.literal(message).withStyle(ChatFormatting.RED),
-			true
-		);
+	private static void sendDenied(String message, Player player) {
+		player.displayClientMessage(Component.literal(message).withStyle(ChatFormatting.RED), true);
 	}
 }

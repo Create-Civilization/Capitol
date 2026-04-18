@@ -4,6 +4,7 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.data.ClaimedChunk;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamMember;
+import com.createcivilization.capitol.common.data.TeamProtection;
 import com.createcivilization.capitol.common.data.TeamRole;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import net.minecraft.world.entity.player.Player;
@@ -206,40 +207,6 @@ public class CapitolDatabase extends Database {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>Joins {@code chunks}, {@code team_members}, and {@code team_roles} to resolve the
-	 * player's permission bitfield within the chunk's owning team. Returns {@code 0} if the
-	 * player is not a member of the team that owns this chunk.</p>
-	 *
-	 * @param player   the player to check permissions for
-	 * @param chunkPos the chunk position
-	 * @param level    the dimension/level the chunk is in
-	 * @return the permission bitfield, or {@code 0} if the player has no permissions here
-	 */
-	@Override
-	public long getPermissionInChunk(Player player, ChunkPos chunkPos, Level level) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT team_roles.permissions " +
-			"FROM chunks " +
-			"JOIN team_members ON team_members.team_id = chunks.team_id AND team_members.player_uuid = ? " +
-			"JOIN team_roles ON team_roles.id = team_members.role_id " +
-			"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?")) {
-			preparedStatement.setString(1, player.getUUID().toString());
-			preparedStatement.setString(2, level.dimension().location().toString());
-			preparedStatement.setInt(3, chunkPos.x);
-			preparedStatement.setInt(4, chunkPos.z);
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return rs.getLong("permissions");
-				return 0L;
-			}
-		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while getting player permissions in chunk", e);
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * <p>Joins {@code chunks} and {@code teams} to return the owning team for a chunk.</p>
 	 *
 	 * @param chunkPos the chunk position
@@ -249,7 +216,7 @@ public class CapitolDatabase extends Database {
 	@Override
 	public Team getChunkOwner(ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
 				"FROM chunks " +
 				"JOIN teams ON teams.id = chunks.team_id " +
 				"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?")) {
@@ -281,7 +248,7 @@ public class CapitolDatabase extends Database {
 			preparedStatement.setString(5, team.getDescription());
 			preparedStatement.setInt(6, team.getColor().getRGB());
 			preparedStatement.setLong(7, Instant.now().toEpochMilli());
-			preparedStatement.setLong(8, team.getTeam_permissions());
+			preparedStatement.setLong(8, team.getTeamPermissions());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting team into database.", e);
@@ -336,20 +303,7 @@ public class CapitolDatabase extends Database {
 	 * @return the player's {@link Team}, or {@code null} if they are not in any team
 	 */
 	public Team getPlayerTeam(Player player) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.description, teams.created_at " +
-				"FROM team_members " +
-				"JOIN teams ON teams.id = team_members.team_id " +
-				"WHERE team_members.player_uuid = ?")) {
-			preparedStatement.setString(1, player.getUUID().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return Team.fromResultSet(rs);
-				return null;
-			}
-		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while getting player's team from database.", e);
-			throw new RuntimeException(e);
-		}
+		return getPlayerTeam(player.getUUID());
 	}
 
 	/**
@@ -360,7 +314,7 @@ public class CapitolDatabase extends Database {
 	 */
 	public Team getPlayerTeam(UUID playerUUID) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
 				"FROM team_members " +
 				"JOIN teams ON teams.id = team_members.team_id " +
 				"WHERE team_members.player_uuid = ?")) {
@@ -489,17 +443,7 @@ public class CapitolDatabase extends Database {
 	 * @return {@code true} if the player is a member
 	 */
 	public boolean isPlayerInTeam(Player player, Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"SELECT 1 FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				return rs.next();
-			}
-		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while checking player membership in database.", e);
-			throw new RuntimeException(e);
-		}
+		return isPlayerInTeam(player.getUUID(), team);
 	}
 
 	/**
@@ -583,11 +527,12 @@ public class CapitolDatabase extends Database {
 	 */
 	public void claimChunk(Team team, ChunkPos chunkPos, Level level) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id) VALUES (?, ?, ?, ?)")) {
+			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id, force_loaded) VALUES (?, ?, ?, ?, ?)")) {
 			preparedStatement.setString(1, level.dimension().location().toString());
 			preparedStatement.setInt(2, chunkPos.x);
 			preparedStatement.setInt(3, chunkPos.z);
 			preparedStatement.setString(4, team.getId().toString());
+			preparedStatement.setBoolean(5, false);
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting chunk into database.", e);
@@ -671,20 +616,6 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
-	public void setForceLoaded(ClaimedChunk chunk, boolean force_loaded) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"UPDATE chunks SET force_loaded = ? WHERE chunk_x = ? AND chunk_z = ?")) {
-			preparedStatement.setBoolean(1, force_loaded);
-			preparedStatement.setInt(2, chunk.chunkX());
-			preparedStatement.setInt(3, chunk.chunkZ());
-			preparedStatement.executeUpdate();
-
-		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while updating force loaded for chunk x=" + chunk.chunkX() + " z=" + chunk.chunkZ(), e);
-			throw new RuntimeException(e);
-		}
-	}
-
 	/**
 	 * Adjusts a team's {@code current_claims} counter by the given delta.
 	 *
@@ -717,6 +648,53 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error while resetting current_claims for team.", e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Checks whether a specific protection is enabled for a team
+	 * using the {@code team_permissions} bitfield.
+	 */
+	public boolean isProtectionEnabled(Team team, TeamProtection protection) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT team_permissions FROM teams WHERE id = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				if (rs.next()) return protection.hasProtection(rs.getLong("team_permissions"));
+				return protection.getConfigDefault();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while checking team protection", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Toggles a protection bit in the {@code team_permissions} bitfield.
+	 * Returns the new enabled state.
+	 */
+	public boolean toggleProtection(Team team, TeamProtection protection) {
+		boolean newState;
+		try (PreparedStatement select = getConnection().prepareStatement(
+			"SELECT team_permissions FROM teams WHERE id = ?")) {
+			select.setString(1, team.getId().toString());
+			try (ResultSet rs = select.executeQuery()) {
+				if (!rs.next()) return protection.getConfigDefault();
+				long bits = rs.getLong("team_permissions");
+				bits = protection.toggle(bits);
+				newState = protection.hasProtection(bits);
+
+				try (PreparedStatement update = getConnection().prepareStatement(
+					"UPDATE teams SET team_permissions = ? WHERE id = ?")) {
+					update.setLong(1, bits);
+					update.setString(2, team.getId().toString());
+					update.execute();
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while toggling team protection", e);
+			throw new RuntimeException(e);
+		}
+		return newState;
 	}
 
 	/**

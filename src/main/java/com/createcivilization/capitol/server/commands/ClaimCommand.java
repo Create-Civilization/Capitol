@@ -3,7 +3,6 @@ package com.createcivilization.capitol.server.commands;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
-import com.createcivilization.capitol.common.managers.PermissionManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -18,8 +17,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 
 public class ClaimCommand {
-
-	//TODO REMOVE THIS AS THIS IS TEMPORARY
 
 	static LiteralArgumentBuilder<CommandSourceStack> register(){
 		return Commands.literal("claim")
@@ -40,7 +37,7 @@ public class ClaimCommand {
 			return 0;
 		}
 
-		if (!PermissionManager.playerHasPermission(player, Permission.CLAIM_CHUNKS, team)) {
+		if (!Permission.CLAIM_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
 			context.getSource().sendFailure(Component.literal("You do not have permission to claim chunks")
 				.withStyle(ChatFormatting.RED));
 			return 0;

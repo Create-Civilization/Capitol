@@ -32,6 +32,7 @@ class TeamManageCommand {
 	static LiteralArgumentBuilder<CommandSourceStack> register() {
 		return Commands.literal("manage")
 			.then(TeamRoleCommand.register())
+			.then(TeamProtectionCommand.register())
 			.then(Commands.literal("disband")
 				.executes(TeamManageCommand::promptDeleteTeam))
 			.then(Commands.literal("kick")
@@ -144,7 +145,7 @@ class TeamManageCommand {
 		GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
 		Optional<GameProfile> profile = profileCache.get(playerName);
 		if (profile.isEmpty()) {
-			context.getSource().sendFailure(Component.literal("There is no player called " + profile.get().getName())
+			context.getSource().sendFailure(Component.literal("There is no player called " + playerName)
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}

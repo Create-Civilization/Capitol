@@ -2,10 +2,11 @@
 	"required": true,
 	"minVersion": "0.8",
 	"package": "com.createcivilization.capitol.mixin",
-	"compatibilityLevel": "JAVA_17",
+	"compatibilityLevel": "JAVA_21",
 	"refmap": "capitol.refmap.json",
 	"mixins": [],
 	"injectors": {
 		"defaultRequire": 1
-	}
+	},
+	"plugin": "com.createcivilization.capitol.mixin.CapitolMixinPlugin"
 }
