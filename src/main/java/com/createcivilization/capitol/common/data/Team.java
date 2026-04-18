@@ -20,6 +20,7 @@ public class Team {
 	private final Color color;
 	private final int currentClaims;
 	private final int max_claims;
+	private final long team_permissions;
 	private final String description;
 	private final long createdAt;
 
@@ -29,6 +30,7 @@ public class Team {
 		this.tag = Objects.requireNonNull(builder.tag, "Must Have Team Tag");
 		this.color = Objects.requireNonNull(builder.color, "Must Have Team Color");
 		this.max_claims = Objects.requireNonNull(builder.max_claims, "Team Must Have A Max_Chunks");
+		this.team_permissions = Objects.requireNonNull(builder.team_permissions, "Team Must Have Permissions");
 		this.currentClaims = builder.currentClaims;
 		this.description = builder.description;
 		this.createdAt = builder.createdAt;
@@ -40,6 +42,7 @@ public class Team {
 		this.tag = ByteBufCodecs.STRING_UTF8.decode(buffer);
 		this.currentClaims = ByteBufCodecs.INT.decode(buffer);
 		this.max_claims = ByteBufCodecs.INT.decode(buffer);
+		this.team_permissions = ByteBufCodecs.VAR_LONG.decode(buffer);
 		this.description = ByteBufCodecs.STRING_UTF8.decode(buffer);
 		this.color = new Color(ByteBufCodecs.INT.decode(buffer), true);
 		this.createdAt = ByteBufCodecs.VAR_LONG.decode(buffer);
@@ -52,6 +55,7 @@ public class Team {
 			.tag(rs.getString("tag"))
 			.currentClaims(rs.getInt("current_claims"))
 			.maxChunks(rs.getInt("max_claims"))
+			.team_permissions(rs.getLong("team_permissions"))
 			.description(rs.getString("description"))
 			.color(new Color(rs.getInt("color"), true))
 			.createdAt(rs.getLong("created_at"))
@@ -64,6 +68,7 @@ public class Team {
 		ByteBufCodecs.STRING_UTF8.encode(buf, tag);
 		ByteBufCodecs.INT.encode(buf, currentClaims);
 		ByteBufCodecs.INT.encode(buf, max_claims);
+		ByteBufCodecs.VAR_LONG.encode(buf, team_permissions);
 		ByteBufCodecs.STRING_UTF8.encode(buf, description);
 		ByteBufCodecs.INT.encode(buf, color.getRGB());
 		ByteBufCodecs.VAR_LONG.encode(buf, createdAt);
@@ -79,6 +84,7 @@ public class Team {
 	public String getTag() {return tag; }
 	public int getCurrentClaims() {return currentClaims; }
 	public int getMax_chunks() {return max_claims; }
+	public long getTeam_permissions() {return team_permissions; }
 	public String getDescription() {return description; }
 	public long getCreatedAt() { return createdAt; }
 
@@ -90,6 +96,7 @@ public class Team {
 		private Color color;
 		private int currentClaims;
 		private int max_claims;
+		private long team_permissions;
 		private long createdAt;
 		private final List<WeakReference<ChunkPos>> chunks = new ArrayList<>();
 		private final List<TeamMember> members = new ArrayList<>();
@@ -118,6 +125,11 @@ public class Team {
 
 		public Builder maxChunks(int max_claims){
 			this.max_claims = max_claims;
+			return this;
+		}
+
+		public Builder team_permissions(long team_permissions){
+			this.team_permissions = team_permissions;
 			return this;
 		}
 

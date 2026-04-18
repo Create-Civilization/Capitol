@@ -38,6 +38,19 @@ public class CapitolDatabase extends Database {
 		return DatabaseManager.getConnection();
 	}
 
+
+	public void setTeamPermissions(Team team, long permissions){
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"UPDATE teams SET team_permissions = ? WHERE id = ?")) {
+			preparedStatement.setLong(1, permissions);
+			preparedStatement.setString(2, team.getId().toString());
+			preparedStatement.execute();
+		} catch (SQLException e){
+			Capitol.LOGGER.error("Error setting team " + team.getId() + " team permission.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
 	/**
 	 * Inserts a new role into the {@code team_roles} table.
 	 *
@@ -260,7 +273,7 @@ public class CapitolDatabase extends Database {
 	 * @param team the team to persist
 	 */
 	public void addTeam(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO teams (id, name, tag, current_claims, description, color, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO teams (id, name, tag, current_claims, description, color, created_at, team_permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
 			preparedStatement.setString(1, team.getId().toString());
 			preparedStatement.setString(2, team.getName());
 			preparedStatement.setString(3, team.getTag());
@@ -268,6 +281,7 @@ public class CapitolDatabase extends Database {
 			preparedStatement.setString(5, team.getDescription());
 			preparedStatement.setInt(6, team.getColor().getRGB());
 			preparedStatement.setLong(7, Instant.now().toEpochMilli());
+			preparedStatement.setLong(8, team.getTeam_permissions());
 			preparedStatement.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting team into database.", e);
@@ -640,6 +654,35 @@ public class CapitolDatabase extends Database {
 			throw new RuntimeException(e);
 		}
 		resetCurrentClaims(team);
+	}
+
+	public List<ClaimedChunk> getAllForceloadedChunks(){
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT * FROM chunks WHERE force_loaded = ?")) {
+			preparedStatement.setBoolean(1, true);
+			try (ResultSet rs = preparedStatement.executeQuery()){
+				List<ClaimedChunk> chunks = new ArrayList<>();
+				while (rs.next()) chunks.add(ClaimedChunk.fromResultSet(rs));
+				return chunks;
+			}
+		} catch (SQLException e){
+			Capitol.LOGGER.error("Error while getting force loaded chunks from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void setForceLoaded(ClaimedChunk chunk, boolean force_loaded) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"UPDATE chunks SET force_loaded = ? WHERE chunk_x = ? AND chunk_z = ?")) {
+			preparedStatement.setBoolean(1, force_loaded);
+			preparedStatement.setInt(2, chunk.chunkX());
+			preparedStatement.setInt(3, chunk.chunkZ());
+			preparedStatement.executeUpdate();
+
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while updating force loaded for chunk x=" + chunk.chunkX() + " z=" + chunk.chunkZ(), e);
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**

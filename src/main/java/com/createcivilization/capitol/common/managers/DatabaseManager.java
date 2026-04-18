@@ -52,6 +52,7 @@ public class DatabaseManager {
 					"max_claims INT," +
 					"color INT NOT NULL," +
 					"description TEXT," +
+					"team_permissions INT NOT NULL," +
 					"created_at LONG NOT NULL)"
 			);
 
@@ -81,6 +82,7 @@ public class DatabaseManager {
 					"chunk_x INTEGER NOT NULL," +
 					"chunk_z INTEGER NOT NULL," +
 					"team_id TEXT NOT NULL," +
+					"force_loaded BOOLEAN NOT NULL," +
 					"PRIMARY KEY (dimension, chunk_x, chunk_z)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
