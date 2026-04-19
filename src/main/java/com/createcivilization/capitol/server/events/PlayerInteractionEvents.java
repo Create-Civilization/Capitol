@@ -1,9 +1,11 @@
 package com.createcivilization.capitol.server.events;
 
-import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol .Capitol;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -64,12 +66,24 @@ public class PlayerInteractionEvents {
 	private static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player) {
 		BlockPos blockPos = event.getPos();
 		Level level = event.getLevel();
+
+		//Sub level temp code
+
+		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
+		if(subLevelAccess != null){
+			Capitol.LOGGER.info("SUB LEVEL ALERT");
+		}
+
+		//END TEMP CODE
+
 		if (ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			player.inventoryMenu.sendAllDataToRemote();
 			sendDenied("You can't place blocks here!", player);
 		}
+
+
 	}
 
 	private static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player) {

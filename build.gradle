@@ -81,6 +81,40 @@ repositories {
     maven { url = "https://cursemaven.com" }
     maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
     maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
+
+    maven {
+        name = 'BlameJared'
+        url = 'https://maven.blamejared.com'
+    }
+
+    maven {
+        name = "RyanHCode Maven"
+        url = "https://maven.ryanhcode.dev/releases"
+    }
+
+    maven {
+        name = "Illusivec4"
+        url = "https://maven.theillusivec4.top/"
+    } // Curios
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
+
+    maven {
+        url "https://maven.squiddev.cc"
+        content {
+            includeGroup("cc.tweaked")
+        }
+    }
 }
 
 dependencies {
@@ -88,9 +122,28 @@ dependencies {
     runtimeOnly("curse.maven:journeymap-32274:${journeymap_curse_file_id}")
 
     compileOnly("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    localRuntime("com.simibubi.create:create-${minecraft_version}:${create_version}") { transitive = false }
     compileOnly("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    localRuntime("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
     compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    localRuntime("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
     compileOnly("com.tterrag.registrate:Registrate:${registrate_version}")
+    localRuntime("com.tterrag.registrate:Registrate:${registrate_version}")
+    //Sable
+    compileOnly("foundry.veil:veil-neoforge-${project.minecraft_version}:${project.veil_version}") {
+        exclude group: "maven.modrinth"
+    }
+    localRuntime("foundry.veil:veil-neoforge-${project.minecraft_version}:${project.veil_version}")
+    compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-$minecraft_version:$sable_companion_version")
+    localRuntime("dev.ryanhcode.sable-companion:sable-companion-common-$minecraft_version:$sable_companion_version")
+    compileOnly("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") {
+        exclude group: "foundry.veil"
+    }
+    localRuntime("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}")
+
+    //Simulated
+    compileOnly("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulated_version}")
+    localRuntime("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulated_version}")
 
     sqliteRuntime 'org.xerial:sqlite-jdbc:3.45.1.0'
     jarJar('org.xerial:sqlite-jdbc') {
