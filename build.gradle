@@ -158,7 +158,8 @@ dependencies {
             prefer '3.45.1.0'
         }
     }
-    jarJar("dev.ryanhcode.sable-companion:sable-companion-common-$minecraft_version:$sable_companion_version")
+
+    jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:[${sable_companion_version},)"))
 }
 
 tasks.withType(ProcessResources).configureEach {

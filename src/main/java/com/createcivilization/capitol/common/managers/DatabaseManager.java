@@ -1,8 +1,8 @@
 package com.createcivilization.capitol.common.managers;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.common.compat.sable.SableCompat;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
-import net.neoforged.fml.ModList;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -89,7 +89,7 @@ public class DatabaseManager {
 			);
 
 
-			if(ModList.get().isLoaded("sable")){
+			if(SableCompat.LOADED){
 				stmt.execute(
 					"CREATE TABLE IF NOT EXISTS sub_levels (" +
 						"id TEXT NOT NULL," +
