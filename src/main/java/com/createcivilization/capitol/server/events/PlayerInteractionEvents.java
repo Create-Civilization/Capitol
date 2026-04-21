@@ -1,9 +1,13 @@
 package com.createcivilization.capitol.server.events;
 
-import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol .Capitol;
 import com.createcivilization.capitol.common.data.Permission;
+import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
+import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -41,8 +45,18 @@ public class PlayerInteractionEvents {
 		Player player = event.getEntity();
 		BlockPos blockPos = event.getPos();
 		Level level = event.getLevel();
+
+		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
+		if(subLevelAccess != null){
+			if(ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
+				event.setCanceled(true);
+				sendDenied("You can't place blocks here!", player);
+			}
+			return;
+		}
+
 		if (ProtectionManager.checkBlockBreak(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
-			setCancelled(event);
+			event.setCanceled(true);
 			sendDenied("You can't break blocks here!", player);
 		}
 	}
@@ -64,38 +78,86 @@ public class PlayerInteractionEvents {
 	private static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event, Player player) {
 		BlockPos blockPos = event.getPos();
 		Level level = event.getLevel();
+
+		//Sable stuff
+		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
+		if(subLevelAccess != null){
+			if(ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
+				event.setCancellationResult(InteractionResult.FAIL);
+				event.setCanceled(true);
+				player.inventoryMenu.sendAllDataToRemote();
+				sendDenied("You can't place blocks here!", player);
+			}
+			return;
+		}
+
 		if (ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			player.inventoryMenu.sendAllDataToRemote();
 			sendDenied("You can't place blocks here!", player);
 		}
+
+
 	}
 
 	private static void onPlayerInteractBlock(PlayerInteractEvent.RightClickBlock event, Player player) {
-		BlockPos blockPos = event.getPos();
-		ChunkPos pos = new ChunkPos(blockPos);
+		BlockPos pos = event.getPos();
 		Level level = event.getLevel();
-		BlockState blockState = level.getBlockState(blockPos);
+		BlockState state = level.getBlockState(pos);
+		ChunkPos chunkPos = new ChunkPos(pos);
 
-		if (blockState.getMenuProvider(level, blockPos) != null) {
-			if (ProtectionManager.checkContainerOpen(player, blockState.getBlock(), level, pos) != Result.DENY) return;
-			event.setCancellationResult(InteractionResult.FAIL);
-			event.setCanceled(true);
-			sendDenied("You can't open containers here!", player);
-			return;
-		}
+		if (handleContainer(event, player, level, state, pos, chunkPos)) return;
+		if (handleRedstone(event, player, level, state, pos, chunkPos)) return;
+		handleGenericBlock(event, player, level, state, pos, chunkPos);
+	}
 
-		if (blockState.isSignalSource()) {
-			if (ProtectionManager.checkRedstoneInteract(player, blockState.getBlock(), level, pos) == Result.DENY) {
-				event.setCancellationResult(InteractionResult.FAIL);
-				event.setCanceled(true);
-				sendDenied("You can't interact with redstone here!", player);
-				return;
+	private static boolean handleContainer(PlayerInteractEvent.RightClickBlock event, Player player, Level level, BlockState state, BlockPos pos, ChunkPos chunkPos) {
+		if (state.getMenuProvider(level, pos) == null) return false;
+
+		//Sable stuff
+		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
+		if(subLevelAccess != null){
+			if(ProtectionManager.checkContainerOpen(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY) {
+				return true;
 			}
 		}
 
-		if (ProtectionManager.checkBlockInteract(player, blockState.getBlock(), level, pos) == Result.DENY) {
+		if (ProtectionManager.checkContainerOpen(player, state.getBlock(), level, chunkPos) != Result.DENY) {
+			return true;
+		}
+
+		event.setCancellationResult(InteractionResult.FAIL);
+		event.setCanceled(true);
+		sendDenied("You can't open containers here!", player);
+		return true;
+	}
+
+	private static boolean handleRedstone(PlayerInteractEvent.RightClickBlock event, Player player, Level level, BlockState state, BlockPos pos, ChunkPos chunkPos) {
+		if (!state.isSignalSource()) return false;
+
+		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
+		if(subLevelAccess != null){
+			if(ProtectionManager.checkRedstoneInteract(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY) {
+				return true;
+			}
+		}
+
+		return ProtectionManager.checkRedstoneInteract(player, state.getBlock(), level, chunkPos) == Result.DENY;
+	}
+
+	private static void handleGenericBlock(PlayerInteractEvent.RightClickBlock event, Player player, Level level, BlockState state, BlockPos pos, ChunkPos chunkPos) {
+
+		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
+		if(subLevelAccess != null){
+			if(ProtectionManager.checkBlockInteract(player, state.getBlock(), subLevelAccess) != Result.DENY) {
+				event.setCancellationResult(InteractionResult.FAIL);
+				event.setCanceled(true);
+				sendDenied("You can't interact with this block!", player);
+			}
+		}
+
+		if (ProtectionManager.checkBlockInteract(player, state.getBlock(), level, chunkPos) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			sendDenied("You can't interact with this block!", player);
@@ -250,10 +312,6 @@ public class PlayerInteractionEvents {
 				sendDenied("You can't use portals here!", player);
 			}
 		}
-	}
-
-	private static void setCancelled(PlayerInteractEvent event) {
-		if (event instanceof ICancellableEvent cancellableEvent) cancellableEvent.setCanceled(true);
 	}
 
 	private static void sendDenied(String message, Player player) {

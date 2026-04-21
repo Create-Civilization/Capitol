@@ -20,6 +20,7 @@ public class ChunkEvents {
 	 */
 	@SubscribeEvent
 	private static void onChunkLoad(ChunkEvent.Load event) {
+		if (!event.getLevel().isClientSide()) return;
 		if(ClientClaimCache.hasClaim(event.getChunk().getPos())) return;
 		ChunkPos chunkPos = event.getChunk().getPos();
 		C2SChunkRequest packet = new C2SChunkRequest(new Vector3f(chunkPos.x, 0, chunkPos.z));
@@ -31,6 +32,7 @@ public class ChunkEvents {
 	 */
 	@SubscribeEvent
 	private static void onChunkUnload(ChunkEvent.Unload event) {
+		if (!event.getLevel().isClientSide()) return;
 		if(!ClientClaimCache.hasClaim(event.getChunk().getPos())) return;
 		ClientClaimCache.removeClaim(event.getChunk().getPos());
 	}
