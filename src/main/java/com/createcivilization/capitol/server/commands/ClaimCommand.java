@@ -1,6 +1,6 @@
 package com.createcivilization.capitol.server.commands;
 
-import com.createcivilization.capitol.common.compat.sable.Sable;
+import com.createcivilization.capitol.common.compat.sable.SableCompat;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
@@ -8,16 +8,16 @@ import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
-import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
+
+import java.util.UUID;
 
 public class ClaimCommand {
 
@@ -28,7 +28,7 @@ public class ClaimCommand {
 			.then(Commands.literal("info")
 				.executes(ClaimCommand::info));
 
-		if (ModList.get().isLoaded("sable")) {
+		if (SableCompat.LOADED) {
 			builder.then(Commands.literal("sub_level")
 				.executes(ClaimCommand::claimSubLevel));
 		}
@@ -85,28 +85,22 @@ public class ClaimCommand {
 			return 0;
 		}
 
-		SubLevelAccess subLevelAccess = null;
+		UUID subLevelId = SableCompat.getPlayerSubLevelId(player);
 
-		//So I kinda need to do this as sable companion does not have a way to get a tracked sublevel *yet*
-		if(ModList.get().isLoaded("sable")){
-			subLevelAccess = Sable.getPlayerSublevel(player);
-		}
-
-		if(subLevelAccess == null){
+		if (subLevelId == null) {
 			context.getSource().sendFailure(Component.literal("You are not in any sub-level")
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
-		Team existingOwner = database.getSubLevelOwner(subLevelAccess.getUniqueId());
+		Team existingOwner = database.getSubLevelOwner(subLevelId);
 		if (existingOwner != null) {
 			context.getSource().sendFailure(Component.literal("This sub-level is already claimed by " + existingOwner.getName())
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
-
-		database.claimSubLevel(subLevelAccess.getUniqueId(), team);
+		database.claimSubLevel(subLevelId, team);
 		context.getSource().sendSuccess(() -> Component.literal("Sub-level claimed!").withStyle(ChatFormatting.GREEN), true);
 		return 1;
 	}

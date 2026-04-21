@@ -134,8 +134,6 @@ dependencies {
         exclude group: "maven.modrinth"
     }
     localRuntime("foundry.veil:veil-neoforge-${project.minecraft_version}:${project.veil_version}")
-    compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-$minecraft_version:$sable_companion_version")
-    localRuntime("dev.ryanhcode.sable-companion:sable-companion-common-$minecraft_version:$sable_companion_version")
     compileOnly("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") {
         exclude group: "foundry.veil"
     }
@@ -145,6 +143,14 @@ dependencies {
     compileOnly("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulated_version}")
     localRuntime("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulated_version}")
 
+    //offroad
+    compileOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${offroad_version}")
+    localRuntime("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${offroad_version}")
+
+    //Aeronautics
+    compileOnly("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}")
+    localRuntime("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}")
+
     sqliteRuntime 'org.xerial:sqlite-jdbc:3.45.1.0'
     jarJar('org.xerial:sqlite-jdbc') {
         version {
@@ -152,6 +158,7 @@ dependencies {
             prefer '3.45.1.0'
         }
     }
+    jarJar("dev.ryanhcode.sable-companion:sable-companion-common-$minecraft_version:$sable_companion_version")
 }
 
 tasks.withType(ProcessResources).configureEach {

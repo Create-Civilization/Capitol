@@ -1,7 +1,7 @@
 package com.createcivilization.capitol.common.modules.database;
 
 import com.createcivilization.capitol.Capitol;
-import com.createcivilization.capitol.common.compat.sable.ClaimedSubLevel;
+import com.createcivilization.capitol.common.compat.sable.data.ClaimedSubLevel;
 import com.createcivilization.capitol.common.data.ClaimedChunk;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamMember;

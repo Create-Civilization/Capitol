@@ -1,6 +1,4 @@
-package com.createcivilization.capitol.common.compat.sable;
-
-import com.createcivilization.capitol.common.data.ClaimedChunk;
+package com.createcivilization.capitol.common.compat.sable.data;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

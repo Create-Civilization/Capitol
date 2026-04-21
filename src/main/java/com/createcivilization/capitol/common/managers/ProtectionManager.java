@@ -110,12 +110,24 @@ public class ProtectionManager {
 		return checkBlockAction(player, block, Permission.INTERACT_BLOCKS, level, pos, blockInteractExceptions);
 	}
 
+	public static Result checkBlockInteract(Player player, Block block, SubLevelAccess subLevel){
+		return checkSublevelBlockAction(player, block, Permission.INTERACT_BLOCKS, subLevel, blockInteractExceptions);
+	}
+
 	public static Result checkContainerOpen(Player player, Block block, Level level, ChunkPos pos) {
 		return checkBlockAction(player, block, Permission.OPEN_CONTAINERS, level, pos, blockInteractExceptions);
 	}
 
+	public static Result checkContainerOpen(Player player, Block block, SubLevelAccess subLevel){
+		return checkSublevelBlockAction(player, block, Permission.OPEN_CONTAINERS, subLevel, blockInteractExceptions);
+	}
+
 	public static Result checkRedstoneInteract(Player player, Block block, Level level, ChunkPos pos) {
 		return checkBlockAction(player, block, Permission.INTERACT_REDSTONE, level, pos, blockInteractExceptions);
+	}
+
+	public static Result checkRedstoneInteract(Player player, Block block, SubLevelAccess subLevel){
+		return checkSublevelBlockAction(player, block, Permission.INTERACT_REDSTONE, subLevel, blockInteractExceptions);
 	}
 
 	public static Result checkItemUse(Player player, Item item, Level level, ChunkPos pos) {
