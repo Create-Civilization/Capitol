@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.common.config;
 
+import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public class CapitolConfig {
 	public static final ModConfigSpec.IntValue MAX_CLAIM_DISTANCE;
 	public static final ModConfigSpec.EnumValue<ListType> CLAIMABLE_DIMENSIONS_LIST_TYPE;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> CLAIMABLE_DIMENSIONS;
+	public static final ModConfigSpec.BooleanValue SUBLEVEL_CLAIM_OVERLAP;
 
 	// Forceloading
 	public static final ModConfigSpec.BooleanValue FORCELOAD_ENABLED;
@@ -74,6 +76,12 @@ public class CapitolConfig {
 		CLAIMABLE_DIMENSIONS = builder
 			.comment("Dimensions to include/exclude depending on list type above.")
 			.defineListAllowEmpty("claimableDimensions", List.of(), () -> "", o -> o instanceof String);
+
+		SUBLEVEL_CLAIM_OVERLAP = builder
+			.comment("When true makes it so when a sub-level enters someone's claim they gain permission to it as well.",
+				"This is good to use if you are worried about players being able to grief with sub-levels,",
+				"or don't want a looming airship over your base you can't do anything about")
+				.define("sublevelClaimOverlap", true);
 
 		builder.pop();
 

@@ -95,7 +95,7 @@ public class ProtectionManager {
 		ChunkPos subLevelChunkPos = new ChunkPos(subLevelBlockPos);
 		Team subLevelChunkTeam = database().getChunkOwner(subLevelChunkPos, player.level());
 
-		if(subLevelChunkTeam != team && subLevelChunkTeam != null){
+		if(subLevelChunkTeam != team && subLevelChunkTeam != null && CapitolConfig.SUBLEVEL_CLAIM_OVERLAP.get()){
 			Result result = resolvePermission(player, permission, subLevelChunkTeam);
 			if(result == Result.DENY){
 				return resolvePermission(player, permission, team);
