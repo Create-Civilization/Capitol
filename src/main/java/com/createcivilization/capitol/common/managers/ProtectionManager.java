@@ -7,6 +7,7 @@ import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamProtection;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import dev.ryanhcode.sable.companion.SubLevelAccess;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import org.joml.Vector3dc;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * Central protection resolution for Capitol's claim system.
  * Inspired by Open Parties and Claims (OPAC) by Xaero (LGPL-3.0).
- * See: https://github.com/thexaero/open-parties-and-claims
+ * See: <a href="https://github.com/thexaero/open-parties-and-claims">...</a>
  */
 public class ProtectionManager {
 
@@ -86,8 +88,20 @@ public class ProtectionManager {
 
 		Team team = database().getSubLevelOwner(subLevelAccess.getUniqueId());
 		if(team == null) return Result.PASS;
-
 		if(exceptions != null && exceptions.matchesBlock(block)) return Result.ALLOW;
+
+		Vector3dc subLevelPosition = subLevelAccess.logicalPose().position();
+		BlockPos subLevelBlockPos = new BlockPos((int) subLevelPosition.x(), (int) subLevelPosition.y(), (int) subLevelPosition.z());
+		ChunkPos subLevelChunkPos = new ChunkPos(subLevelBlockPos);
+		Team subLevelChunkTeam = database().getChunkOwner(subLevelChunkPos, player.level());
+
+		if(subLevelChunkTeam != team && subLevelChunkTeam != null){
+			Result result = resolvePermission(player, permission, subLevelChunkTeam);
+			if(result == Result.DENY){
+				return resolvePermission(player, permission, team);
+			}
+			return result;
+		}
 
 		return resolvePermission(player, permission, team);
 
