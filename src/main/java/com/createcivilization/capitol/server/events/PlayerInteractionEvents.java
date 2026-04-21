@@ -2,8 +2,10 @@ package com.createcivilization.capitol.server.events;
 
 import com.createcivilization.capitol .Capitol;
 import com.createcivilization.capitol.common.data.Permission;
+import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
+import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.ChatFormatting;
@@ -67,14 +69,17 @@ public class PlayerInteractionEvents {
 		BlockPos blockPos = event.getPos();
 		Level level = event.getLevel();
 
-		//Sub level temp code
-
+		//Sable stuff
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
 		if(subLevelAccess != null){
-			Capitol.LOGGER.info("SUB LEVEL ALERT");
+			if(ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
+				event.setCancellationResult(InteractionResult.FAIL);
+				event.setCanceled(true);
+				player.inventoryMenu.sendAllDataToRemote();
+				sendDenied("You can't place blocks here!", player);
+			}
+			return;
 		}
-
-		//END TEMP CODE
 
 		if (ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);

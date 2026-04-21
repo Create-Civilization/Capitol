@@ -6,6 +6,7 @@ import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamProtection;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -80,12 +81,29 @@ public class ProtectionManager {
 		return resolvePermission(player, permission, team);
 	}
 
+	public static Result checkSublevelBlockAction(Player player, Block block, Permission permission, SubLevelAccess subLevelAccess, @Nullable ResourceMatcher exceptions){
+		if(player.hasPermissions(4)) return Result.ALLOW;
+
+		Team team = database().getSubLevelOwner(subLevelAccess.getUniqueId());
+		if(team == null) return Result.PASS;
+
+		if(exceptions != null && exceptions.matchesBlock(block)) return Result.ALLOW;
+
+		return resolvePermission(player, permission, team);
+
+	}
+
+
 	public static Result checkBlockBreak(Player player, Block block, Level level, ChunkPos pos) {
 		return checkBlockAction(player, block, Permission.BREAK_BLOCKS, level, pos, blockBreakExceptions);
 	}
 
 	public static Result checkBlockPlace(Player player, Block block, Level level, ChunkPos pos) {
 		return checkBlockAction(player, block, Permission.PLACE_BLOCKS, level, pos, blockPlaceExceptions);
+	}
+
+	public static Result checkBlockPlace(Player player, Block block, SubLevelAccess subLevel){
+		return checkSublevelBlockAction(player, block, Permission.PLACE_BLOCKS, subLevel, blockPlaceExceptions);
 	}
 
 	public static Result checkBlockInteract(Player player, Block block, Level level, ChunkPos pos) {

@@ -2,6 +2,7 @@ package com.createcivilization.capitol.common.managers;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import net.neoforged.fml.ModList;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -86,6 +87,21 @@ public class DatabaseManager {
 					"PRIMARY KEY (dimension, chunk_x, chunk_z)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
+
+
+			if(ModList.get().isLoaded("sable")){
+				stmt.execute(
+					"CREATE TABLE IF NOT EXISTS sub_levels (" +
+						"id TEXT NOT NULL," +
+						"team_id TEXT NOT NULL," +
+						"PRIMARY KEY (id)," +
+						"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+				);
+			} else {
+				stmt.execute(
+					"DROP TABLE IF EXISTS sub_levels"
+				);
+			}
 
 		}
 	}

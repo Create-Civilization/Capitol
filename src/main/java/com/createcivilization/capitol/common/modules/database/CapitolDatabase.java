@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.common.modules.database;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.common.compat.sable.ClaimedSubLevel;
 import com.createcivilization.capitol.common.data.ClaimedChunk;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamMember;
@@ -716,6 +717,64 @@ public class CapitolDatabase extends Database {
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting chunk from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+
+
+	//Sable Stuff
+
+	public ClaimedSubLevel getSubLevel(UUID id){
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT * FROM sub_levels WHERE id = ?")) {
+			preparedStatement.setString(1, id.toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				if (rs.next()) return ClaimedSubLevel.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e){
+			Capitol.LOGGER.error("Error while getting sub level from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void claimSubLevel(UUID id, Team team){
+		try(PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"INSERT INTO sub_levels (id, team_id) VALUES (?,?)")) {
+			preparedStatement.setString(1, id.toString());
+			preparedStatement.setString(2, team.getId().toString());
+			preparedStatement.execute();
+		} catch (SQLException e){
+			Capitol.LOGGER.error("Error while adding SubLevel to database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void removeSubLevel(UUID id){
+		try(PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"DELETE FROM sub_levels WHERE id = ?" )){
+			preparedStatement.setString(1, id.toString());
+			preparedStatement.execute();
+		} catch (SQLException e){
+			Capitol.LOGGER.error("Error while deleteing SubLevel from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Team getSubLevelOwner(UUID id) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+				"FROM sub_levels " +
+				"JOIN teams ON teams.id = sub_levels.team_id " +
+				"WHERE sub_levels.id = ?")) {
+			preparedStatement.setString(1, id.toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				if (rs.next()) return Team.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting sub_level owner", e);
 			throw new RuntimeException(e);
 		}
 	}
