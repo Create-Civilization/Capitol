@@ -18,6 +18,7 @@ public class DatabaseManager {
 	private static Connection connection;
 
 	public static void init(Path saveFolder){
+		Capitol.LOGGER.info("Attempting to initialize database");
 		try{
 			Class.forName("org.sqlite.JDBC");
 			Path databasePath = saveFolder.resolve("capitol.db");

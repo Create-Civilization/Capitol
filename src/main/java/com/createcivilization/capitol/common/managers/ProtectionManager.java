@@ -38,14 +38,14 @@ public class ProtectionManager {
 
 	public enum Result { ALLOW, DENY, PASS }
 
-	private static ResourceMatcher blockBreakExceptions;
-	private static ResourceMatcher blockPlaceExceptions;
-	private static ResourceMatcher blockInteractExceptions;
-	private static ResourceMatcher itemUseExceptions;
-	private static ResourceMatcher entitiesAllowedToGrief;
-	private static ResourceMatcher protectedEntities;
-	private static ResourceMatcher entityClaimBarrier;
-	private static Set<String> teamConfigurableKeys;
+	private static ResourceMatcher blockBreakExceptions = ResourceMatcher.fromConfigList(CapitolConfig.BLOCK_BREAK_EXCEPTIONS.getDefault());
+	private static ResourceMatcher blockPlaceExceptions = ResourceMatcher.fromConfigList(CapitolConfig.BLOCK_PLACE_EXCEPTIONS.getDefault());
+	private static ResourceMatcher blockInteractExceptions = ResourceMatcher.fromConfigList(CapitolConfig.ENTITY_CLAIM_BARRIER.getDefault());
+	private static ResourceMatcher itemUseExceptions = ResourceMatcher.fromConfigList(CapitolConfig.ENTITY_CLAIM_BARRIER.getDefault());
+	private static ResourceMatcher entitiesAllowedToGrief = ResourceMatcher.fromConfigList(CapitolConfig.ENTITY_CLAIM_BARRIER.getDefault());
+	private static ResourceMatcher protectedEntities = ResourceMatcher.fromConfigList(CapitolConfig.ENTITY_CLAIM_BARRIER.getDefault());
+	private static ResourceMatcher entityClaimBarrier = ResourceMatcher.fromConfigList(CapitolConfig.ENTITY_CLAIM_BARRIER.getDefault());
+	private static Set<String> teamConfigurableKeys = new HashSet<>(CapitolConfig.TEAM_CONFIGURABLE_PROTECTIONS.getDefault());
 
 	private ProtectionManager() {}
 
