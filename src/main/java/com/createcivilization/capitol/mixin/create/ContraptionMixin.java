@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * and from disassembling (placing) blocks into foreign claims.
  * Approach inspired by OPAC (LGPL-3.0).
  */
-@Mixin(value = Contraption.class, priority = 1000001)
+@Mixin(value = Contraption.class)
 public abstract class ContraptionMixin {
 
 	@Shadow

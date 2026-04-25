@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.server.commands;
+package com.createcivilization.capitol.server.commands.team;
 
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;

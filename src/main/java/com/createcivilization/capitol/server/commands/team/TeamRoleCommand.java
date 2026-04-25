@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.server.commands;
+package com.createcivilization.capitol.server.commands.team;
 
 import com.createcivilization.capitol.common.data.*;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
@@ -153,15 +153,15 @@ class TeamRoleCommand {
 		String roleName = StringArgumentType.getString(context, "role_name");
 		String playerName = StringArgumentType.getString(context, "player");
 
-		TeamRole role = database.getRoleByName(team, roleName);
-		if (role == null) {
-			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
+		if (Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)) {
+			context.getSource().sendFailure(Component.literal("You cannot assign the owner role.")
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
-		if (Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)) {
-			context.getSource().sendFailure(Component.literal("You cannot assign the owner role.")
+		TeamRole role = database.getRoleByName(team, roleName);
+		if (role == null) {
+			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}

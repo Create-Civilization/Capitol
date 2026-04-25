@@ -47,7 +47,7 @@ public class DatabaseManager {
 			stmt.execute(
 				"CREATE TABLE IF NOT EXISTS teams (" +
 					"id TEXT PRIMARY KEY NOT NULL," +
-					"name TEXT NOT NULL," +
+					"name TEXT NOT NULL UNIQUE," +
 					"tag TEXT NOT NULL," +
 					"current_claims INT NOT NULL, " +
 					"max_claims INT," +
@@ -88,6 +88,15 @@ public class DatabaseManager {
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
+
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS player_permissions (" +
+					"team_id TEXT NOT NULL," +
+					"player_uuid TEXT NOT NULL," +
+					"permissions INTEGER NOT NULL DEFAULT 0," +
+					"PRIMARY KEY (team_id, player_uuid)," +
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+			);
 
 			if(SableCompat.LOADED){
 				stmt.execute(

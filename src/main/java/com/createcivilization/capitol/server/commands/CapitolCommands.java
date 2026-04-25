@@ -1,5 +1,9 @@
 package com.createcivilization.capitol.server.commands;
 
+import com.createcivilization.capitol.server.commands.claim.ClaimCommand;
+import com.createcivilization.capitol.server.commands.invite.InviteCommand;
+import com.createcivilization.capitol.server.commands.team.TeamCommand;
+import com.createcivilization.capitol.server.commands.help.HelpCommand;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,8 +19,10 @@ public class CapitolCommands {
 
 	private static void register(RegisterCommandsEvent event) {
 		CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+		registerCommand(dispatcher, HelpCommand.register());
 		registerCommand(dispatcher, ClaimCommand.register());
 		registerCommand(dispatcher, TeamCommand.register());
+		registerCommand(dispatcher, InviteCommand.register());
 	}
 
 	private static void registerCommand(CommandDispatcher<CommandSourceStack> dispatcher, LiteralArgumentBuilder<CommandSourceStack> command){
