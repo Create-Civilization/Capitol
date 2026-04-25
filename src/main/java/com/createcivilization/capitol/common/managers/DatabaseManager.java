@@ -35,6 +35,9 @@ public class DatabaseManager {
 			createTables();
 			Capitol.LOGGER.info("Capitol Database initialized");
 
+			Capitol.LOGGER.info("Warming Cache");
+			database.warmCache();
+
 		} catch (ClassNotFoundException e) {
 			Capitol.LOGGER.error("No SQLite driver found.", e);
 		} catch (SQLException e) {
@@ -117,6 +120,7 @@ public class DatabaseManager {
 	}
 
 	public static Connection getConnection() {
+		Capitol.LOGGER.info("Database hit!!!");
 		return connection;
 	}
 

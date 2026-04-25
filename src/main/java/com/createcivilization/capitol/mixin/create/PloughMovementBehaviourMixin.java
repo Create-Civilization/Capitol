@@ -24,7 +24,7 @@ public class PloughMovementBehaviourMixin {
 		target = "Lnet/minecraft/world/item/ItemStack;useOn(Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;"),
 		cancellable = true)
 	private void capitol$preventPloughInForeignClaim(MovementContext context, BlockPos pos, CallbackInfo ci) {
-		if (context.contraption.entity == null) return;
+		if (context.contraption.entity == null || context.world.isClientSide()) return;
 
 		ChunkPos anchorChunk = new ChunkPos(context.contraption.anchor);
 		ChunkPos targetChunk = new ChunkPos(pos);

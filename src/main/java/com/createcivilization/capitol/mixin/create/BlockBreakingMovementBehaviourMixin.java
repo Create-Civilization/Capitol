@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * the fetched block state with bedrock so Create skips it (hardness -1).
  * Approach inspired by OPAC (LGPL-3.0).
  */
-@Mixin(value = BlockBreakingMovementBehaviour.class, priority = 1000001)
-public class BlockBreakingMovementBehaviourMixin {
+@Mixin(value = BlockBreakingMovementBehaviour.class)
+public class BlockBreakingMovementBehaviourMixin{
 
 	@Unique
 	private BlockPos capitol$capturedTargetPos;
@@ -41,7 +41,7 @@ public class BlockBreakingMovementBehaviourMixin {
 		at = @At(value = "INVOKE_ASSIGN",
 			target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;"))
 	private BlockState capitol$preventBreakInForeignClaim(BlockState actual, MovementContext context) {
-		if (capitol$capturedTargetPos == null || context.contraption.entity == null) return actual;
+		if (capitol$capturedTargetPos == null || context.contraption.entity == null || context.world.isClientSide()) return actual;
 
 		ChunkPos anchorChunk = new ChunkPos(context.contraption.anchor);
 		ChunkPos targetChunk = new ChunkPos(capitol$capturedTargetPos);
@@ -50,12 +50,5 @@ public class BlockBreakingMovementBehaviourMixin {
 			return Blocks.BEDROCK.defaultBlockState();
 		}
 		return actual;
-	}
-
-	@Inject(method = "canBreak", remap = false, at = @At("HEAD"), cancellable = true)
-	private void capitol$stopBreakInClaim(Level world, BlockPos breakingPos, BlockState state, CallbackInfoReturnable<Boolean> cir){
-		if(DatabaseManager.database.getChunk(new ChunkPos(breakingPos), world) != null){
-			cir.setReturnValue(false);
-		}
 	}
 }
