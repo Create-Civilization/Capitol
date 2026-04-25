@@ -25,7 +25,7 @@ public class HarvesterMovementBehaviourMixin {
 		at = @At(value = "INVOKE_ASSIGN",
 			target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;"))
 	private BlockState capitol$preventHarvestInForeignClaim(BlockState actual, MovementContext context, BlockPos pos) {
-		if (context.contraption.entity == null) return actual;
+		if (context.contraption.entity == null || context.world.isClientSide()) return actual;
 
 		ChunkPos anchorChunk = new ChunkPos(context.contraption.anchor);
 		ChunkPos targetChunk = new ChunkPos(pos);

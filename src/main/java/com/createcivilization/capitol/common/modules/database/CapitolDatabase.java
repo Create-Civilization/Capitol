@@ -10,40 +10,63 @@ import net.minecraft.world.level.Level;
 
 import java.sql.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * SQLite-backed implementation of {@link Database} that manages all persistent
- * state for teams, members, roles, chunks, and permissions.
- *
- * <p>All methods obtain a JDBC {@link Connection} via {@link DatabaseManager#getConnection()}
- * and use prepared statements with try-with-resources for safe resource cleanup.
- * SQL errors are logged and re-thrown as {@link RuntimeException}.</p>
- *
- * <p>The underlying schema uses cascade deletes — removing a team automatically
- * removes its members, roles, and claimed chunks.</p>
- */
 public class CapitolDatabase extends Database {
 
+	private final ConcurrentHashMap<String, Map<Long, Optional<Team>>> chunkOwnerCache = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<UUID, Optional<Team>> subLevelOwnerCache = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<UUID, Long> teamPermissionsCache = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<UUID, Map<UUID, Long>> playerPermCache = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<UUID, Map<UUID, Optional<Long>>> individualPermCache = new ConcurrentHashMap<>();
+
+	public void clearCache() {
+		chunkOwnerCache.clear();
+		subLevelOwnerCache.clear();
+		teamPermissionsCache.clear();
+		playerPermCache.clear();
+		individualPermCache.clear();
+	}
+
 	/**
-	 * Returns the shared JDBC connection from {@link DatabaseManager}.
-	 *
-	 * @return the active database connection
+	 * Pre-loads chunk ownership from the database into memory.
+	 * Call after {@link DatabaseManager#init} on world load.
 	 */
-	public Connection getConnection(){
+	public void warmCache() {
+		clearCache();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT chunks.dimension, chunks.chunk_x, chunks.chunk_z, " +
+				"teams.id, teams.name, teams.color, teams.tag, teams.current_claims, " +
+				"teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+				"FROM chunks JOIN teams ON teams.id = chunks.team_id")) {
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					String dim = rs.getString("dimension");
+					long key = ChunkPos.asLong(rs.getInt("chunk_x"), rs.getInt("chunk_z"));
+					chunkOwnerCache.computeIfAbsent(dim, k -> new HashMap<>())
+						.put(key, Optional.of(Team.fromResultSet(rs)));
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error warming chunk cache", e);
+		}
+	}
+
+
+	public Connection getConnection() {
 		return DatabaseManager.getConnection();
 	}
 
 
-	public void setTeamPermissions(Team team, long permissions){
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+	public void setTeamPermissions(Team team, long permissions) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"UPDATE teams SET team_permissions = ? WHERE id = ?")) {
-			preparedStatement.setLong(1, permissions);
-			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.execute();
-		} catch (SQLException e){
+			ps.setLong(1, permissions);
+			ps.setString(2, team.getId().toString());
+			ps.execute();
+			teamPermissionsCache.put(team.getId(), permissions);
+		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error setting team " + team.getId() + " team permission.", e);
 			throw new RuntimeException(e);
 		}
@@ -57,12 +80,12 @@ public class CapitolDatabase extends Database {
 	 * @param permissions the bitfield of {@link Permission} flags
 	 */
 	public void addRole(Team team, String name, long permissions) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"INSERT INTO team_roles (team_id, name, permissions) VALUES (?, ?, ?)")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, name);
-			preparedStatement.setLong(3, permissions);
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, name);
+			ps.setLong(3, permissions);
+			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while adding role to database.", e);
 			throw new RuntimeException(e);
@@ -76,9 +99,10 @@ public class CapitolDatabase extends Database {
 	 * @return the {@link TeamRole}, or {@code null} if not found
 	 */
 	public TeamRole getRole(int roleId) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT * FROM team_roles WHERE id = ?")) {
-			preparedStatement.setInt(1, roleId);
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM team_roles WHERE id = ?")) {
+			ps.setInt(1, roleId);
+			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return TeamRole.fromResultSet(rs);
 				return null;
 			}
@@ -96,11 +120,11 @@ public class CapitolDatabase extends Database {
 	 * @return the matching {@link TeamRole}, or {@code null} if not found
 	 */
 	public TeamRole getRoleByName(Team team, String roleName) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT * FROM team_roles WHERE team_id = ? AND name = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, roleName);
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, roleName);
+			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return TeamRole.fromResultSet(rs);
 				return null;
 			}
@@ -117,9 +141,10 @@ public class CapitolDatabase extends Database {
 	 * @return list of {@link TeamRole}s (may be empty)
 	 */
 	public List<TeamRole> getTeamRoles(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT * FROM team_roles WHERE team_id = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM team_roles WHERE team_id = ?")) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
 				List<TeamRole> roles = new ArrayList<>();
 				while (rs.next()) roles.add(TeamRole.fromResultSet(rs));
 				return roles;
@@ -148,26 +173,28 @@ public class CapitolDatabase extends Database {
 	 * @param permissions the new permission bitfield
 	 */
 	public void updateRolePermissions(Team team, String roleName, long permissions) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"UPDATE team_roles SET permissions = ? WHERE team_id = ? AND name = ?")) {
-			preparedStatement.setLong(1, permissions);
-			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.setString(3, roleName);
-			preparedStatement.execute();
+			ps.setLong(1, permissions);
+			ps.setString(2, team.getId().toString());
+			ps.setString(3, roleName);
+			ps.execute();
+			// All members with this role have stale cached permissions
+			playerPermCache.remove(team.getId());
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while updating role permissions in database.", e);
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void updateRoleName(Team team, String roleName, String newName){
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-		"UPDATE team_roles SET name = ? WHERE team_id = ? AND name = ?")) {
-			preparedStatement.setString(1, newName);
-			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.setString(3, roleName);
-			preparedStatement.execute();
-		} catch (SQLException e){
+	public void updateRoleName(Team team, String roleName, String newName) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE team_roles SET name = ? WHERE team_id = ? AND name = ?")) {
+			ps.setString(1, newName);
+			ps.setString(2, team.getId().toString());
+			ps.setString(3, roleName);
+			ps.execute();
+		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while updating role name in database.", e);
 			throw new RuntimeException(e);
 		}
@@ -180,11 +207,12 @@ public class CapitolDatabase extends Database {
 	 * @param roleName the name of the role to delete
 	 */
 	public void deleteRole(Team team, String roleName) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM team_roles WHERE team_id = ? AND name = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, roleName);
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, roleName);
+			ps.execute();
+			playerPermCache.remove(team.getId());
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting role from database.", e);
 			throw new RuntimeException(e);
@@ -198,6 +226,12 @@ public class CapitolDatabase extends Database {
 	 */
 	@Override
 	public boolean hasChunkAt(ChunkPos chunkPos, Level level) {
+		String dim = level.dimension().location().toString();
+		Map<Long, Optional<Team>> dimCache = chunkOwnerCache.get(dim);
+		if (dimCache != null) {
+			Optional<Team> cached = dimCache.get(chunkPos.toLong());
+			if (cached != null) return cached.isPresent();
+		}
 		return getChunkOwner(chunkPos, level) != null;
 	}
 
@@ -212,17 +246,25 @@ public class CapitolDatabase extends Database {
 	 */
 	@Override
 	public Team getChunkOwner(ChunkPos chunkPos, Level level) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		String dim = level.dimension().location().toString();
+		Map<Long, Optional<Team>> dimCache = chunkOwnerCache.get(dim);
+		if (dimCache != null) {
+			Optional<Team> cached = dimCache.get(chunkPos.toLong());
+			if (cached != null) return cached.orElse(null);
+		}
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
 				"FROM chunks " +
 				"JOIN teams ON teams.id = chunks.team_id " +
 				"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?")) {
-			preparedStatement.setString(1, level.dimension().location().toString());
-			preparedStatement.setInt(2, chunkPos.x);
-			preparedStatement.setInt(3, chunkPos.z);
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return Team.fromResultSet(rs);
-				return null;
+			ps.setString(1, dim);
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			try (ResultSet rs = ps.executeQuery()) {
+				Team team = rs.next() ? Team.fromResultSet(rs) : null;
+				chunkOwnerCache.computeIfAbsent(dim, k -> new HashMap<>())
+					.put(chunkPos.toLong(), Optional.ofNullable(team));
+				return team;
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting chunk owner", e);
@@ -237,10 +279,10 @@ public class CapitolDatabase extends Database {
 	 * @param name the team to persist
 	 */
 	public boolean teamNameExists(String name) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT 1 FROM teams WHERE name = ?")) {
-			preparedStatement.setString(1, name);
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, name);
+			try (ResultSet rs = ps.executeQuery()) {
 				return rs.next();
 			}
 		} catch (SQLException e) {
@@ -250,16 +292,17 @@ public class CapitolDatabase extends Database {
 	}
 
 	public void addTeam(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO teams (id, name, tag, current_claims, description, color, created_at, team_permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, team.getName());
-			preparedStatement.setString(3, team.getTag());
-			preparedStatement.setInt(4, 0);
-			preparedStatement.setString(5, team.getDescription());
-			preparedStatement.setInt(6, team.getColor().getRGB());
-			preparedStatement.setLong(7, Instant.now().toEpochMilli());
-			preparedStatement.setLong(8, team.getTeamPermissions());
-			preparedStatement.execute();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT INTO teams (id, name, tag, current_claims, description, color, created_at, team_permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, team.getName());
+			ps.setString(3, team.getTag());
+			ps.setInt(4, 0);
+			ps.setString(5, team.getDescription());
+			ps.setInt(6, team.getColor().getRGB());
+			ps.setLong(7, Instant.now().toEpochMilli());
+			ps.setLong(8, team.getTeamPermissions());
+			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting team into database.", e);
 			throw new RuntimeException(e);
@@ -276,14 +319,21 @@ public class CapitolDatabase extends Database {
 	 * @param team the team to remove
 	 */
 	public void removeTeam(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM teams WHERE id = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting team from database.", e);
 			throw new RuntimeException(e);
 		}
+		UUID teamId = team.getId();
+		chunkOwnerCache.values().forEach(dimCache ->
+			dimCache.entrySet().removeIf(e -> e.getValue().isPresent() && e.getValue().get().getId().equals(teamId)));
+		subLevelOwnerCache.entrySet().removeIf(e -> e.getValue().isPresent() && e.getValue().get().getId().equals(teamId));
+		teamPermissionsCache.remove(teamId);
+		playerPermCache.remove(teamId);
+		individualPermCache.remove(teamId);
 	}
 
 	/**
@@ -293,10 +343,10 @@ public class CapitolDatabase extends Database {
 	 * @return the {@link Team}, or {@code null} if not found
 	 */
 	public Team getTeam(UUID uuid) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT * FROM teams WHERE id = ?")) {
-			preparedStatement.setString(1, uuid.toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, uuid.toString());
+			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return Team.fromResultSet(rs);
 				return null;
 			}
@@ -323,13 +373,13 @@ public class CapitolDatabase extends Database {
 	 * @return the player's {@link Team}, or {@code null} if they are not in any team
 	 */
 	public Team getPlayerTeam(UUID playerUUID) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
 				"FROM team_members " +
 				"JOIN teams ON teams.id = team_members.team_id " +
 				"WHERE team_members.player_uuid = ?")) {
-			preparedStatement.setString(1, playerUUID.toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, playerUUID.toString());
+			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return Team.fromResultSet(rs);
 				return null;
 			}
@@ -349,12 +399,14 @@ public class CapitolDatabase extends Database {
 	 * @param role   the role to assign
 	 */
 	public void addPlayerToTeam(Player player, Team team, TeamRole role) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"INSERT INTO team_members (team_id, player_uuid, role_id) VALUES (?, ?, ?)")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			preparedStatement.setInt(3, role.id());
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, player.getUUID().toString());
+			ps.setInt(3, role.id());
+			ps.execute();
+			playerPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
+				.put(player.getUUID(), role.permissions());
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while adding player to team in database.", e);
 			throw new RuntimeException(e);
@@ -368,15 +420,7 @@ public class CapitolDatabase extends Database {
 	 * @param team   the team to remove them from
 	 */
 	public void removePlayerFromTeam(Player player, Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"DELETE FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			preparedStatement.execute();
-		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while removing player from team in database.", e);
-			throw new RuntimeException(e);
-		}
+		removePlayerFromTeam(player.getUUID(), team);
 	}
 
 	/**
@@ -386,11 +430,15 @@ public class CapitolDatabase extends Database {
 	 * @param team       the team to remove them from
 	 */
 	public void removePlayerFromTeam(UUID playerUUID, Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM team_members WHERE team_id = ? AND player_uuid = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, playerUUID.toString());
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, playerUUID.toString());
+			ps.execute();
+			Map<UUID, Long> teamCache = playerPermCache.get(team.getId());
+			if (teamCache != null) teamCache.remove(playerUUID);
+			Map<UUID, Optional<Long>> indivCache = individualPermCache.get(team.getId());
+			if (indivCache != null) indivCache.remove(playerUUID);
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while removing player from team in database.", e);
 			throw new RuntimeException(e);
@@ -409,12 +457,14 @@ public class CapitolDatabase extends Database {
 	}
 
 	public void updatePlayerRole(UUID playerUUID, Team team, TeamRole newRole) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"UPDATE team_members SET role_id = ? WHERE team_id = ? AND player_uuid = ?")) {
-			preparedStatement.setInt(1, newRole.id());
-			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.setString(3, playerUUID.toString());
-			preparedStatement.execute();
+			ps.setInt(1, newRole.id());
+			ps.setString(2, team.getId().toString());
+			ps.setString(3, playerUUID.toString());
+			ps.execute();
+			playerPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
+				.put(playerUUID, newRole.permissions());
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while updating player role in database.", e);
 			throw new RuntimeException(e);
@@ -429,13 +479,13 @@ public class CapitolDatabase extends Database {
 	 * @return the player's {@link TeamRole}, or {@code null} if they are not a member
 	 */
 	public TeamRole getPlayerRole(Player player, Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT team_roles.* FROM team_members " +
 				"JOIN team_roles ON team_roles.id = team_members.role_id " +
 				"WHERE team_members.team_id = ? AND team_members.player_uuid = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, player.getUUID().toString());
+			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return TeamRole.fromResultSet(rs);
 				return null;
 			}
@@ -472,7 +522,7 @@ public class CapitolDatabase extends Database {
 			try (ResultSet rs = preparedStatement.executeQuery()){
 				return rs.next();
 			}
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while checking player membership in database.", e);
 			throw new RuntimeException(e);
 		}
@@ -485,13 +535,13 @@ public class CapitolDatabase extends Database {
 	 * @return list of {@link TeamMember}s (may be empty)
 	 */
 	public List<TeamMember> getTeamMembers(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT team_members.*, team_roles.name AS role_name " +
 				"FROM team_members " +
 				"JOIN team_roles ON team_roles.id = team_members.role_id " +
 				"WHERE team_members.team_id = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
 				List<TeamMember> members = new ArrayList<>();
 				while (rs.next()) members.add(TeamMember.fromResultSet(rs));
 				return members;
@@ -510,16 +560,28 @@ public class CapitolDatabase extends Database {
 	 * @return the permission bitfield, or {@code 0} if the player is not a member
 	 */
 	public long getPlayerPermission(Player player, Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		Map<UUID, Long> teamCache = playerPermCache.get(team.getId());
+		if (teamCache != null) {
+			Long cached = teamCache.get(player.getUUID());
+			if (cached != null) return cached;
+		}
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT team_roles.permissions FROM team_members " +
 				"JOIN team_roles ON team_roles.id = team_members.role_id " +
 				"WHERE team_members.team_id = ? AND team_members.player_uuid = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return rs.getLong("permissions");
-				TeamRole role = getRoleByName(team, "default");
-				return role.permissions();
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, player.getUUID().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				long perms;
+				if (rs.next()) {
+					perms = rs.getLong("permissions");
+				} else {
+					TeamRole role = getRoleByName(team, "default");
+					perms = role.permissions();
+				}
+				playerPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
+					.put(player.getUUID(), perms);
+				return perms;
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting player permissions from database.", e);
@@ -528,13 +590,20 @@ public class CapitolDatabase extends Database {
 	}
 
 	public Long getIndividualPermissions(Player player, Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		Map<UUID, Optional<Long>> teamCache = individualPermCache.get(team.getId());
+		if (teamCache != null) {
+			Optional<Long> cached = teamCache.get(player.getUUID());
+			if (cached != null) return cached.orElse(null);
+		}
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT permissions FROM player_permissions WHERE team_id = ? AND player_uuid = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return rs.getLong("permissions");
-				return null;
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, player.getUUID().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				Long perms = rs.next() ? rs.getLong("permissions") : null;
+				individualPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
+					.put(player.getUUID(), Optional.ofNullable(perms));
+				return perms;
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting individual permissions from database.", e);
@@ -543,13 +612,15 @@ public class CapitolDatabase extends Database {
 	}
 
 	public void setIndividualPermissions(Player player, Team team, long permissions) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"INSERT INTO player_permissions (team_id, player_uuid, permissions) VALUES (?, ?, ?) " +
 				"ON CONFLICT(team_id, player_uuid) DO UPDATE SET permissions = excluded.permissions")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			preparedStatement.setLong(3, permissions);
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, player.getUUID().toString());
+			ps.setLong(3, permissions);
+			ps.execute();
+			individualPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
+				.put(player.getUUID(), Optional.of(permissions));
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while setting individual permissions in database.", e);
 			throw new RuntimeException(e);
@@ -557,13 +628,15 @@ public class CapitolDatabase extends Database {
 	}
 
 	public void removeIndividualPermissions(Player player, Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM player_permissions WHERE team_id = ? AND player_uuid = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.setString(2, player.getUUID().toString());
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, player.getUUID().toString());
+			ps.execute();
+			Map<UUID, Optional<Long>> teamCache = individualPermCache.get(team.getId());
+			if (teamCache != null) teamCache.put(player.getUUID(), Optional.empty());
 		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while removing individual permissions from database.", e);
+			Capitol.LOGGER.error("Error while removing individual permissions in database.", e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -577,14 +650,17 @@ public class CapitolDatabase extends Database {
 	 * @param level    the dimension/level the chunk is in
 	 */
 	public void claimChunk(Team team, ChunkPos chunkPos, Level level) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		String dim = level.dimension().location().toString();
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id, force_loaded) VALUES (?, ?, ?, ?, ?)")) {
-			preparedStatement.setString(1, level.dimension().location().toString());
-			preparedStatement.setInt(2, chunkPos.x);
-			preparedStatement.setInt(3, chunkPos.z);
-			preparedStatement.setString(4, team.getId().toString());
-			preparedStatement.setBoolean(5, false);
-			preparedStatement.execute();
+			ps.setString(1, dim);
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			ps.setString(4, team.getId().toString());
+			ps.setBoolean(5, false);
+			ps.execute();
+			chunkOwnerCache.computeIfAbsent(dim, k -> new HashMap<>())
+				.put(chunkPos.toLong(), Optional.of(team));
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting chunk into database.", e);
 			throw new RuntimeException(e);
@@ -601,12 +677,15 @@ public class CapitolDatabase extends Database {
 	 * @param level    the dimension/level the chunk is in
 	 */
 	public void unclaimChunk(Team team, ChunkPos chunkPos, Level level) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		String dim = level.dimension().location().toString();
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
-			preparedStatement.setString(1, level.dimension().location().toString());
-			preparedStatement.setInt(2, chunkPos.x);
-			preparedStatement.setInt(3, chunkPos.z);
-			preparedStatement.execute();
+			ps.setString(1, dim);
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			ps.execute();
+			Map<Long, Optional<Team>> dimCache = chunkOwnerCache.get(dim);
+			if (dimCache != null) dimCache.put(chunkPos.toLong(), Optional.empty());
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting chunk from database.", e);
 			throw new RuntimeException(e);
@@ -621,10 +700,10 @@ public class CapitolDatabase extends Database {
 	 * @return list of {@link ClaimedChunk}s (may be empty)
 	 */
 	public List<ClaimedChunk> getTeamChunks(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT * FROM chunks WHERE team_id = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
 				List<ClaimedChunk> chunks = new ArrayList<>();
 				while (rs.next()) chunks.add(ClaimedChunk.fromResultSet(rs));
 				return chunks;
@@ -641,62 +720,31 @@ public class CapitolDatabase extends Database {
 	 * @param team the team whose chunks should be unclaimed
 	 */
 	public void unclaimAllChunks(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM chunks WHERE team_id = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.execute();
+			ps.setString(1, team.getId().toString());
+			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting all chunks for team from database.", e);
 			throw new RuntimeException(e);
 		}
+		UUID teamId = team.getId();
+		chunkOwnerCache.values().forEach(dimCache ->
+			dimCache.entrySet().removeIf(e -> e.getValue().isPresent() && e.getValue().get().getId().equals(teamId)));
 		resetCurrentClaims(team);
 	}
 
-	public List<ClaimedChunk> getAllForceloadedChunks(){
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+	public List<ClaimedChunk> getAllForceloadedChunks() {
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT * FROM chunks WHERE force_loaded = ?")) {
-			preparedStatement.setBoolean(1, true);
-			try (ResultSet rs = preparedStatement.executeQuery()){
+			ps.setBoolean(1, true);
+			try (ResultSet rs = ps.executeQuery()) {
 				List<ClaimedChunk> chunks = new ArrayList<>();
 				while (rs.next()) chunks.add(ClaimedChunk.fromResultSet(rs));
 				return chunks;
 			}
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting force loaded chunks from database.", e);
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Adjusts a team's {@code current_claims} counter by the given delta.
-	 *
-	 * @param team  the team to update
-	 * @param delta the amount to add (positive) or subtract (negative)
-	 */
-	private void updateCurrentClaims(Team team, int delta) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"UPDATE teams SET current_claims = current_claims + ? WHERE id = ?")) {
-			preparedStatement.setInt(1, delta);
-			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.execute();
-		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while updating current_claims for team.", e);
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Resets a team's {@code current_claims} counter to 0.
-	 *
-	 * @param team the team to reset
-	 */
-	private void resetCurrentClaims(Team team) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"UPDATE teams SET current_claims = 0 WHERE id = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			preparedStatement.execute();
-		} catch (SQLException e) {
-			Capitol.LOGGER.error("Error while resetting current_claims for team.", e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -706,11 +754,17 @@ public class CapitolDatabase extends Database {
 	 * using the {@code team_permissions} bitfield.
 	 */
 	public boolean isProtectionEnabled(Team team, TeamProtection protection) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		Long cached = teamPermissionsCache.get(team.getId());
+		if (cached != null) return protection.hasProtection(cached);
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT team_permissions FROM teams WHERE id = ?")) {
-			preparedStatement.setString(1, team.getId().toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return protection.hasProtection(rs.getLong("team_permissions"));
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					long bits = rs.getLong("team_permissions");
+					teamPermissionsCache.put(team.getId(), bits);
+					return protection.hasProtection(bits);
+				}
 				return protection.getConfigDefault();
 			}
 		} catch (SQLException e) {
@@ -740,6 +794,7 @@ public class CapitolDatabase extends Database {
 					update.setString(2, team.getId().toString());
 					update.execute();
 				}
+				teamPermissionsCache.put(team.getId(), bits);
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while toggling team protection", e);
@@ -756,12 +811,12 @@ public class CapitolDatabase extends Database {
 	 * @return the {@link ClaimedChunk}, or {@code null} if unclaimed
 	 */
 	public ClaimedChunk getChunk(ChunkPos chunkPos, Level level) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT * FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
-			preparedStatement.setString(1, level.dimension().location().toString());
-			preparedStatement.setInt(2, chunkPos.x);
-			preparedStatement.setInt(3, chunkPos.z);
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, level.dimension().location().toString());
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return ClaimedChunk.fromResultSet(rs);
 				return null;
 			}
@@ -771,57 +826,84 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	private void updateCurrentClaims(Team team, int delta) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE teams SET current_claims = current_claims + ? WHERE id = ?")) {
+			ps.setInt(1, delta);
+			ps.setString(2, team.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while updating current_claims for team.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void resetCurrentClaims(Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE teams SET current_claims = 0 WHERE id = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while resetting current_claims for team.", e);
+			throw new RuntimeException(e);
+		}
+	}
 
 
 	//Sable Stuff
 
-	public ClaimedSubLevel getSubLevel(UUID id){
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+	public ClaimedSubLevel getSubLevel(UUID id) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT * FROM sub_levels WHERE id = ?")) {
-			preparedStatement.setString(1, id.toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
+			ps.setString(1, id.toString());
+			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return ClaimedSubLevel.fromResultSet(rs);
 				return null;
 			}
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting sub level from database.", e);
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void claimSubLevel(UUID id, Team team){
-		try(PreparedStatement preparedStatement = getConnection().prepareStatement(
+	public void claimSubLevel(UUID id, Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"INSERT INTO sub_levels (id, team_id) VALUES (?,?)")) {
-			preparedStatement.setString(1, id.toString());
-			preparedStatement.setString(2, team.getId().toString());
-			preparedStatement.execute();
-		} catch (SQLException e){
+			ps.setString(1, id.toString());
+			ps.setString(2, team.getId().toString());
+			ps.execute();
+			subLevelOwnerCache.put(id, Optional.of(team));
+		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while adding SubLevel to database.", e);
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void removeSubLevel(UUID id){
-		try(PreparedStatement preparedStatement = getConnection().prepareStatement(
-			"DELETE FROM sub_levels WHERE id = ?" )){
-			preparedStatement.setString(1, id.toString());
-			preparedStatement.execute();
-		} catch (SQLException e){
-			Capitol.LOGGER.error("Error while deleteing SubLevel from database.", e);
+	public void removeSubLevel(UUID id) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM sub_levels WHERE id = ?")) {
+			ps.setString(1, id.toString());
+			ps.execute();
+			subLevelOwnerCache.put(id, Optional.empty());
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while deleting SubLevel from database.", e);
 			throw new RuntimeException(e);
 		}
 	}
 
 	public Team getSubLevelOwner(UUID id) {
-		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+		Optional<Team> cached = subLevelOwnerCache.get(id);
+		if (cached != null) return cached.orElse(null);
+		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
 				"FROM sub_levels " +
 				"JOIN teams ON teams.id = sub_levels.team_id " +
 				"WHERE sub_levels.id = ?")) {
-			preparedStatement.setString(1, id.toString());
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				if (rs.next()) return Team.fromResultSet(rs);
-				return null;
+			ps.setString(1, id.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				Team team = rs.next() ? Team.fromResultSet(rs) : null;
+				subLevelOwnerCache.put(id, Optional.ofNullable(team));
+				return team;
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting sub_level owner", e);

@@ -50,6 +50,7 @@ public class CapitolMixinPlugin implements IMixinConfigPlugin {
 		return List.of(
 			"create.ContraptionMixin",
 			"create.BlockBreakingMovementBehaviourMixin",
+			"create.BlockBreakingKineticBlockEntityMixin",
 			"create.HarvesterMovementBehaviourMixin",
 			"create.PloughMovementBehaviourMixin",
 			"simulated.SimAssemblyContraptionMixin"
