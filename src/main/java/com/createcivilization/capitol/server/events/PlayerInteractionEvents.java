@@ -150,7 +150,7 @@ public class PlayerInteractionEvents {
 
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
 		if(subLevelAccess != null){
-			if(ProtectionManager.checkBlockInteract(player, state.getBlock(), subLevelAccess) != Result.DENY) {
+			if(ProtectionManager.checkBlockInteract(player, state.getBlock(), subLevelAccess) == Result.DENY) {
 				event.setCancellationResult(InteractionResult.FAIL);
 				event.setCanceled(true);
 				sendDenied("You can't interact with this block!", player);

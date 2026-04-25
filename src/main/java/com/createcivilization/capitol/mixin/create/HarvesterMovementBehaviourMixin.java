@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * Create's harvester sees nothing to harvest.
  * Approach inspired by OPAC (LGPL-3.0).
  */
-@Mixin(value = HarvesterMovementBehaviour.class, priority = 1000001)
+@Mixin(value = HarvesterMovementBehaviour.class)
 public class HarvesterMovementBehaviourMixin {
 
 	@ModifyVariable(method = "visitNewPosition",

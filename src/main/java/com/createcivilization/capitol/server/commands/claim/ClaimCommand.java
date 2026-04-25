@@ -1,4 +1,4 @@
-package com.createcivilization.capitol.server.commands;
+package com.createcivilization.capitol.server.commands.claim;
 
 import com.createcivilization.capitol.common.compat.sable.SableCompat;
 import com.createcivilization.capitol.common.data.Permission;
@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class ClaimCommand {
 
-	static LiteralArgumentBuilder<CommandSourceStack> register() {
+	public static LiteralArgumentBuilder<CommandSourceStack> register() {
 		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("claim")
 			.then(Commands.literal("chunk")
 				.executes(ClaimCommand::claim))

@@ -2,11 +2,7 @@ package com.createcivilization.capitol.common.modules.database;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.compat.sable.data.ClaimedSubLevel;
-import com.createcivilization.capitol.common.data.ClaimedChunk;
-import com.createcivilization.capitol.common.data.Team;
-import com.createcivilization.capitol.common.data.TeamMember;
-import com.createcivilization.capitol.common.data.TeamProtection;
-import com.createcivilization.capitol.common.data.TeamRole;
+import com.createcivilization.capitol.common.data.*;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -58,7 +54,7 @@ public class CapitolDatabase extends Database {
 	 *
 	 * @param team        the team this role belongs to
 	 * @param name        the role name (e.g. "owner", "default")
-	 * @param permissions the bitfield of {@link com.createcivilization.capitol.common.data.Permission} flags
+	 * @param permissions the bitfield of {@link Permission} flags
 	 */
 	public void addRole(Team team, String name, long permissions) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
@@ -238,8 +234,21 @@ public class CapitolDatabase extends Database {
 	 * Inserts a new team into the {@code teams} table and creates the default
 	 * "owner" and "default" roles for it.
 	 *
-	 * @param team the team to persist
+	 * @param name the team to persist
 	 */
+	public boolean teamNameExists(String name) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT 1 FROM teams WHERE name = ?")) {
+			preparedStatement.setString(1, name);
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while checking team name existence in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
 	public void addTeam(Team team) {
 		try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO teams (id, name, tag, current_claims, description, color, created_at, team_permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
 			preparedStatement.setString(1, team.getId().toString());
@@ -514,6 +523,47 @@ public class CapitolDatabase extends Database {
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while getting player permissions from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Long getIndividualPermissions(Player player, Team team) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"SELECT permissions FROM player_permissions WHERE team_id = ? AND player_uuid = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.setString(2, player.getUUID().toString());
+			try (ResultSet rs = preparedStatement.executeQuery()) {
+				if (rs.next()) return rs.getLong("permissions");
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting individual permissions from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void setIndividualPermissions(Player player, Team team, long permissions) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"INSERT INTO player_permissions (team_id, player_uuid, permissions) VALUES (?, ?, ?) " +
+				"ON CONFLICT(team_id, player_uuid) DO UPDATE SET permissions = excluded.permissions")) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.setString(2, player.getUUID().toString());
+			preparedStatement.setLong(3, permissions);
+			preparedStatement.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while setting individual permissions in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void removeIndividualPermissions(Player player, Team team) {
+		try (PreparedStatement preparedStatement = getConnection().prepareStatement(
+			"DELETE FROM player_permissions WHERE team_id = ? AND player_uuid = ?")) {
+			preparedStatement.setString(1, team.getId().toString());
+			preparedStatement.setString(2, player.getUUID().toString());
+			preparedStatement.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while removing individual permissions from database.", e);
 			throw new RuntimeException(e);
 		}
 	}
