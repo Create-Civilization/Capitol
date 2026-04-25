@@ -1,18 +1,22 @@
 package com.createcivilization.capitol.mixin.create;
 
+import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.kinetics.base.BlockBreakingMovementBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Prevents drills and ploughs from breaking blocks in foreign claims.
@@ -46,5 +50,12 @@ public class BlockBreakingMovementBehaviourMixin {
 			return Blocks.BEDROCK.defaultBlockState();
 		}
 		return actual;
+	}
+
+	@Inject(method = "canBreak", remap = false, at = @At("HEAD"), cancellable = true)
+	private void capitol$stopBreakInClaim(Level world, BlockPos breakingPos, BlockState state, CallbackInfoReturnable<Boolean> cir){
+		if(DatabaseManager.database.getChunk(new ChunkPos(breakingPos), world) != null){
+			cir.setReturnValue(false);
+		}
 	}
 }
