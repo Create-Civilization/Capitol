@@ -34,9 +34,10 @@ public abstract class BlockBreakingKineticBlockEntityMixin extends BlockEntity {
 			SubLevelAccess targetSubLevel = SableCompanion.INSTANCE.getContaining(this.level, breakingPos);
 			if (targetSubLevel != null) {
 				SubLevelAccess actorSubLevel = SableCompanion.INSTANCE.getContaining(this.level, this.worldPosition);
-				if (ProtectionManager.checkSubLevelToSublevelActorAction(this.level, actorSubLevel, new ChunkPos(this.worldPosition), targetSubLevel) == ProtectionManager.Result.DENY) {
-					cir.setReturnValue(false);
-				}
+				ProtectionManager.Result result = actorSubLevel != null
+					? ProtectionManager.checkSubLevelToSublevelActorAction(this.level, actorSubLevel, targetSubLevel)
+					: ProtectionManager.checkWorldToSubLevelActorAction(this.level, new ChunkPos(this.worldPosition), targetSubLevel);
+				if (result == ProtectionManager.Result.DENY) cir.setReturnValue(false);
 				return;
 			}
 
