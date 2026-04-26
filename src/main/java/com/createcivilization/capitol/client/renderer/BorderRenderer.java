@@ -194,7 +194,7 @@ public class BorderRenderer {
 				}
 			}
 
-			int scanTop = Math.clamp(surfaceY(level, blockX, blockZ), surfaceY(level, neighborX, neighborZ), scanCeiling);
+			int scanTop = Math.clamp(Math.min(surfaceY(level, blockX, blockZ), scanCeiling), Math.min(surfaceY(level, neighborX, neighborZ), scanCeiling), scanCeiling);
 			float outwardBoundary = boundary + inwardNudge;
 
 			for (int y = scanBottom; y < scanTop; y++) {
@@ -213,7 +213,7 @@ public class BorderRenderer {
 			if (i < 15) {
 				int nextBlockX = alongX ? blockX + 1 : blockX;
 				int nextBlockZ = alongX ? blockZ : blockZ + 1;
-				int lateralTop = Math.clamp(scanTop, surfaceY(level, nextBlockX, nextBlockZ), scanCeiling);
+				int lateralTop = Math.clamp(scanTop, Math.min(surfaceY(level, nextBlockX, nextBlockZ), scanCeiling), scanCeiling);
 
 				for (int y = scanBottom; y < lateralTop; y++) {
 					boolean currentSolid = occluding(level, blockX, y, blockZ);
