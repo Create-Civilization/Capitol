@@ -287,18 +287,26 @@ public class ProtectionManager {
 	}
 
 	/**
-	 * Checks whether a contraption actor can act on a block inside a sub-level.
-	 * Actor team is resolved from {@code actorSubLevel} if present, otherwise from {@code actorFallbackChunk}.
+	 * Checks whether an actor inside a sub-level can act on a block inside another sub-level.
 	 * Returns PASS if the target sub-level is unclaimed.
 	 */
-	public static Result checkSubLevelToSublevelActorAction(Level level, @Nullable SubLevelAccess actorSubLevel, ChunkPos actorFallbackChunk, SubLevelAccess targetSubLevel) {
+	public static Result checkSubLevelToSublevelActorAction(Level level, SubLevelAccess actorSubLevel, SubLevelAccess targetSubLevel) {
 		Team targetOwner = database().getSubLevelOwner(targetSubLevel.getUniqueId());
 		if (targetOwner == null) return Result.PASS;
 
-		Team actorTeam = actorSubLevel != null
-			? database().getSubLevelOwner(actorSubLevel.getUniqueId())
-			: database().getChunkOwner(actorFallbackChunk, level);
+		Team actorTeam = database().getSubLevelOwner(actorSubLevel.getUniqueId());
+		return sameTeam(actorTeam, targetOwner) ? Result.ALLOW : Result.DENY;
+	}
 
+	/**
+	 * Checks whether a contraption in the real world can act on a block inside a sub-level.
+	 * Returns PASS if the target sub-level is unclaimed.
+	 */
+	public static Result checkWorldToSubLevelActorAction(Level level, ChunkPos actorChunk, SubLevelAccess targetSubLevel) {
+		Team targetOwner = database().getSubLevelOwner(targetSubLevel.getUniqueId());
+		if (targetOwner == null) return Result.PASS;
+
+		Team actorTeam = database().getChunkOwner(actorChunk, level);
 		return sameTeam(actorTeam, targetOwner) ? Result.ALLOW : Result.DENY;
 	}
 
