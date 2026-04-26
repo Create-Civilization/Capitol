@@ -19,7 +19,11 @@ public class HelpCommand {
 
 		msg.append(entry("/capitol help", "Show this help message"));
 		msg.append(entry("/capitol claim chunk", "Claim the chunk you're standing in"));
+		msg.append(entry("/capitol claim sub_level", "Claim the sub-level you're in"));
 		msg.append(entry("/capitol claim info", "Show who owns the current chunk"));
+		msg.append(entry("/capitol claim info sub_level", "Show who owns the current sub-level"));
+		msg.append(entry("/capitol unclaim chunk", "Unclaim the chunk you're standing in"));
+		msg.append(entry("/capitol unclaim sub_level", "Unclaim the sub-level you're in"));
 		msg.append(entry("/capitol team create <name> <tag> <color> [desc]", "Create a new team"));
 		msg.append(entry("/capitol team info", "View your team's details"));
 		msg.append(entry("/capitol team invite <player>", "Invite a player to your team"));

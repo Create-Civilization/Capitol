@@ -22,19 +22,23 @@ import java.util.UUID;
 public class ClaimCommand {
 
 	public static LiteralArgumentBuilder<CommandSourceStack> register() {
+		LiteralArgumentBuilder<CommandSourceStack> infoBuilder = Commands.literal("info")
+			.executes(ClaimCommand::info);
+
 		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("claim")
 			.then(Commands.literal("chunk")
-				.executes(ClaimCommand::claim))
-			.then(Commands.literal("info")
-				.executes(ClaimCommand::info));
+				.executes(ClaimCommand::claim));
 
 		if (SableCompat.LOADED) {
 			builder.then(Commands.literal("sub_level")
 				.executes(ClaimCommand::claimSubLevel));
+			infoBuilder.then(Commands.literal("sub_level")
+				.executes(ClaimCommand::infoSubLevel));
 		}
 
-		return builder;
+		return builder.then(infoBuilder);
 	}
+
 	private static int claim(CommandContext<CommandSourceStack> context) {
 		CapitolDatabase database = DatabaseManager.database;
 		Player player = context.getSource().getPlayer();
@@ -68,7 +72,7 @@ public class ClaimCommand {
 		return 1;
 	}
 
-	private static int claimSubLevel(CommandContext<CommandSourceStack> context){
+	private static int claimSubLevel(CommandContext<CommandSourceStack> context) {
 		CapitolDatabase database = DatabaseManager.database;
 		Player player = context.getSource().getPlayer();
 		if (player == null) return 0;
@@ -86,7 +90,6 @@ public class ClaimCommand {
 		}
 
 		UUID subLevelId = SableCompat.getPlayerSubLevelId(player);
-
 		if (subLevelId == null) {
 			context.getSource().sendFailure(Component.literal("You are not in any sub-level")
 				.withStyle(ChatFormatting.RED));
@@ -120,4 +123,22 @@ public class ClaimCommand {
 		return 1;
 	}
 
+	private static int infoSubLevel(CommandContext<CommandSourceStack> context) {
+		Player player = context.getSource().getPlayer();
+		if (player == null) return 0;
+
+		UUID subLevelId = SableCompat.getPlayerSubLevelId(player);
+		if (subLevelId == null) {
+			context.getSource().sendFailure(Component.literal("You are not in any sub-level").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		Team owner = DatabaseManager.database.getSubLevelOwner(subLevelId);
+		if (owner == null) {
+			context.getSource().sendSuccess(() -> Component.literal("This sub-level is not claimed").withStyle(ChatFormatting.YELLOW), false);
+		} else {
+			context.getSource().sendSuccess(() -> Component.literal("Claimed by: " + owner.getName()).withStyle(ChatFormatting.GREEN), false);
+		}
+		return 1;
+	}
 }

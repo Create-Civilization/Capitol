@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.server.commands;
 
 import com.createcivilization.capitol.server.commands.claim.ClaimCommand;
+import com.createcivilization.capitol.server.commands.claim.UnclaimCommand;
 import com.createcivilization.capitol.server.commands.invite.InviteCommand;
 import com.createcivilization.capitol.server.commands.team.TeamCommand;
 import com.createcivilization.capitol.server.commands.help.HelpCommand;
@@ -21,6 +22,7 @@ public class CapitolCommands {
 		CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
 		registerCommand(dispatcher, HelpCommand.register());
 		registerCommand(dispatcher, ClaimCommand.register());
+		registerCommand(dispatcher, UnclaimCommand.register());
 		registerCommand(dispatcher, TeamCommand.register());
 		registerCommand(dispatcher, InviteCommand.register());
 	}

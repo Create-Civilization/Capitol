@@ -1,22 +1,21 @@
 package com.createcivilization.capitol.mixin.create;
 
-import com.createcivilization.capitol.common.managers.DatabaseManager;
+import com.createcivilization.capitol.common.compat.sable.SableCompat;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.kinetics.base.BlockBreakingMovementBehaviour;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Prevents drills and ploughs from breaking blocks in foreign claims.
@@ -43,10 +42,21 @@ public class BlockBreakingMovementBehaviourMixin{
 	private BlockState capitol$preventBreakInForeignClaim(BlockState actual, MovementContext context) {
 		if (capitol$capturedTargetPos == null || context.contraption.entity == null || context.world.isClientSide()) return actual;
 
-		ChunkPos anchorChunk = new ChunkPos(context.contraption.anchor);
-		ChunkPos targetChunk = new ChunkPos(capitol$capturedTargetPos);
+		BlockPos anchorPos = context.contraption.anchor;
+		BlockPos targetPos = capitol$capturedTargetPos;
 
-		if (ProtectionManager.checkContraptionAction(context.world, anchorChunk, targetChunk) == Result.DENY) {
+		if (SableCompat.LOADED) {
+			SubLevelAccess targetSubLevel = SableCompanion.INSTANCE.getContaining(context.world, targetPos);
+			if (targetSubLevel != null) {
+				SubLevelAccess anchorSubLevel = SableCompanion.INSTANCE.getContaining(context.world, anchorPos);
+				if (ProtectionManager.checkSubLevelToSublevelActorAction(context.world, anchorSubLevel, new ChunkPos(anchorPos), targetSubLevel) == Result.DENY) {
+					return Blocks.BEDROCK.defaultBlockState();
+				}
+				return actual;
+			}
+		}
+
+		if (ProtectionManager.checkContraptionAction(context.world, new ChunkPos(anchorPos), new ChunkPos(targetPos)) == Result.DENY) {
 			return Blocks.BEDROCK.defaultBlockState();
 		}
 		return actual;
