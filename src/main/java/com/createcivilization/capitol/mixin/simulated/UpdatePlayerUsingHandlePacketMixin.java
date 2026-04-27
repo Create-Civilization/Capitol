@@ -3,6 +3,8 @@ package com.createcivilization.capitol.mixin.simulated;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.companion.SubLevelAccess;
+import dev.simulated_team.simulated.content.blocks.handle.HandleBlockEntity;
+import dev.simulated_team.simulated.content.blocks.handle.ServerHandleHoldingHandler;
 import dev.simulated_team.simulated.content.blocks.physics_assembler.PhysicsAssemblerBlockEntity;
 import dev.simulated_team.simulated.network.packets.UpdatePlayerUsingHandlePacket;
 import foundry.veil.api.network.handler.ServerPacketContext;
@@ -33,7 +35,7 @@ public class UpdatePlayerUsingHandlePacketMixin {
 		BlockEntity blockEntity = level.getBlockEntity(interactionPos);
 		Block block = blockEntity.getBlockState().getBlock();
 
-		if (!(blockEntity instanceof PhysicsAssemblerBlockEntity)) {
+		if (!(blockEntity instanceof HandleBlockEntity hbe)) {
 			return;
 		}
 
@@ -41,12 +43,16 @@ public class UpdatePlayerUsingHandlePacketMixin {
 
 		if(subLevel != null){
 			if(ProtectionManager.checkBlockInteract(player, block, subLevel) == ProtectionManager.Result.DENY){
+				hbe.stopGrabbingServer(player.getUUID());
+				ServerHandleHoldingHandler.stopHolding(player);
 				ci.cancel();
 			}
 			return;
 		}
 
 		if(ProtectionManager.checkBlockInteract(player, block, level, new ChunkPos(interactionPos)) == ProtectionManager.Result.DENY){
+			hbe.stopGrabbingServer(player.getUUID());
+			ServerHandleHoldingHandler.stopHolding(player);
 			ci.cancel();
 		}
 

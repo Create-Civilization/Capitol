@@ -67,7 +67,8 @@ public class UnclaimCommand {
 		S2CChunkRemove packet = new S2CChunkRemove(new Vector3f(chunkPos.x, 0, chunkPos.z));
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
-		context.getSource().sendSuccess(() -> Component.literal("Chunk unclaimed!").withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Chunk unclaimed from ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD)), true);
 		return 1;
 	}
 
@@ -106,7 +107,8 @@ public class UnclaimCommand {
 		}
 
 		database.removeSubLevel(subLevelId);
-		context.getSource().sendSuccess(() -> Component.literal("Sub-level unclaimed!").withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Sub-level unclaimed from ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD)), true);
 		return 1;
 	}
 }

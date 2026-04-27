@@ -119,7 +119,8 @@ public class ClaimCommand {
 			return 1;
 		}
 
-		context.getSource().sendSuccess(() -> Component.literal("Claimed by: " + chunkOwner.getName()).withStyle(ChatFormatting.GREEN), false);
+		context.getSource().sendSuccess(() -> Component.literal("Claimed by ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(chunkOwner.getName()).withStyle(ChatFormatting.GOLD)), false);
 		return 1;
 	}
 
@@ -137,7 +138,8 @@ public class ClaimCommand {
 		if (owner == null) {
 			context.getSource().sendSuccess(() -> Component.literal("This sub-level is not claimed").withStyle(ChatFormatting.YELLOW), false);
 		} else {
-			context.getSource().sendSuccess(() -> Component.literal("Claimed by: " + owner.getName()).withStyle(ChatFormatting.GREEN), false);
+			context.getSource().sendSuccess(() -> Component.literal("Claimed by ").withStyle(ChatFormatting.GRAY)
+				.append(Component.literal(owner.getName()).withStyle(ChatFormatting.GOLD)), false);
 		}
 		return 1;
 	}

@@ -63,8 +63,9 @@ class TeamProtectionCommand {
 
 		boolean newState = database.toggleProtection(team, protection);
 
-		context.getSource().sendSuccess(() -> Component.literal(protection.getKey() + " is now " + (newState ? "enabled" : "disabled"))
-			.withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal(protection.getKey()).withStyle(ChatFormatting.AQUA)
+			.append(Component.literal(" is now ").withStyle(ChatFormatting.GRAY))
+			.append(Component.literal(newState ? "enabled" : "disabled").withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED)), true);
 		return 1;
 	}
 }

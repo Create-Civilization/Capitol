@@ -24,11 +24,7 @@ public class SteeringWheelPacketMixin {
 
 	@Shadow private BlockPos pos;
 
-	/*
-	Hi, I am sorry for this packet shit. I dont like it. I dont know what I can do better
-	but I REALLY dont like the desync issue. So to the person reading it please try and fix it
-	make a pr. I beg. I would be so happy. - McArctic
-	 */
+
 	@Inject(method = "handle", at = @At("HEAD"), cancellable = true, remap = false)
 	public void capitol$blockPacket(ServerPacketContext context, CallbackInfo ci) {
 		Player player = context.player();
@@ -36,7 +32,7 @@ public class SteeringWheelPacketMixin {
 		BlockEntity blockEntity = level.getBlockEntity(pos);
 		Block block = blockEntity.getBlockState().getBlock();
 
-		if (!(blockEntity instanceof SteeringWheelBlockEntity)) {
+		if (!(blockEntity instanceof SteeringWheelBlockEntity sbe)) {
 			return;
 		}
 
@@ -44,12 +40,14 @@ public class SteeringWheelPacketMixin {
 
 		if(subLevel != null){
 			if(ProtectionManager.checkBlockInteract(player, block, subLevel) == ProtectionManager.Result.DENY){
+				sbe.stopHolding();
 				ci.cancel();
 			}
 			return;
 		}
 
 		if(ProtectionManager.checkBlockInteract(player, block, level, new ChunkPos(pos)) == ProtectionManager.Result.DENY){
+			sbe.stopHolding();
 			ci.cancel();
 		}
 

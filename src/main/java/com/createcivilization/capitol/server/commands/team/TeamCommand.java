@@ -31,11 +31,33 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 
 import java.awt.*;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 public class TeamCommand {
+
+	private static final Map<String, String> NAMED_COLORS = new LinkedHashMap<>();
+	static {
+		NAMED_COLORS.put("red",     "FF0000");
+		NAMED_COLORS.put("blue",    "0000FF");
+		NAMED_COLORS.put("green",   "008000");
+		NAMED_COLORS.put("lime",    "00FF00");
+		NAMED_COLORS.put("yellow",  "FFFF00");
+		NAMED_COLORS.put("orange",  "FFA500");
+		NAMED_COLORS.put("purple",  "800080");
+		NAMED_COLORS.put("pink",    "FFC0CB");
+		NAMED_COLORS.put("cyan",    "00FFFF");
+		NAMED_COLORS.put("white",   "FFFFFF");
+		NAMED_COLORS.put("black",   "000000");
+		NAMED_COLORS.put("gray",    "808080");
+		NAMED_COLORS.put("navy",    "000080");
+		NAMED_COLORS.put("teal",    "008080");
+		NAMED_COLORS.put("maroon",  "800000");
+		NAMED_COLORS.put("gold",    "FFD700");
+	}
 
 	public static LiteralArgumentBuilder<CommandSourceStack> register() {
 		return Commands.literal("team")
@@ -43,6 +65,10 @@ public class TeamCommand {
 				.then(Commands.argument("name", StringArgumentType.string())
 					.then(Commands.argument("tag", StringArgumentType.word())
 						.then(Commands.argument("color", StringArgumentType.word())
+							.suggests((context, builder) -> {
+								NAMED_COLORS.keySet().forEach(builder::suggest);
+								return builder.buildFuture();
+							})
 							.then(Commands.argument("description", StringArgumentType.string())
 								.executes(TeamCommand::createTeam))
 							.executes(TeamCommand::createTeam)))))
@@ -100,30 +126,9 @@ public class TeamCommand {
 
 		InviteHandler.addInvite(playerToInvite, team);
 
-		String acceptCmd = "/capitol invites " + team.getName() + " accept";
-		String denyCmd   = "/capitol invites " + team.getName() + " deny";
-
-		MutableComponent accept = Component.literal("[Accept]")
-			.withStyle(s -> s.withColor(ChatFormatting.GREEN)
-				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, acceptCmd))
-				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(acceptCmd))));
-
-		MutableComponent deny = Component.literal("[Deny]")
-			.withStyle(s -> s.withColor(ChatFormatting.RED)
-				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, denyCmd))
-				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(denyCmd))));
-
-		MutableComponent msg = Component.literal("You have been invited to join ")
-			.withStyle(ChatFormatting.YELLOW)
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
-			.append(Component.literal("! ").withStyle(ChatFormatting.YELLOW))
-			.append(accept)
-			.append(Component.literal(" ").withStyle(ChatFormatting.WHITE))
-			.append(deny);
-
-		playerToInvite.sendSystemMessage(msg);
-
-		context.getSource().sendSuccess(() -> Component.literal("Invite sent to " + playerToInvite.getName().getString() + ".").withStyle(ChatFormatting.GREEN), false);
+		context.getSource().sendSuccess(() -> Component.literal("Invite sent to ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(playerToInvite.getName().getString()).withStyle(ChatFormatting.WHITE))
+			.append(Component.literal(".").withStyle(ChatFormatting.GRAY)), false);
 		return 1;
 	}
 
@@ -181,7 +186,10 @@ public class TeamCommand {
 			return 0;
 		}
 
-		String hex = StringArgumentType.getString(context, "color").replace("#", "");
+		String hex = NAMED_COLORS.getOrDefault(
+			StringArgumentType.getString(context, "color").toLowerCase(),
+			StringArgumentType.getString(context, "color")
+		).replace("#", "");
 		String tag = StringArgumentType.getString(context, "tag");
 
 		String description;
@@ -203,7 +211,9 @@ public class TeamCommand {
 		database.addTeam(team);
 		TeamRole ownerRole = database.getRoleByName(team, TeamRole.OWNER_ROLE_NAME);
 		database.addPlayerToTeam(player, team, ownerRole);
-		context.getSource().sendSuccess(() -> Component.literal("Team Created!").withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Team ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(name).withStyle(ChatFormatting.GOLD))
+			.append(Component.literal(" created!").withStyle(ChatFormatting.GRAY)), true);
 		return 1;
 	}
 
@@ -234,8 +244,9 @@ public class TeamCommand {
 		GameProfile gameProfile = profile.get();
 		database.removePlayerFromTeam(gameProfile.getId(), team);
 
-		context.getSource().sendSuccess(() -> Component.literal("Kicked " + gameProfile.getName() + " from the team")
-			.withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Kicked ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
+			.append(Component.literal(" from the team.").withStyle(ChatFormatting.GRAY)), true);
 		return 1;
 	}
 
