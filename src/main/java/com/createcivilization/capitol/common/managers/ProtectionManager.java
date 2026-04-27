@@ -357,13 +357,11 @@ public class ProtectionManager {
 	 * Individual overrides take priority over role-based permissions.
 	 */
 	private static Result resolvePermission(Player player, Permission permission, Team team) {
-		Long individual = database().getIndividualPermissions(player, team);
-		if (individual != null)
-			return permission.hasPermission(individual) ? Result.ALLOW : Result.DENY;
-
 		// TODO: ally team permission check goes here
 
 		long perms = database().getPlayerPermission(player, team);
+		Long individual = database().getIndividualPermissions(player, team);
+		if (individual != null) perms = perms | individual;
 		return permission.hasPermission(perms) ? Result.ALLOW : Result.DENY;
 	}
 

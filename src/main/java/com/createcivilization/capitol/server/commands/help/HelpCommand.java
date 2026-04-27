@@ -33,6 +33,8 @@ public class HelpCommand {
 		msg.append(entry("/capitol team disband", "Disband your team"));
 		msg.append(entry("/capitol team role <name> create|remove|rename|assign|permission", "Manage team roles"));
 		msg.append(entry("/capitol team protection <name>", "Toggle a claim protection setting"));
+		msg.append(entry("/capitol team player <player> permission <perm>", "Toggle an individual permission override"));
+		msg.append(entry("/capitol team player <player> permission reset", "Reset a player's individual permission overrides"));
 		msg.append(entry("/capitol invites <team> accept|deny", "Accept or deny a team invite", false));
 
 		context.getSource().sendSuccess(() -> msg, false);
@@ -49,6 +51,6 @@ public class HelpCommand {
 			.append(Component.literal(command).withStyle(ChatFormatting.AQUA).withStyle(s -> s.withBold(false)))
 			.append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY).withStyle(s -> s.withBold(false)))
 			.append(Component.literal(description).withStyle(ChatFormatting.WHITE).withStyle(s -> s.withBold(false)))
-			.append(Component.literal("\n"));
+			.append(Component.literal(newLine));
 	}
 }

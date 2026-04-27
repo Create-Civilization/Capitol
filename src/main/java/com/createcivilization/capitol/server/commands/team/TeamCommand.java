@@ -98,7 +98,8 @@ public class TeamCommand {
 			.then(Commands.literal("disband").executes(TeamCommand::promptDisband))
 			.then(Commands.literal("confirm_disband").executes(TeamCommand::confirmDisband))
 			.then(TeamRoleCommand.register())
-			.then(TeamProtectionCommand.register());
+			.then(TeamProtectionCommand.register())
+			.then(TeamPlayerCommand.register());
 	}
 
 	private static int invitePlayer(CommandContext<CommandSourceStack> context) {
