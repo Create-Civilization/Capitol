@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(BlockBreakingKineticBlockEntity.class)
+@Mixin(value = BlockBreakingKineticBlockEntity.class)
 public abstract class BlockBreakingKineticBlockEntityMixin extends BlockEntity {
 
 	public BlockBreakingKineticBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {

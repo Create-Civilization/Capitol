@@ -53,7 +53,10 @@ public class CapitolMixinPlugin implements IMixinConfigPlugin {
 			"create.BlockBreakingKineticBlockEntityMixin",
 			"create.DeployerBlockEntityMixin",
 			"simulated.SimAssemblyContraptionMixin",
-			"simulated.AssemblePacketMixin"
+			"simulated.AssemblePacketMixin",
+			"simulated.SteeringWheelPacketMixin",
+			"simulated.ThrottleLeverSignalPacketMixin",
+			"simulated.UpdatePlayerUsingHandlePacketMixin"
 		);
 	}
 	@Override public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
