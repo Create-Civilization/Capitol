@@ -1,11 +1,11 @@
 package com.createcivilization.capitol.mixin.simulated;
 
-import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.companion.SubLevelAccess;
 import dev.simulated_team.simulated.content.blocks.physics_assembler.PhysicsAssemblerBlockEntity;
-import dev.simulated_team.simulated.network.packets.AssemblePacket;
+import dev.simulated_team.simulated.content.blocks.throttle_lever.ThrottleLeverBlockEntity;
+import dev.simulated_team.simulated.network.packets.ThrottleLeverSignalPacket;
 import foundry.veil.api.network.handler.ServerPacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -19,20 +19,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = AssemblePacket.class)
-public class AssemblePacketMixin {
+@Mixin(value = ThrottleLeverSignalPacket.class)
+public class ThrottleLeverSignalPacketMixin {
 
-	@Shadow
-	BlockPos pos;
+	@Shadow private BlockPos pos;
 
 	@Inject(method = "handle", at = @At("HEAD"), cancellable = true, remap = false)
-	public void capitol$blockPacket(ServerPacketContext context, CallbackInfo ci){
+	public void capitol$blockPacket(ServerPacketContext context, CallbackInfo ci) {
 		Player player = context.player();
 		Level level = context.level();
 		BlockEntity blockEntity = level.getBlockEntity(pos);
 		Block block = blockEntity.getBlockState().getBlock();
 
-		if (!(blockEntity instanceof PhysicsAssemblerBlockEntity)) {
+		if (!(blockEntity instanceof ThrottleLeverBlockEntity)) {
 			return;
 		}
 
