@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.server.commands.invite;
 
 import com.createcivilization.capitol.common.data.Team;
+import com.createcivilization.capitol.common.data.TeamMember;
 import com.createcivilization.capitol.common.data.TeamRole;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.server.invites.InviteHandler;
@@ -12,6 +13,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
@@ -45,7 +48,20 @@ public class InviteCommand {
 		DatabaseManager.database.addPlayerToTeam(player, team, role);
 		InviteHandler.clearInvites(player);
 
-		context.getSource().sendSuccess(() -> Component.literal("You joined " + team.getName() + "!").withStyle(ChatFormatting.GREEN), false);
+		MutableComponent joinMsg = Component.literal(player.getName().getString()).withStyle(ChatFormatting.WHITE)
+			.append(Component.literal(" joined ").withStyle(ChatFormatting.GRAY))
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.append(Component.literal("!").withStyle(ChatFormatting.GRAY));
+
+		for (TeamMember member : DatabaseManager.database.getTeamMembers(team)) {
+			if (member.playerUUID().equals(player.getUUID())) continue;
+			ServerPlayer online = context.getSource().getServer().getPlayerList().getPlayer(member.playerUUID());
+			if (online != null) online.sendSystemMessage(joinMsg);
+		}
+
+		context.getSource().sendSuccess(() -> Component.literal("Joined ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.append(Component.literal("!").withStyle(ChatFormatting.GRAY)), false);
 		return 1;
 	}
 
@@ -57,7 +73,9 @@ public class InviteCommand {
 		if (team == null) return 0;
 
 		InviteHandler.removeInvite(player, team);
-		context.getSource().sendSuccess(() -> Component.literal("Invite from " + team.getName() + " denied.").withStyle(ChatFormatting.YELLOW), false);
+		context.getSource().sendSuccess(() -> Component.literal("Invite from ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.append(Component.literal(" denied.").withStyle(ChatFormatting.GRAY)), false);
 		return 1;
 	}
 

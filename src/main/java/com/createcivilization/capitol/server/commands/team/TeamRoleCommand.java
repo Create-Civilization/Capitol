@@ -89,7 +89,10 @@ class TeamRoleCommand {
 		String roleName = StringArgumentType.getString(context, "role_name");
 
 		database.addRole(team, roleName, 0);
-		context.getSource().sendSuccess(() -> Component.literal("Added Role: " + roleName + " to " + team.getName()).withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Role ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA))
+			.append(Component.literal(" added to ").withStyle(ChatFormatting.GRAY))
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD)), true);
 		return 1;
 	}
 
@@ -131,7 +134,8 @@ class TeamRoleCommand {
 
 		database.deleteRole(team, roleName);
 
-		context.getSource().sendSuccess(() -> Component.literal("Deleted Role: " + roleName).withStyle(ChatFormatting.RED), true);
+		context.getSource().sendSuccess(() -> Component.literal("Deleted role ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA)), true);
 		return 1;
 	}
 
@@ -186,8 +190,10 @@ class TeamRoleCommand {
 
 		database.updatePlayerRole(gameProfile.getId(), team, role);
 
-		context.getSource().sendSuccess(() -> Component.literal("Assigned " + gameProfile.getName() + " the role " + roleName)
-			.withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Assigned ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
+			.append(Component.literal(" the role ").withStyle(ChatFormatting.GRAY))
+			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA)), true);
 		return 1;
 	}
 
@@ -225,7 +231,10 @@ class TeamRoleCommand {
 
 		database.updateRoleName(team, roleName, newRoleName);
 
-		context.getSource().sendSuccess(() -> Component.literal("Updated Role: " + roleName + ". New Role Name: " + newRoleName + ".").withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Renamed role ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA))
+			.append(Component.literal(" → ").withStyle(ChatFormatting.DARK_GRAY))
+			.append(Component.literal(newRoleName).withStyle(ChatFormatting.AQUA)), true);
 		return 1;
 	}
 
@@ -276,7 +285,14 @@ class TeamRoleCommand {
 
 		database.updateRolePermissions(team, roleName, rolePerms);
 
-		context.getSource().sendSuccess(() -> Component.literal("Updated " + permissionName + " for " + roleName + " OLD VALUE -> " + oldState + " NEW VALUE -> " + newState).withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.literal("Permission ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA))
+			.append(Component.literal(" for ").withStyle(ChatFormatting.GRAY))
+			.append(Component.literal(roleName).withStyle(ChatFormatting.GOLD))
+			.append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
+			.append(Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED))
+			.append(Component.literal(" → ").withStyle(ChatFormatting.DARK_GRAY))
+			.append(Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED)), true);
 		return 1;
 	}
 }

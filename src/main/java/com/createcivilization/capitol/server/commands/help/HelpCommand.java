@@ -8,6 +8,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
+import java.util.Optional;
+
 public class HelpCommand {
 
 	public static LiteralArgumentBuilder<CommandSourceStack> register() {
@@ -31,13 +33,18 @@ public class HelpCommand {
 		msg.append(entry("/capitol team disband", "Disband your team"));
 		msg.append(entry("/capitol team role <name> create|remove|rename|assign|permission", "Manage team roles"));
 		msg.append(entry("/capitol team protection <name>", "Toggle a claim protection setting"));
-		msg.append(entry("/capitol invites <team> accept|deny", "Accept or deny a team invite"));
+		msg.append(entry("/capitol invites <team> accept|deny", "Accept or deny a team invite", false));
 
 		context.getSource().sendSuccess(() -> msg, false);
 		return 1;
 	}
 
 	private static MutableComponent entry(String command, String description) {
+		return entry(command, description, true);
+	}
+
+	private static MutableComponent entry(String command, String description, boolean newline) {
+		String newLine = newline ? "\n" : "";
 		return Component.empty()
 			.append(Component.literal(command).withStyle(ChatFormatting.AQUA).withStyle(s -> s.withBold(false)))
 			.append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY).withStyle(s -> s.withBold(false)))

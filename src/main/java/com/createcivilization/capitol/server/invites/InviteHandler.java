@@ -4,6 +4,11 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
@@ -22,7 +27,25 @@ public class InviteHandler {
 		playerInvites.add(team);
 		invites.put(player, playerInvites);
 
-		//TODO NOTIFY PLAYER OF INVITE SEND PACKET
+		String acceptCmd = "/capitol invites " + team.getName() + " accept";
+		String denyCmd   = "/capitol invites " + team.getName() + " deny";
+
+		MutableComponent accept = Component.literal("[Accept]")
+			.withStyle(s -> s.withColor(ChatFormatting.GREEN)
+				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, acceptCmd))
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(acceptCmd))));
+
+		MutableComponent deny = Component.literal("[Deny]")
+			.withStyle(s -> s.withColor(ChatFormatting.RED)
+				.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, denyCmd))
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(denyCmd))));
+
+		player.sendSystemMessage(Component.literal("You have been invited to join ").withStyle(ChatFormatting.YELLOW)
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.append(Component.literal("! ").withStyle(ChatFormatting.YELLOW))
+			.append(accept)
+			.append(Component.literal(" ").withStyle(ChatFormatting.WHITE))
+			.append(deny));
 	}
 
 	public static void removeInvite(Player player, Team team){
