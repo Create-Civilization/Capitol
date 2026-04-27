@@ -6,12 +6,15 @@ import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import com.simibubi.create.api.event.BlockEntityBehaviourEvent;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -26,6 +29,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.FrostedIceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -118,9 +123,7 @@ public class PlayerInteractionEvents {
 		//Sable stuff
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
 		if(subLevelAccess != null){
-			if(ProtectionManager.checkContainerOpen(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY) {
-				return true;
-			}
+			return ProtectionManager.checkContainerOpen(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY;
 		}
 
 		if (ProtectionManager.checkContainerOpen(player, state.getBlock(), level, chunkPos) != Result.DENY) {
@@ -138,9 +141,7 @@ public class PlayerInteractionEvents {
 
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
 		if(subLevelAccess != null){
-			if(ProtectionManager.checkRedstoneInteract(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY) {
-				return true;
-			}
+			return ProtectionManager.checkRedstoneInteract(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY;
 		}
 
 		return ProtectionManager.checkRedstoneInteract(player, state.getBlock(), level, chunkPos) == Result.DENY;
@@ -154,13 +155,18 @@ public class PlayerInteractionEvents {
 				event.setCancellationResult(InteractionResult.FAIL);
 				event.setCanceled(true);
 				sendDenied("You can't interact with this block!", player);
+				if (player instanceof ServerPlayer serverPlayer)
+					serverPlayer.getServer().execute(serverPlayer::closeContainer);
 			}
+			return;
 		}
 
 		if (ProtectionManager.checkBlockInteract(player, state.getBlock(), level, chunkPos) == Result.DENY) {
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			sendDenied("You can't interact with this block!", player);
+			if (player instanceof ServerPlayer serverPlayer)
+				serverPlayer.getServer().execute(serverPlayer::closeContainer);
 		}
 	}
 

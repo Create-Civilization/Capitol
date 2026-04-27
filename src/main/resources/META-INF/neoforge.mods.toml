@@ -37,12 +37,5 @@ side = "BOTH"
 #ordering = "NONE"
 #side = "CLIENT"
 
-#[[dependencies."${mod_id}"]]
-#modId = "wiiu_lib"
-#mandatory = true
-#versionRange = "*"
-#ordering = "NONE"
-#side = "BOTH"
-
 [[mixins]]
 config="capitol.mixins.json"
