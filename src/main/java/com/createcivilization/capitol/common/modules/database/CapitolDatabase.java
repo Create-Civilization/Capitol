@@ -560,9 +560,13 @@ public class CapitolDatabase extends Database {
 	 * @return the permission bitfield, or {@code 0} if the player is not a member
 	 */
 	public long getPlayerPermission(Player player, Team team) {
+		return getPlayerPermission(player.getUUID(), team);
+	}
+
+	public long getPlayerPermission(UUID playerUUID, Team team) {
 		Map<UUID, Long> teamCache = playerPermCache.get(team.getId());
 		if (teamCache != null) {
-			Long cached = teamCache.get(player.getUUID());
+			Long cached = teamCache.get(playerUUID);
 			if (cached != null) return cached;
 		}
 		try (PreparedStatement ps = getConnection().prepareStatement(
@@ -570,7 +574,7 @@ public class CapitolDatabase extends Database {
 				"JOIN team_roles ON team_roles.id = team_members.role_id " +
 				"WHERE team_members.team_id = ? AND team_members.player_uuid = ?")) {
 			ps.setString(1, team.getId().toString());
-			ps.setString(2, player.getUUID().toString());
+			ps.setString(2, playerUUID.toString());
 			try (ResultSet rs = ps.executeQuery()) {
 				long perms;
 				if (rs.next()) {
@@ -580,7 +584,7 @@ public class CapitolDatabase extends Database {
 					perms = role.permissions();
 				}
 				playerPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
-					.put(player.getUUID(), perms);
+					.put(playerUUID, perms);
 				return perms;
 			}
 		} catch (SQLException e) {
@@ -590,19 +594,23 @@ public class CapitolDatabase extends Database {
 	}
 
 	public Long getIndividualPermissions(Player player, Team team) {
+		return getIndividualPermissions(player.getUUID(), team);
+	}
+
+	public Long getIndividualPermissions(UUID playerUUID, Team team) {
 		Map<UUID, Optional<Long>> teamCache = individualPermCache.get(team.getId());
 		if (teamCache != null) {
-			Optional<Long> cached = teamCache.get(player.getUUID());
+			Optional<Long> cached = teamCache.get(playerUUID);
 			if (cached != null) return cached.orElse(null);
 		}
 		try (PreparedStatement ps = getConnection().prepareStatement(
 			"SELECT permissions FROM player_permissions WHERE team_id = ? AND player_uuid = ?")) {
 			ps.setString(1, team.getId().toString());
-			ps.setString(2, player.getUUID().toString());
+			ps.setString(2, playerUUID.toString());
 			try (ResultSet rs = ps.executeQuery()) {
 				Long perms = rs.next() ? rs.getLong("permissions") : null;
 				individualPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
-					.put(player.getUUID(), Optional.ofNullable(perms));
+					.put(playerUUID, Optional.ofNullable(perms));
 				return perms;
 			}
 		} catch (SQLException e) {
@@ -612,15 +620,19 @@ public class CapitolDatabase extends Database {
 	}
 
 	public void setIndividualPermissions(Player player, Team team, long permissions) {
+		setIndividualPermissions(player.getUUID(), team, permissions);
+	}
+
+	public void setIndividualPermissions(UUID playerUUID, Team team, long permissions) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
 			"INSERT INTO player_permissions (team_id, player_uuid, permissions) VALUES (?, ?, ?) " +
 				"ON CONFLICT(team_id, player_uuid) DO UPDATE SET permissions = excluded.permissions")) {
 			ps.setString(1, team.getId().toString());
-			ps.setString(2, player.getUUID().toString());
+			ps.setString(2, playerUUID.toString());
 			ps.setLong(3, permissions);
 			ps.execute();
 			individualPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
-				.put(player.getUUID(), Optional.of(permissions));
+				.put(playerUUID, Optional.of(permissions));
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while setting individual permissions in database.", e);
 			throw new RuntimeException(e);
@@ -628,13 +640,17 @@ public class CapitolDatabase extends Database {
 	}
 
 	public void removeIndividualPermissions(Player player, Team team) {
+		removeIndividualPermissions(player.getUUID(), team);
+	}
+
+	public void removeIndividualPermissions(UUID playerUUID, Team team) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM player_permissions WHERE team_id = ? AND player_uuid = ?")) {
 			ps.setString(1, team.getId().toString());
-			ps.setString(2, player.getUUID().toString());
+			ps.setString(2, playerUUID.toString());
 			ps.execute();
 			Map<UUID, Optional<Long>> teamCache = individualPermCache.get(team.getId());
-			if (teamCache != null) teamCache.put(player.getUUID(), Optional.empty());
+			if (teamCache != null) teamCache.put(playerUUID, Optional.empty());
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while removing individual permissions in database.", e);
 			throw new RuntimeException(e);

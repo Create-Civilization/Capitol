@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class InviteHandler {
 
-	private static Map<Player, List<Team>> invites = new HashMap<>();
+	private static final Map<Player, List<Team>> invites = new HashMap<>();
 
 	public static void addInvite(Player player, Team team){
 		CapitolDatabase database = DatabaseManager.database;
