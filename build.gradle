@@ -121,6 +121,9 @@ dependencies {
     compileOnly("info.journeymap:journeymap-api-neoforge:${journeymap_api_version}")
     runtimeOnly("curse.maven:journeymap-32274:${journeymap_curse_file_id}")
 
+    runtimeOnly("top.theillusivec4.curios:curios-neoforge:${curios_version}")
+    compileOnly("top.theillusivec4.curios:curios-neoforge:${curios_version}:api")
+
     compileOnly("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     localRuntime("com.simibubi.create:create-${minecraft_version}:${create_version}") { transitive = false }
     compileOnly("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
@@ -159,7 +162,7 @@ dependencies {
         }
     }
 
-    jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:[${sable_companion_version},)"))
+    jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}"))
 }
 
 tasks.withType(ProcessResources).configureEach {

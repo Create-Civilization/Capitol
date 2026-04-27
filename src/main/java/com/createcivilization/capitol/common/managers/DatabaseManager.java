@@ -120,7 +120,6 @@ public class DatabaseManager {
 	}
 
 	public static Connection getConnection() {
-		Capitol.LOGGER.info("Database hit!!!");
 		return connection;
 	}
 
