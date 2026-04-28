@@ -1,6 +1,5 @@
 package com.createcivilization.capitol.common.config;
 
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
@@ -11,7 +10,6 @@ public class CapitolConfig {
 
 	// Claims
 	public static final ModConfigSpec.IntValue MAX_TEAM_CLAIMS;
-	public static final ModConfigSpec.IntValue MAX_CLAIM_DISTANCE;
 	public static final ModConfigSpec.EnumValue<ListType> CLAIMABLE_DIMENSIONS_LIST_TYPE;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> CLAIMABLE_DIMENSIONS;
 	public static final ModConfigSpec.BooleanValue SUBLEVEL_CLAIM_OVERLAP;
@@ -24,9 +22,7 @@ public class CapitolConfig {
 	public static final ModConfigSpec.BooleanValue PROTECT_FIRE_SPREAD;
 	public static final ModConfigSpec.BooleanValue PROTECT_PISTONS;
 	public static final ModConfigSpec.BooleanValue PROTECT_FLUID_FLOW;
-	public static final ModConfigSpec.BooleanValue PROTECT_DISPENSERS;
 	public static final ModConfigSpec.BooleanValue PROTECT_CROP_TRAMPLING;
-	public static final ModConfigSpec.BooleanValue PROTECT_SCULK;
 
 	// Team-level protection defaults
 	public static final ModConfigSpec.BooleanValue DEFAULT_EXPLOSION;
@@ -65,10 +61,6 @@ public class CapitolConfig {
 			.comment("Maximum chunks a team can claim.")
 			.defineInRange("maxTeamClaims", 1000, 1, Integer.MAX_VALUE);
 
-		MAX_CLAIM_DISTANCE = builder
-			.comment("Max distance (in chunks) from existing claims to claim a new chunk.")
-			.defineInRange("maxClaimDistance", 5, 1, Integer.MAX_VALUE);
-
 		CLAIMABLE_DIMENSIONS_LIST_TYPE = builder
 			.comment("ONLY = only listed dimensions are claimable. ALL_BUT = all except listed.")
 			.defineEnum("claimableDimensionsListType", ListType.ALL_BUT);
@@ -102,9 +94,7 @@ public class CapitolConfig {
 		PROTECT_FIRE_SPREAD = builder.comment("Prevent fire spread in claims.").define("fireSpread", true);
 		PROTECT_PISTONS = builder.comment("Prevent pistons pushing/pulling across claim boundaries.").define("pistons", true);
 		PROTECT_FLUID_FLOW = builder.comment("Prevent fluid flowing across claim boundaries.").define("fluidFlow", true);
-		PROTECT_DISPENSERS = builder.comment("Prevent dispensers acting across claim boundaries.").define("dispensers", true);
 		PROTECT_CROP_TRAMPLING = builder.comment("Prevent non-player crop trampling in claims.").define("cropTrampling", true);
-		PROTECT_SCULK = builder.comment("Prevent sculk spreading in claims.").define("sculk", false);
 
 		builder.comment(
 			"Default protection values for new teams. true = protection enabled (event blocked).",
