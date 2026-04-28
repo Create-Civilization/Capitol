@@ -14,9 +14,7 @@ public enum TeamProtection {
 	FIRE            (1L << 2, "fire"),
 	PISTON          (1L << 3, "piston"),
 	FLUID_FLOW      (1L << 4, "fluid_flow"),
-	DISPENSER       (1L << 5, "dispenser"),
-	CROP_TRAMPLING  (1L << 6, "crop_trampling"),
-	SCULK           (1L << 7, "sculk");
+	CROP_TRAMPLING  (1L << 6, "crop_trampling");
 
 	private final long bit;
 	private final String key;
@@ -60,9 +58,7 @@ public enum TeamProtection {
 			case FIRE -> CapitolConfig.DEFAULT_FIRE.get();
 			case PISTON -> CapitolConfig.DEFAULT_PISTON.get();
 			case FLUID_FLOW -> CapitolConfig.DEFAULT_FLUID_FLOW.get();
-			case DISPENSER -> CapitolConfig.DEFAULT_DISPENSER.get();
 			case CROP_TRAMPLING -> CapitolConfig.DEFAULT_CROP_TRAMPLING.get();
-			case SCULK -> CapitolConfig.DEFAULT_SCULK.get();
 		};
 	}
 }

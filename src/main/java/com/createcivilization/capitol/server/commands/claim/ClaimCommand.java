@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.server.commands.claim;
 
 import com.createcivilization.capitol.common.compat.sable.SableCompat;
+import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
@@ -52,6 +53,19 @@ public class ClaimCommand {
 
 		if (!Permission.CLAIM_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
 			context.getSource().sendFailure(Component.literal("You do not have permission to claim chunks")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		int maxClaims = CapitolConfig.MAX_TEAM_CLAIMS.get();
+		if (team.getCurrentClaims() >= maxClaims) {
+			context.getSource().sendFailure(Component.literal("Your team has reached the server claim limit (" + maxClaims + ")")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if (team.getMaxClaims() > 0 && team.getCurrentClaims() >= team.getMaxClaims()) {
+			context.getSource().sendFailure(Component.literal("Your team has reached its claim limit (" + team.getMaxClaims() + ")")
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}
