@@ -765,6 +765,66 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	public boolean isChunkForceloaded(ChunkPos chunkPos, Level level) {
+		String dim = level.dimension().location().toString();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT force_loaded FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
+			ps.setString(1, dim);
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() && rs.getBoolean("force_loaded");
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while checking chunk forceload state from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean toggleChunkForceload(Team team, ChunkPos chunkPos, Level level) {
+		String dim = level.dimension().location().toString();
+		boolean current;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT force_loaded FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
+			ps.setString(1, dim);
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (!rs.next()) return false;
+				current = rs.getBoolean("force_loaded");
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while reading chunk forceload state from database.", e);
+			throw new RuntimeException(e);
+		}
+		boolean newState = !current;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE chunks SET force_loaded = ? WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
+			ps.setBoolean(1, newState);
+			ps.setString(2, dim);
+			ps.setInt(3, chunkPos.x);
+			ps.setInt(4, chunkPos.z);
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while updating chunk forceload state in database.", e);
+			throw new RuntimeException(e);
+		}
+		return newState;
+	}
+
+	public int getTeamForceloadedCount(Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT COUNT(*) FROM chunks WHERE team_id = ? AND force_loaded = 1")) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() ? rs.getInt(1) : 0;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while counting forceloaded chunks for team from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
 	/**
 	 * Checks whether a specific protection is enabled for a team
 	 * using the {@code team_permissions} bitfield.

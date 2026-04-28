@@ -100,7 +100,8 @@ public class TeamCommand {
 			.then(Commands.literal("confirm_disband").executes(TeamCommand::confirmDisband))
 			.then(TeamRoleCommand.register())
 			.then(TeamProtectionCommand.register())
-			.then(TeamPlayerCommand.register());
+			.then(TeamPlayerCommand.register())
+			.then(TeamForceloadCommand.register());
 	}
 
 	private static int invitePlayer(CommandContext<CommandSourceStack> context) {
@@ -110,6 +111,12 @@ public class TeamCommand {
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
 			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if (!Permission.INVITE_MEMBERS.hasPermission(database.getPlayerPermission(player, team))) {
+			context.getSource().sendFailure(Component.literal("You do not have permission to invite players to this team")
+				.withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
