@@ -1,24 +1,29 @@
 # Capitol
-A Create Civilization project focused on improving chunk claiming systems, focusing on systems management and mod parity.
 
-## Goals:
-- Parity with many popular mods
-- Modularized systems
-- Easy development (API, Testing, deployment)
-- Secure claim system
+A claims & protections mod for Minecraft.
 
-## Development Goals:
-- [Clear documentation](docs/documentation.md)
-- Extensive Production tools for testing (Unit tests, CI/CD tools, etc)
-- Modular systems
-- Fast development, functionality > polish
+This is a [Create: Civilization](https://github.com/Create-Civilization/) project, focused around team & chunk claiming systems that have high compatibility with mods such as Create.
 
+## Status
 
-## System modules:
-To keep things robust, modular and fast the Capitol mod should be easily dividable in modular sections such as:
-- Database: JSON, SQL, etc
-- Claim protection: Prevent unlawful actions on claimed chunks
-- Permission manager: allow the creation of admins, moderators and other roles for maintenance
+- Capitol is currently undergoing heavy development in preparation for Create: Civilization Season 2.
+    - This means stability is not currently a guarantee, and bugs or major breaking changes may occur as we work to improve Capitol.
+    - If you find a bug, or have a feature suggestion/request, please [make a GitHub issue](https://github.com/Create-Civilization/Capitol/issues/new/)!
+    - If stuff is broken or you don't like it, remember: [talk is cheap, send patches](https://x.com/FFmpeg/status/1762805900035686805/).
 
-## Current Status
-16 of 43 permissions are currently enforced. See the full [implementation checklist](docs/to-do/claim_protection.md) and [permission docs](docs/docs/permissions.md) for details.
+## Goals
+
+- [ ] A fully fleshed out claims system.
+    - [x] Teams
+        - [ ] Allies
+        - [x] Permissions management
+        - [x] Claims
+        - [ ] Wars w/ King-Of-The-Hill style takeover (this is probably a whole subsection unto itself)
+
+## Contributions
+
+Contributions are _very_ welcomed (especially as Capitol is still heavily in development)!
+
+If you have a feature you'd like to implement, or there's bug you know how to fix, please [open a pull request](https://github.com/Create-Civilization/Capitol/pulls/)!
+
+If you need to talk to the developers directly, you can [join our Discord server](https://discord.gg/3K3ydtmcZv)!

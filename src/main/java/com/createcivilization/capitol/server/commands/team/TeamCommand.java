@@ -95,6 +95,7 @@ public class TeamCommand {
 						return builder.buildFuture();
 					})
 					.executes(TeamCommand::kickPlayer)))
+			.then(Commands.literal("leave").executes(TeamCommand::leaveTeam))
 			.then(Commands.literal("disband").executes(TeamCommand::promptDisband))
 			.then(Commands.literal("confirm_disband").executes(TeamCommand::confirmDisband))
 			.then(TeamRoleCommand.register())
@@ -248,6 +249,30 @@ public class TeamCommand {
 		context.getSource().sendSuccess(() -> Component.literal("Kicked ").withStyle(ChatFormatting.GRAY)
 			.append(Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
 			.append(Component.literal(" from the team.").withStyle(ChatFormatting.GRAY)), true);
+		return 1;
+	}
+
+	private static int leaveTeam(CommandContext<CommandSourceStack> context) {
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+
+		Team team = database.getPlayerTeam(player);
+		if (team == null) {
+			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if (database.getPlayerRole(player, team).isOwner()) {
+			context.getSource().sendFailure(Component.literal("You are the owner of this team. Disband it instead.")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		database.removePlayerFromTeam(player, team);
+
+		context.getSource().sendSuccess(() -> Component.literal("You have left ").withStyle(ChatFormatting.GRAY)
+			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.append(Component.literal(".").withStyle(ChatFormatting.GRAY)), false);
 		return 1;
 	}
 
