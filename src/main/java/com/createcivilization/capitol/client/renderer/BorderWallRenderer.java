@@ -24,7 +24,7 @@ public class BorderWallRenderer {
 
 	@SubscribeEvent
 	public static void onRenderLevel(RenderLevelStageEvent event) {
-		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
+		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return;
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level == null) return;
 		var claims = ClientClaimCache.get();

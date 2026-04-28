@@ -24,10 +24,11 @@ public class BorderRenderer {
 	public static float LINE_THICKNESS = 0.25f;
 	private static final float Z_FIGHT_OFFSET = 0.002f;
 	private static final float BORDER_ALPHA = 0.85f;
+	private static final int DISTANCE = 512;
 
 	@SubscribeEvent
 	public static void onRenderLevel(RenderLevelStageEvent event) {
-		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
+		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return;
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level == null) return;
 		var claims = ClientClaimCache.get();
@@ -162,8 +163,8 @@ public class BorderRenderer {
 		}
 
 		int camY = (int) Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().y;
-		int scanBottom = Math.max(minBuildHeight, camY - 64);
-		int scanCeiling = camY + 64;
+		int scanBottom = Math.max(minBuildHeight, camY - DISTANCE);
+		int scanCeiling = camY + DISTANCE;
 
 		for (int i = 0; i < 16; i++) {
 			int blockX, blockZ, neighborX, neighborZ;
