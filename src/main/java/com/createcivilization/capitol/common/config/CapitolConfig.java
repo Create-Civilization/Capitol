@@ -41,7 +41,6 @@ public class CapitolConfig {
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> PROTECTED_ENTITIES;
 
 	// Exceptions
-	public static final ModConfigSpec.ConfigValue<List<? extends String>> ENTITY_CLAIM_BARRIER;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_INTERACTION_EXCEPTIONS;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_BREAK_EXCEPTIONS;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_PLACE_EXCEPTIONS;
@@ -138,10 +137,6 @@ public class CapitolConfig {
 		builder.pop();
 
 		builder.comment("Global exception lists that always apply regardless of team settings.").push("exceptions");
-
-		ENTITY_CLAIM_BARRIER = builder
-			.comment("Entities always prevented from entering claimed chunks.")
-			.defineListAllowEmpty("entityClaimBarrier", List.of(), () -> "", o -> o instanceof String);
 
 		BLOCK_INTERACTION_EXCEPTIONS = builder
 			.comment("Blocks anyone can interact with in claims. Supports #tags and *wildcards.")

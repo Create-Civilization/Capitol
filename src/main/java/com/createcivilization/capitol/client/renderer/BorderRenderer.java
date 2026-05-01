@@ -24,7 +24,6 @@ public class BorderRenderer {
 	public static float LINE_THICKNESS = 0.25f;
 	private static final float Z_FIGHT_OFFSET = 0.002f;
 	private static final float BORDER_ALPHA = 0.85f;
-	private static final int DISTANCE = 512;
 
 	@SubscribeEvent
 	public static void onRenderLevel(RenderLevelStageEvent event) {
@@ -50,6 +49,7 @@ public class BorderRenderer {
 		BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		for (var entry : new ArrayList<>(claims.entrySet())) {
 			ChunkPos chunkPos = entry.getKey();
+			if (!mc.level.getChunkSource().hasChunk(chunkPos.x, chunkPos.z)) continue;
 			Team team = entry.getValue();
 			Color color = team.getColor();
 			if (isBorder(team, chunkPos.x, chunkPos.z - 1)) drawSide(buffer, matrix, mc.level, chunkPos, Direction.NORTH, color);
@@ -132,6 +132,7 @@ public class BorderRenderer {
 		int minX = chunk.getMinBlockX();
 		int minZ = chunk.getMinBlockZ();
 		int minBuildHeight = level.getMinBuildHeight();
+		int maxBuildHeight = level.getMaxBuildHeight();
 
 		float boundary, inner, inwardNudge;
 		boolean alongX;
@@ -162,10 +163,6 @@ public class BorderRenderer {
 			}
 		}
 
-		int camY = (int) Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().y;
-		int scanBottom = Math.max(minBuildHeight, camY - DISTANCE);
-		int scanCeiling = camY + DISTANCE;
-
 		for (int i = 0; i < 16; i++) {
 			int blockX, blockZ, neighborX, neighborZ;
 			switch (side) {
@@ -195,10 +192,10 @@ public class BorderRenderer {
 				}
 			}
 
-			int scanTop = Math.clamp(Math.min(surfaceY(level, blockX, blockZ), scanCeiling), Math.min(surfaceY(level, neighborX, neighborZ), scanCeiling), scanCeiling);
+			int scanTop = Math.clamp(Math.min(surfaceY(level, blockX, blockZ), maxBuildHeight), Math.min(surfaceY(level, neighborX, neighborZ), maxBuildHeight), maxBuildHeight);
 			float outwardBoundary = boundary + inwardNudge;
 
-			for (int y = scanBottom; y < scanTop; y++) {
+			for (int y = minBuildHeight; y < scanTop; y++) {
 				if (!occluding(level, blockX, y, blockZ)) continue;
 
 				if (!occluding(level, blockX, y + 1, blockZ))
@@ -214,9 +211,9 @@ public class BorderRenderer {
 			if (i < 15) {
 				int nextBlockX = alongX ? blockX + 1 : blockX;
 				int nextBlockZ = alongX ? blockZ : blockZ + 1;
-				int lateralTop = Math.clamp(scanTop, Math.min(surfaceY(level, nextBlockX, nextBlockZ), scanCeiling), scanCeiling);
+				int lateralTop = Math.clamp(scanTop, Math.min(surfaceY(level, nextBlockX, nextBlockZ), maxBuildHeight), maxBuildHeight);
 
-				for (int y = scanBottom; y < lateralTop; y++) {
+				for (int y = minBuildHeight; y < lateralTop; y++) {
 					boolean currentSolid = occluding(level, blockX, y, blockZ);
 					boolean nextSolid = occluding(level, nextBlockX, y, nextBlockZ);
 					if (currentSolid == nextSolid) continue;

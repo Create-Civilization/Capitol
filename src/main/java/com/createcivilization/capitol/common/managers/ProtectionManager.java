@@ -44,7 +44,6 @@ public class ProtectionManager {
 	private static ResourceMatcher itemUseExceptions;
 	private static ResourceMatcher entitiesAllowedToGrief;
 	private static ResourceMatcher protectedEntities;
-	private static ResourceMatcher entityClaimBarrier;
 	private static Set<String> teamConfigurableKeys;
 
 	private ProtectionManager() {}
@@ -57,7 +56,6 @@ public class ProtectionManager {
 		itemUseExceptions = ResourceMatcher.fromConfigList(CapitolConfig.ITEM_USE_EXCEPTIONS.get());
 		entitiesAllowedToGrief = ResourceMatcher.fromConfigList(CapitolConfig.ENTITIES_ALLOWED_TO_GRIEF.get());
 		protectedEntities = ResourceMatcher.fromConfigList(CapitolConfig.PROTECTED_ENTITIES.get());
-		entityClaimBarrier = ResourceMatcher.fromConfigList(CapitolConfig.ENTITY_CLAIM_BARRIER.get());
 		teamConfigurableKeys = new HashSet<>(CapitolConfig.TEAM_CONFIGURABLE_PROTECTIONS.get());
 
 		Capitol.LOGGER.info("ProtectionManager loaded");
@@ -263,19 +261,6 @@ public class ProtectionManager {
 		return database().isProtectionEnabled(team, TeamProtection.MOB_GRIEFING) ? Result.DENY : Result.ALLOW;
 	}
 
-	/**
-	 * Checks whether a non-player entity is allowed to enter the claimed chunk at {@code pos}.
-	 * Only entities matching the {@code ENTITY_CLAIM_BARRIER} config list are blocked.
-	 */
-	public static Result checkEntityEnterClaim(Entity entity, Level level, ChunkPos pos) {
-		if (entity instanceof Player || entityClaimBarrier.isEmpty()) return Result.PASS;
-
-		Team team = database().getChunkOwner(pos, level);
-		if (team == null) return Result.PASS;
-
-		return entityClaimBarrier.matchesEntity(entity.getType()) ? Result.DENY : Result.PASS;
-	}
-
 	/** Checks whether a player walking over a crop in the chunk at {@code pos} should be prevented from trampling it. */
 	public static Result checkCropTrample(Level level, ChunkPos pos) {
 		if (!CapitolConfig.PROTECT_CROP_TRAMPLING.get()) return Result.PASS;
@@ -290,7 +275,7 @@ public class ProtectionManager {
 	 * Checks whether an actor inside a sub-level can act on a block inside another sub-level.
 	 * Returns PASS if the target sub-level is unclaimed.
 	 */
-	public static Result checkSubLevelToSublevelActorAction(Level level, SubLevelAccess actorSubLevel, SubLevelAccess targetSubLevel) {
+	public static Result checkSubLevelToSublevelActorAction(SubLevelAccess actorSubLevel, SubLevelAccess targetSubLevel) {
 		Team targetOwner = database().getSubLevelOwner(targetSubLevel.getUniqueId());
 		if (targetOwner == null) return Result.PASS;
 

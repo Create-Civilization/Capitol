@@ -44,7 +44,7 @@ public class BlockBreakingMovementBehaviourMixin {
 			if (targetSubLevel != null) {
 				SubLevelAccess anchorSubLevel = SableCompanion.INSTANCE.getContaining(context.world, anchorPos);
 				Result result = anchorSubLevel != null
-					? ProtectionManager.checkSubLevelToSublevelActorAction(context.world, anchorSubLevel, targetSubLevel)
+					? ProtectionManager.checkSubLevelToSublevelActorAction(anchorSubLevel, targetSubLevel)
 					: ProtectionManager.checkWorldToSubLevelActorAction(context.world, new ChunkPos(anchorPos), targetSubLevel);
 				if (result == Result.DENY) return Blocks.BEDROCK.defaultBlockState();
 				return actual;

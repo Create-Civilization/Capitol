@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.FireBlock;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityMobGriefingEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
@@ -87,16 +86,6 @@ public class ClaimProtectionEvents {
 		if (event.getEntity() instanceof Player) return;
 
 		if (ProtectionManager.checkCropTrample(event.getEntity().level(), new ChunkPos(event.getPos())) == Result.DENY) {
-			event.setCanceled(true);
-		}
-	}
-
-	@SubscribeEvent
-	public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
-		Entity entity = event.getEntity();
-		if (entity instanceof Player) return;
-
-		if (ProtectionManager.checkEntityEnterClaim(entity, event.getLevel(), new ChunkPos(entity.blockPosition())) == Result.DENY) {
 			event.setCanceled(true);
 		}
 	}
