@@ -24,7 +24,6 @@ public class BorderRenderer {
 	public static float LINE_THICKNESS = 0.25f;
 	private static final float Z_FIGHT_OFFSET = 0.002f;
 	private static final float BORDER_ALPHA = 0.85f;
-	private static final int DISTANCE = 512;
 
 	@SubscribeEvent
 	public static void onRenderLevel(RenderLevelStageEvent event) {
