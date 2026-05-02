@@ -1,6 +1,8 @@
 package com.createcivilization.capitol.common.networking;
 
 import com.createcivilization.capitol.client.networking.ClientPayloadHandler;
+import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
+import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
@@ -43,6 +45,22 @@ public class CapitolNetworking {
 			C2SChunkRequest.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ServerPayloadHandler::handleChunkRequest
+			)
+		);
+
+		registrar.playToServer(
+			C2SClaimChunk.TYPE,
+			C2SClaimChunk.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleClaimChunk
+			)
+		);
+
+		registrar.playToServer(
+			C2SUnclaimChunk.TYPE,
+			C2SUnclaimChunk.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleUnclaimChunk
 			)
 		);
 	}
