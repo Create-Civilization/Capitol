@@ -1,0 +1,20 @@
+name: Crash Report
+description: "Report a crash with Capitol."
+labels: [ "type: crash" ]
+body:
+  - type: textarea
+    attributes:
+      label: Context
+      description: >
+        What were you doing when the game crashed?
+        Include images or videos if helpful.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Crash Report
+      description: >
+        Upload the newest file from your "crash-reports" folder to https://mclo.gs/ and paste the link here.
+        Do **not** paste the file contents directly.
+    validations:
+      required: true
