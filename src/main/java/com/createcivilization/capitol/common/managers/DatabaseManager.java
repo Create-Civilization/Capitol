@@ -5,10 +5,7 @@ import com.createcivilization.capitol.common.compat.sable.SableCompat;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class DatabaseManager {
 
@@ -25,6 +22,9 @@ public class DatabaseManager {
 			String url = "jdbc:sqlite:" + databasePath.toAbsolutePath();
 
 			connection = DriverManager.getConnection(url);
+
+			int version = getSchemaVersion();
+			runMigrations(version);
 
 			try (Statement stmt = connection.createStatement()) {
 				stmt.execute("PRAGMA journal_mode=WAL;");
@@ -117,6 +117,19 @@ public class DatabaseManager {
 			}
 
 		}
+	}
+
+	//Will be used for DB migrations ect
+	private static void runMigrations(int current) throws SQLException {}
+
+	private static int getSchemaVersion() throws SQLException {
+		try (ResultSet rs = connection.createStatement().executeQuery("PRAGMA user_version")) {
+			return rs.next() ? rs.getInt(1) : 0;
+		}
+	}
+
+	private static void setSchemaVersion(int version) throws SQLException {
+		connection.createStatement().execute("PRAGMA user_version = " + version);
 	}
 
 	public static Connection getConnection() {

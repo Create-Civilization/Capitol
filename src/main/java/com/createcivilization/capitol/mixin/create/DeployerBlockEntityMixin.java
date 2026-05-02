@@ -50,7 +50,7 @@ public class DeployerBlockEntityMixin {
 			if (targetSubLevel != null) {
 				SubLevelAccess deployerSubLevel = SableCompanion.INSTANCE.getContaining(rootLevel, deployerPos);
 				Result result = deployerSubLevel != null
-					? ProtectionManager.checkSubLevelToSublevelActorAction(level, deployerSubLevel, targetSubLevel)
+					? ProtectionManager.checkSubLevelToSublevelActorAction(deployerSubLevel, targetSubLevel)
 					: ProtectionManager.checkWorldToSubLevelActorAction(level, new ChunkPos(deployerPos), targetSubLevel);
 				deny = result == Result.DENY;
 			} else {

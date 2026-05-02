@@ -1,10 +1,11 @@
 # Rendering
-Both renderers hook into `RenderLevelStageEvent` at `AFTER_TRANSLUCENT_BLOCKS` and read from `ClientClaimCache` to know which chunks are claimed and by whom.
+Both renderers hook into `RenderLevelStageEvent` at `AFTER_BLOCK_ENTITIES` and read from `ClientClaimCache` to know which chunks are claimed and by whom.
 
 ### BorderRenderer
 Draws colored lines along chunk edges where territory borders another team or unclaimed land. The line hugs the terrain — it only draws on exposed block faces (solid block with air adjacent).
 
-- Scans 64 blocks above/below the camera for performance
+- Only renders chunks that are currently loaded on the client (`hasChunk` filter), so only visible land is processed
+- Scans the full world height (`minBuildHeight` to `maxBuildHeight`), so borders remain visible when flying above terrain
 - Three quad types: **horizontal** (top/bottom of blocks), **outward** (vertical face toward neighbor), **lateral** (bridges height gaps between columns)
 - Horizontal and lateral quads fade from `BORDER_ALPHA` at the edge to transparent inward (`LINE_THICKNESS = 0.25` blocks wide)
 - `Z_FIGHT_OFFSET` nudges geometry slightly off block surfaces to prevent flickering
