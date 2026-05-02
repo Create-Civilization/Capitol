@@ -43,9 +43,13 @@ public class Capitol {
     public Capitol(IEventBus modEventBus, ModContainer container) {
 		container.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SPEC);
 
+		Capitol.LOGGER.info("Registering Listeners.");
+
 		NeoForge.EVENT_BUS.addListener(this::onServerStart);
 		NeoForge.EVENT_BUS.addListener(this::onServerStarted);
 		NeoForge.EVENT_BUS.addListener(this::onServerStop);
+
+		LOGGER.info("Listeners successfully registered");
 
 		if (FMLEnvironment.dist == Dist.CLIENT) {
 			NeoForge.EVENT_BUS.register(BorderRenderer.class);
@@ -60,6 +64,7 @@ public class Capitol {
 	private void onServerStart(ServerStartingEvent event) {
 		Path worldPath = event.getServer()
 			.getWorldPath(LevelResource.ROOT);
+		Capitol.LOGGER.info("Starting server, world path: {}", worldPath);
 		DatabaseManager.init(worldPath);
 		ProtectionManager.reload();
 	}
