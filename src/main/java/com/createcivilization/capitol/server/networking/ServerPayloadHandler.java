@@ -47,14 +47,15 @@ public class ServerPayloadHandler {
 			return;
 		}
 
-		int maxClaims = CapitolConfig.MAX_TEAM_CLAIMS.get();
-		if (team.getCurrentClaims() >= maxClaims) {
-			player.displayClientMessage(Component.literal("Your team has reached the server claim limit (" + maxClaims + ")").withStyle(ChatFormatting.RED), false);
-			return;
-		}
+		int serverLimit = CapitolConfig.MAX_TEAM_CLAIMS.get();
+		int teamLimit = team.getMaxClaims();
+		int effectiveLimit = (teamLimit > 0) ? Math.min(serverLimit, teamLimit) : serverLimit;
 
-		if (team.getMaxClaims() > 0 && team.getCurrentClaims() >= team.getMaxClaims()) {
-			player.displayClientMessage(Component.literal("Your team has reached its claim limit (" + team.getMaxClaims() + ")").withStyle(ChatFormatting.RED), false);
+		if (team.getCurrentClaims() >= effectiveLimit) {
+			boolean isServerLimit = (teamLimit <= 0) || (serverLimit <= teamLimit);
+			String limitName = isServerLimit ? "server" : "team";
+			int limitValue = isServerLimit ? serverLimit : teamLimit;
+			player.displayClientMessage(Component.literal("Your team has reached the " + limitName + " claim limit (" + limitValue + ")").withStyle(ChatFormatting.RED), false);
 			return;
 		}
 
