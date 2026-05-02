@@ -31,7 +31,8 @@ public class HelpCommand {
 		msg.append(entry("/capitol team invite <player>", "Invite a player to your team"));
 		msg.append(entry("/capitol team kick <player>", "Kick a player from your team"));
 		msg.append(entry("/capitol team disband", "Disband your team"));
-		msg.append(entry("/capitol team role <name> create|remove|rename|assign|permission", "Manage team roles"));
+		msg.append(entry("/capitol team role edit <name> remove|rename|assign|permission", "Manage team roles"));
+		msg.append(entry("/capitol team role create <name>", "Create team roles"));
 		msg.append(entry("/capitol team protection <name>", "Toggle a claim protection setting"));
 		msg.append(entry("/capitol team player <player> permission <perm>", "Toggle an individual permission override"));
 		msg.append(entry("/capitol team player <player> permission reset", "Reset a player's individual permission overrides"));
