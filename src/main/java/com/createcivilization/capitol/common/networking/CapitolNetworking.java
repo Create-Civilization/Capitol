@@ -6,7 +6,6 @@ import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
-import com.createcivilization.capitol.common.networking.packets.S2CClaimRadius;
 import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -38,14 +37,6 @@ public class CapitolNetworking {
 			S2CChunkRemove.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ClientPayloadHandler::chunkRemoveHandler
-			)
-		);
-
-		registrar.playToClient(
-			S2CClaimRadius.TYPE,
-			S2CClaimRadius.STREAM_CODEC,
-			new MainThreadPayloadHandler<>(
-				ClientPayloadHandler::claimRadiusHandler
 			)
 		);
 

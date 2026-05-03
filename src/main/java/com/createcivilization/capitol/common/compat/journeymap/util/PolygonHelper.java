@@ -158,13 +158,12 @@ public class PolygonHelper {
 		int maxX = ((center.x + radius) << 4) + 16;
 		int maxZ = ((center.z + radius) << 4) + 16;
 
-		List<BlockPos> points = new ArrayList<>();
-		points.add(new BlockPos(minX, 0, minZ));
-		points.add(new BlockPos(maxX, 0, minZ));
-		points.add(new BlockPos(maxX, 0, maxZ));
-		points.add(new BlockPos(minX, 0, maxZ));
-
-		return new MapPolygon(points);
+		return new MapPolygon(List.of(
+			new BlockPos(minX, 0, minZ),
+			new BlockPos(maxX, 0, minZ),
+			new BlockPos(maxX, 0, maxZ),
+			new BlockPos(minX, 0, maxZ)
+		));
 	}
 
 	private static class TeamClaims {

@@ -24,17 +24,17 @@ public class ServerPayloadHandler {
 
 	public static void handleChunkRequest(final C2SChunkRequest request, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
-		ChunkPos chunkPos = new ChunkPos((int) request.chunkCords().x, (int) request.chunkCords().z);
+		ChunkPos chunkPos = new ChunkPos((int) request.chunkCoords().x, (int) request.chunkCoords().z);
 		Team team = database.getChunkOwner(chunkPos, context.player().level());
 		if(team == null) return;
-		S2CChunkData packet = new S2CChunkData(request.chunkCords(), team);
+		S2CChunkData packet = new S2CChunkData(request.chunkCoords(), team);
 		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) context.player().level(), chunkPos, packet);
 	}
 
 	public static void handleClaimChunk(final C2SClaimChunk request, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
 		Player player = context.player();
-		ChunkPos chunkPos = new ChunkPos((int) request.chunkCords().x, (int) request.chunkCords().z);
+		ChunkPos chunkPos = new ChunkPos(request.packedChunkPos());
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
@@ -82,7 +82,7 @@ public class ServerPayloadHandler {
 	public static void handleUnclaimChunk(final C2SUnclaimChunk request, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
 		Player player = context.player();
-		ChunkPos chunkPos = new ChunkPos((int) request.chunkCords().x, (int) request.chunkCords().z);
+		ChunkPos chunkPos = new ChunkPos(request.packedChunkPos());
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {

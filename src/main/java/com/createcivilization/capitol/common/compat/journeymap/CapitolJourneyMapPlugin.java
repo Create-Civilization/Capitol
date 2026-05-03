@@ -4,6 +4,7 @@ package com.createcivilization.capitol.common.compat.journeymap;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
 import com.createcivilization.capitol.common.compat.journeymap.util.PolygonHelper;
+import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import journeymap.api.v2.client.JourneyMapPlugin;
@@ -24,7 +25,6 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
 @SuppressWarnings("removal")
@@ -70,14 +70,14 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
 			ChunkPos chunkPos = new ChunkPos(pos);
-			C2SClaimChunk packet = new C2SClaimChunk(new Vector3f(chunkPos.x, 0, chunkPos.z));
+			C2SClaimChunk packet = new C2SClaimChunk(chunkPos.toLong());
 			PacketDistributor.sendToServer(packet);
 			hideRangeOverlay();
 		});
 
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> {
 			ChunkPos chunkPos = new ChunkPos(pos);
-			C2SUnclaimChunk packet = new C2SUnclaimChunk(new Vector3f(chunkPos.x, 0, chunkPos.z));
+			C2SUnclaimChunk packet = new C2SUnclaimChunk(chunkPos.toLong());
 			PacketDistributor.sendToServer(packet);
 			hideRangeOverlay();
 		});
@@ -115,7 +115,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 		if (!rangeVisible) return;
 
-		int claimRadius = ClientClaimCache.claimRadius;
+		int claimRadius = CapitolConfig.CLAIM_RADIUS.get();
 		if (claimRadius <= 0) return;
 
 		ChunkPos currentChunk = player.chunkPosition();

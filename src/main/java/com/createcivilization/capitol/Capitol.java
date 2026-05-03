@@ -6,7 +6,6 @@ import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.server.commands.CapitolCommands;
 import com.createcivilization.capitol.common.networking.CapitolNetworking;
-import com.createcivilization.capitol.common.networking.packets.S2CClaimRadius;
 
 import com.mojang.logging.LogUtils;
 
@@ -14,7 +13,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
@@ -28,11 +26,9 @@ import net.neoforged.api.distmarker.Dist;
 import com.createcivilization.capitol.client.renderer.BorderRenderer;
 import com.createcivilization.capitol.client.renderer.BorderWallRenderer;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
@@ -52,7 +48,6 @@ public class Capitol {
 		NeoForge.EVENT_BUS.addListener(this::onServerStart);
 		NeoForge.EVENT_BUS.addListener(this::onServerStarted);
 		NeoForge.EVENT_BUS.addListener(this::onServerStop);
-		NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
 
 		LOGGER.info("Listeners successfully registered");
 
@@ -89,11 +84,5 @@ public class Capitol {
 	private void onServerStop(ServerStoppingEvent event) {
 		DatabaseManager.closeConnection();
 	}
-
-	private void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-		if (!(event.getEntity() instanceof ServerPlayer player)) return;
-		PacketDistributor.sendToPlayer(player, new S2CClaimRadius(CapitolConfig.CLAIM_RADIUS.get()));
-	}
-
 
 }
