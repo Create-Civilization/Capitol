@@ -16,7 +16,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 import java.util.UUID;
 
@@ -57,15 +56,15 @@ public class ClaimCommand {
 			return 0;
 		}
 
-		int maxClaims = CapitolConfig.MAX_TEAM_CLAIMS.get();
-		if (team.getCurrentClaims() >= maxClaims) {
-			context.getSource().sendFailure(Component.literal("Your team has reached the server claim limit (" + maxClaims + ")")
-				.withStyle(ChatFormatting.RED));
-			return 0;
-		}
+		int serverLimit = CapitolConfig.MAX_TEAM_CLAIMS.get();
+		int teamLimit = team.getMaxClaims();
+		int effectiveLimit = (teamLimit > 0) ? Math.min(serverLimit, teamLimit) : serverLimit;
 
-		if (team.getMaxClaims() > 0 && team.getCurrentClaims() >= team.getMaxClaims()) {
-			context.getSource().sendFailure(Component.literal("Your team has reached its claim limit (" + team.getMaxClaims() + ")")
+		if (team.getCurrentClaims() >= effectiveLimit) {
+			boolean isServerLimit = (teamLimit <= 0) || (serverLimit <= teamLimit);
+			String limitName = isServerLimit ? "server" : "team";
+			int limitValue = isServerLimit ? serverLimit : teamLimit;
+			context.getSource().sendFailure(Component.literal("Your team has reached the " + limitName + " claim limit (" + limitValue + ")")
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}
@@ -79,7 +78,7 @@ public class ClaimCommand {
 		}
 
 		database.claimChunk(team, chunkPos, player.level());
-		S2CChunkData packet = new S2CChunkData(new Vector3f(chunkPos.x, 0, chunkPos.z), team);
+		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
 		context.getSource().sendSuccess(() -> Component.literal("Chunk claimed!").withStyle(ChatFormatting.GREEN), true);
