@@ -152,7 +152,22 @@ public class PolygonHelper {
 		return (long)(maxX - minX) * (maxZ - minZ);
 	}
 
-	private static final class TeamClaims {
+	public static MapPolygon createRangePolygon(ChunkPos center, int radius) {
+		int minX = (center.x - radius) << 4;
+		int minZ = (center.z - radius) << 4;
+		int maxX = ((center.x + radius) << 4) + 16;
+		int maxZ = ((center.z + radius) << 4) + 16;
+
+		List<BlockPos> points = new ArrayList<>();
+		points.add(new BlockPos(minX, 0, minZ));
+		points.add(new BlockPos(maxX, 0, minZ));
+		points.add(new BlockPos(maxX, 0, maxZ));
+		points.add(new BlockPos(minX, 0, maxZ));
+
+		return new MapPolygon(points);
+	}
+
+	private static class TeamClaims {
 		final Team team;
 		final Set<ChunkPos> chunks = new HashSet<>();
 		TeamClaims(Team team) { this.team = team; }

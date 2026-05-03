@@ -22,6 +22,8 @@ import org.joml.Vector3f;
 
 public class ServerPayloadHandler {
 
+	private static final int CLAIM_RADIUS = 8;
+
 	public static void handleChunkRequest(final C2SChunkRequest request, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
 		ChunkPos chunkPos = new ChunkPos((int) request.chunkCords().x, (int) request.chunkCords().z);
@@ -39,6 +41,12 @@ public class ServerPayloadHandler {
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
 			player.displayClientMessage(Component.literal("You are not in any team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		ChunkPos playerChunk = player.chunkPosition();
+		if (Math.abs(playerChunk.x - chunkPos.x) > CLAIM_RADIUS || Math.abs(playerChunk.z - chunkPos.z) > CLAIM_RADIUS) {
+			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
 			return;
 		}
 
@@ -80,6 +88,12 @@ public class ServerPayloadHandler {
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
 			player.displayClientMessage(Component.literal("You are not in any team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		ChunkPos playerChunk = player.chunkPosition();
+		if (Math.abs(playerChunk.x - chunkPos.x) > CLAIM_RADIUS || Math.abs(playerChunk.z - chunkPos.z) > CLAIM_RADIUS) {
+			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
 			return;
 		}
 
