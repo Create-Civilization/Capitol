@@ -21,7 +21,11 @@ class TeamRoleCommand {
 
 	static LiteralArgumentBuilder<CommandSourceStack> register() {
 		return Commands.literal("role")
-			.then(Commands.argument("role_name", StringArgumentType.word())
+			.then(Commands.literal("create")
+				.then(Commands.argument("role_name", StringArgumentType.word())
+					.executes(TeamRoleCommand::createRole)))
+			.then(Commands.literal("edit")
+				.then(Commands.argument("role_name", StringArgumentType.word())
 				.suggests((context, builder) -> {
 					CapitolDatabase database = DatabaseManager.database;
 					Team team = database.getPlayerTeam(context.getSource().getPlayer());
@@ -35,8 +39,6 @@ class TeamRoleCommand {
 					}
 					return builder.buildFuture();
 				})
-				.then(Commands.literal("create")
-					.executes(TeamRoleCommand::createRole))
 				.then(Commands.literal("assign")
 					.then(Commands.argument("player", StringArgumentType.string())
 						.suggests((context, builder) -> {
@@ -69,7 +71,7 @@ class TeamRoleCommand {
 					.then(Commands.argument("new_name", StringArgumentType.string())
 						.executes(TeamRoleCommand::editRoleName)))
 				.then(Commands.literal("remove")
-					.executes(TeamRoleCommand::removeRole)));
+					.executes(TeamRoleCommand::removeRole))));
 	}
 
 	private static int createRole(CommandContext<CommandSourceStack> context) {
@@ -215,6 +217,12 @@ class TeamRoleCommand {
 
 		if (Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)) {
 			context.getSource().sendFailure(Component.literal("You cannot edit owner role.")
+				.withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if (Objects.equals(roleName, TeamRole.DEFAULT_ROLE_NAME)) {
+			context.getSource().sendFailure(Component.literal("You cannot edit default role name.")
 				.withStyle(ChatFormatting.RED));
 			return 0;
 		}
