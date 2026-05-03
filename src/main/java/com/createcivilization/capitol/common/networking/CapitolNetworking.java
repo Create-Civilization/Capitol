@@ -23,7 +23,7 @@ public class CapitolNetworking {
 
 	@SubscribeEvent
 	public static void register(final RegisterPayloadHandlersEvent event) {
-		final PayloadRegistrar registrar = event.registrar("1");
+		final PayloadRegistrar registrar = event.registrar("2");
 		registrar.playToClient(
 			S2CChunkData.TYPE,
 			S2CChunkData.STREAM_CODEC,

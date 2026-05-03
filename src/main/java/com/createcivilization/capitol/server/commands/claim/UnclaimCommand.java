@@ -15,7 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 import java.util.UUID;
 
@@ -64,7 +63,7 @@ public class UnclaimCommand {
 		}
 
 		database.unclaimChunk(team, chunkPos, player.level());
-		S2CChunkRemove packet = new S2CChunkRemove(new Vector3f(chunkPos.x, 0, chunkPos.z));
+		S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
 		context.getSource().sendSuccess(() -> Component.literal("Chunk unclaimed from ").withStyle(ChatFormatting.GRAY)

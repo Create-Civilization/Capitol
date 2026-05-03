@@ -10,7 +10,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.CLIENT)
 public class ChunkEvents {
@@ -23,7 +22,7 @@ public class ChunkEvents {
 		if (!event.getLevel().isClientSide()) return;
 		if(ClientClaimCache.hasClaim(event.getChunk().getPos())) return;
 		ChunkPos chunkPos = event.getChunk().getPos();
-		C2SChunkRequest packet = new C2SChunkRequest(new Vector3f(chunkPos.x, 0, chunkPos.z));
+		C2SChunkRequest packet = new C2SChunkRequest(chunkPos.toLong());
 		PacketDistributor.sendToServer(packet);
 	}
 

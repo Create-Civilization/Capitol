@@ -5,16 +5,15 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import org.joml.Vector3f;
 
-public record S2CChunkRemove(Vector3f chunkCoords) implements CustomPacketPayload {
+public record S2CChunkRemove(long packedChunkPos) implements CustomPacketPayload {
 
 	public static final CustomPacketPayload.Type<S2CChunkRemove> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("capitol", "s2c_chunk_remove"));
 
 
 	public static final StreamCodec<ByteBuf, S2CChunkRemove> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.VECTOR3F,
-		S2CChunkRemove::chunkCoords,
+		ByteBufCodecs.VAR_LONG,
+		S2CChunkRemove::packedChunkPos,
 		S2CChunkRemove::new
 	);
 

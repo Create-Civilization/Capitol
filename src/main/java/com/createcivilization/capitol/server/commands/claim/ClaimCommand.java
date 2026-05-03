@@ -16,7 +16,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 import java.util.UUID;
 
@@ -79,7 +78,7 @@ public class ClaimCommand {
 		}
 
 		database.claimChunk(team, chunkPos, player.level());
-		S2CChunkData packet = new S2CChunkData(new Vector3f(chunkPos.x, 0, chunkPos.z), team);
+		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
 		context.getSource().sendSuccess(() -> Component.literal("Chunk claimed!").withStyle(ChatFormatting.GREEN), true);

@@ -28,7 +28,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 import java.awt.*;
 import java.util.LinkedHashMap;
@@ -338,7 +337,7 @@ public class TeamCommand {
 			ServerLevel level = context.getSource().getServer().getLevel(dimKey);
 			if (level == null) continue;
 			ChunkPos chunkPos = new ChunkPos(chunk.chunkX(), chunk.chunkZ());
-			S2CChunkRemove packet = new S2CChunkRemove(new Vector3f(chunkPos.x, 0, chunkPos.z));
+			S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
 			PacketDistributor.sendToPlayersTrackingChunk(level, chunkPos, packet);
 		}
 

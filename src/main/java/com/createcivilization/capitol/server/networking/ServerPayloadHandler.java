@@ -18,17 +18,24 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.joml.Vector3f;
 
 public class ServerPayloadHandler {
 
 	public static void handleChunkRequest(final C2SChunkRequest request, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
-		ChunkPos chunkPos = new ChunkPos((int) request.chunkCoords().x, (int) request.chunkCoords().z);
+		ChunkPos chunkPos = new ChunkPos(request.packedChunkPos());
 		Team team = database.getChunkOwner(chunkPos, context.player().level());
 		if(team == null) return;
-		S2CChunkData packet = new S2CChunkData(request.chunkCoords(), team);
+		S2CChunkData packet = new S2CChunkData(request.packedChunkPos(), team);
 		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) context.player().level(), chunkPos, packet);
+	}
+
+	private static boolean isOutsideClaimRadius(Player player, ChunkPos targetChunk) {
+		int claimRadius = CapitolConfig.CLAIM_RADIUS.get();
+		if (claimRadius <= 0) return false;
+		ChunkPos playerChunk = player.chunkPosition();
+		return Math.abs(playerChunk.x - targetChunk.x) > claimRadius
+			|| Math.abs(playerChunk.z - targetChunk.z) > claimRadius;
 	}
 
 	public static void handleClaimChunk(final C2SClaimChunk request, final IPayloadContext context) {
@@ -42,9 +49,7 @@ public class ServerPayloadHandler {
 			return;
 		}
 
-		ChunkPos playerChunk = player.chunkPosition();
-		int claimRadius = CapitolConfig.CLAIM_RADIUS.get();
-		if (claimRadius > 0 && (Math.abs(playerChunk.x - chunkPos.x) > claimRadius || Math.abs(playerChunk.z - chunkPos.z) > claimRadius)) {
+		if (isOutsideClaimRadius(player, chunkPos)) {
 			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
 			return;
 		}
@@ -73,7 +78,7 @@ public class ServerPayloadHandler {
 		}
 
 		database.claimChunk(team, chunkPos, player.level());
-		S2CChunkData packet = new S2CChunkData(new Vector3f(chunkPos.x, 0, chunkPos.z), team);
+		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
 		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
 
 		player.displayClientMessage(Component.literal("Chunk claimed!").withStyle(ChatFormatting.GREEN), false);
@@ -90,9 +95,7 @@ public class ServerPayloadHandler {
 			return;
 		}
 
-		ChunkPos playerChunk = player.chunkPosition();
-		int claimRadius = CapitolConfig.CLAIM_RADIUS.get();
-		if (claimRadius > 0 && (Math.abs(playerChunk.x - chunkPos.x) > claimRadius || Math.abs(playerChunk.z - chunkPos.z) > claimRadius)) {
+		if (isOutsideClaimRadius(player, chunkPos)) {
 			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
 			return;
 		}
@@ -114,7 +117,7 @@ public class ServerPayloadHandler {
 		}
 
 		database.unclaimChunk(team, chunkPos, player.level());
-		S2CChunkRemove packet = new S2CChunkRemove(new Vector3f(chunkPos.x, 0, chunkPos.z));
+		S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
 		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
 
 		player.displayClientMessage(Component.literal("Chunk unclaimed!").withStyle(ChatFormatting.GREEN), false);
