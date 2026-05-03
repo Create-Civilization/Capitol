@@ -109,13 +109,12 @@ public class TeamCommand {
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.INVITE_MEMBERS.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to invite players to this team")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.invite.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -123,20 +122,20 @@ public class TeamCommand {
 		try {
 			playerToInvite = EntityArgument.getPlayer(context, "player");
 		} catch (CommandSyntaxException e) {
-			context.getSource().sendFailure(Component.literal("Invalid Player").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.invite.invalid_player").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (database.getPlayerTeam(playerToInvite) != null) {
-			context.getSource().sendFailure(Component.literal("Player is already in a team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.invite.target_in_team").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		InviteHandler.addInvite(playerToInvite, team);
 
-		context.getSource().sendSuccess(() -> Component.literal("Invite sent to ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(playerToInvite.getName().getString()).withStyle(ChatFormatting.WHITE))
-			.append(Component.literal(".").withStyle(ChatFormatting.GRAY)), false);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.invite.success",
+			Component.literal(playerToInvite.getName().getString()).withStyle(ChatFormatting.WHITE))
+			.withStyle(ChatFormatting.GRAY), false);
 		return 1;
 	}
 
@@ -146,7 +145,7 @@ public class TeamCommand {
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -163,14 +162,14 @@ public class TeamCommand {
 			.append(Component.literal("[" + team.getTag() + "] ").withStyle(ChatFormatting.AQUA))
 			.append(Component.literal(team.getName()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
 			.append(Component.literal("\n"))
-			.append(Component.literal("Color: ").withStyle(ChatFormatting.GRAY))
+			.append(Component.translatable("commands.capitol.team.info.color").withStyle(ChatFormatting.GRAY))
 			.append(Component.literal("█ ").withStyle(s -> s.withColor(rgb)))
 			.append(Component.literal(hex).withStyle(ChatFormatting.WHITE))
 			.append(Component.literal("\n"))
-			.append(Component.literal("Description: ").withStyle(ChatFormatting.GRAY))
+			.append(Component.translatable("commands.capitol.team.info.description").withStyle(ChatFormatting.GRAY))
 			.append(Component.literal(description).withStyle(ChatFormatting.WHITE))
 			.append(Component.literal("\n"))
-			.append(Component.literal("Claims: ").withStyle(ChatFormatting.GRAY))
+			.append(Component.translatable("commands.capitol.team.info.claims").withStyle(ChatFormatting.GRAY))
 			.append(Component.literal(claims).withStyle(ChatFormatting.WHITE));
 
 		context.getSource().sendSuccess(() -> msg, false);
@@ -182,15 +181,14 @@ public class TeamCommand {
 		Player player = context.getSource().getPlayer();
 
 		if (database.getPlayerTeam(player) != null) {
-			context.getSource().sendFailure(Component.literal("You are already in a team, please leave before creating a new one")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.create.already_in_team").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		String name = StringArgumentType.getString(context, "name");
 
 		if (database.teamNameExists(name)) {
-			context.getSource().sendFailure(Component.literal("A team with that name already exists.").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.create.name_exists").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -211,7 +209,7 @@ public class TeamCommand {
 		try {
 			color = new Color((int) Long.parseLong(hex, 16), true);
 		} catch (NumberFormatException e) {
-			context.getSource().sendFailure(Component.literal("Invalid hex color: #" + hex).withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.create.invalid_color", hex).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -219,9 +217,9 @@ public class TeamCommand {
 		database.addTeam(team);
 		TeamRole ownerRole = database.getRoleByName(team, TeamRole.OWNER_ROLE_NAME);
 		database.addPlayerToTeam(player, team, ownerRole);
-		context.getSource().sendSuccess(() -> Component.literal("Team ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(name).withStyle(ChatFormatting.GOLD))
-			.append(Component.literal(" created!").withStyle(ChatFormatting.GRAY)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.create.success",
+			Component.literal(name).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
@@ -232,29 +230,28 @@ public class TeamCommand {
 		String playerName = StringArgumentType.getString(context, "player");
 
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.KICK_MEMBERS.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to kick players from this team")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.kick.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
 		Optional<GameProfile> profile = profileCache.get(playerName);
 		if (profile.isEmpty()) {
-			context.getSource().sendFailure(Component.literal("There is no player called " + playerName).withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.no_player_found", playerName).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		GameProfile gameProfile = profile.get();
 		database.removePlayerFromTeam(gameProfile.getId(), team);
 
-		context.getSource().sendSuccess(() -> Component.literal("Kicked ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
-			.append(Component.literal(" from the team.").withStyle(ChatFormatting.GRAY)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.kick.success",
+			Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
@@ -264,21 +261,20 @@ public class TeamCommand {
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (database.getPlayerRole(player, team).isOwner()) {
-			context.getSource().sendFailure(Component.literal("You are the owner of this team. Disband it instead.")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.leave.is_owner").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		database.removePlayerFromTeam(player, team);
 
-		context.getSource().sendSuccess(() -> Component.literal("You have left ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
-			.append(Component.literal(".").withStyle(ChatFormatting.GRAY)), false);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.leave.success",
+			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY), false);
 		return 1;
 	}
 
@@ -288,27 +284,27 @@ public class TeamCommand {
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.MANAGE_TEAM.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to disband this team")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.disband.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		context.getSource().sendSuccess(() ->
-			Component.literal("Are you sure you would like to delete ")
+			Component.translatable("commands.capitol.team.disband.confirm",
+				Component.literal(team.getName()).withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED))
 				.withStyle(ChatFormatting.RED)
-				.append(Component.literal(team.getName()).withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED))
-				.append(Component.literal("? "))
-				.append(Component.literal("[YES]")
+				.append(Component.literal(" "))
+				.append(Component.translatable("commands.capitol.team.disband.confirm_yes")
 					.withStyle(s -> s.withColor(ChatFormatting.GREEN).withBold(true)
 						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/capitol team confirm_disband"))
-						.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to confirm deletion")))))
+						.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("commands.capitol.team.disband.confirm_hover")))))
 				.append(Component.literal(" "))
-				.append(Component.literal("[NO]").withStyle(s -> s.withColor(ChatFormatting.DARK_RED).withBold(true))),
+				.append(Component.translatable("commands.capitol.team.disband.confirm_no")
+					.withStyle(s -> s.withColor(ChatFormatting.DARK_RED).withBold(true))),
 			false);
 		return 1;
 	}
@@ -319,13 +315,12 @@ public class TeamCommand {
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.MANAGE_TEAM.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to disband this team")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.disband.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -341,7 +336,7 @@ public class TeamCommand {
 			PacketDistributor.sendToPlayersTrackingChunk(level, chunkPos, packet);
 		}
 
-		context.getSource().sendSuccess(() -> Component.literal("Team disbanded.").withStyle(ChatFormatting.GREEN), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.disband.success").withStyle(ChatFormatting.GREEN), true);
 		return 1;
 	}
 }

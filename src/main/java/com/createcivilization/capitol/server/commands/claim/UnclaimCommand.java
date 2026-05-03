@@ -40,25 +40,24 @@ public class UnclaimCommand {
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.UNCLAIM_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to unclaim chunks")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.unclaim.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		ChunkPos chunkPos = player.chunkPosition();
 		Team owner = database.getChunkOwner(chunkPos, player.level());
 		if (owner == null) {
-			context.getSource().sendFailure(Component.literal("This chunk is not claimed").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.unclaim.not_claimed").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!owner.getId().equals(team.getId())) {
-			context.getSource().sendFailure(Component.literal("Your team does not own this chunk").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.unclaim.not_owner").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -66,8 +65,9 @@ public class UnclaimCommand {
 		S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
-		context.getSource().sendSuccess(() -> Component.literal("Chunk unclaimed from ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.unclaim.success",
+			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
@@ -78,36 +78,36 @@ public class UnclaimCommand {
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.UNCLAIM_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to unclaim")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.unclaim.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		UUID subLevelId = SableCompat.getPlayerSubLevelId(player);
 		if (subLevelId == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any sub-level").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_sub_level").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		Team owner = database.getSubLevelOwner(subLevelId);
 		if (owner == null) {
-			context.getSource().sendFailure(Component.literal("This sub-level is not claimed").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.unclaim.sub_level.not_claimed").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!owner.getId().equals(team.getId())) {
-			context.getSource().sendFailure(Component.literal("Your team does not own this sub-level").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.unclaim.sub_level.not_owner").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		database.removeSubLevel(subLevelId);
-		context.getSource().sendSuccess(() -> Component.literal("Sub-level unclaimed from ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.unclaim.sub_level.success",
+			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 }

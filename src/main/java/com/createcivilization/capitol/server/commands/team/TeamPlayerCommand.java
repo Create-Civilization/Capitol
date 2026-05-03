@@ -57,13 +57,12 @@ class TeamPlayerCommand {
 		var player = context.getSource().getPlayer();
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to manage individual permissions")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.player.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -71,15 +70,14 @@ class TeamPlayerCommand {
 		GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
 		Optional<GameProfile> profile = profileCache.get(playerName);
 		if (profile.isEmpty()) {
-			context.getSource().sendFailure(Component.literal("There is no player called " + playerName).withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.no_player_found", playerName).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		GameProfile gameProfile = profile.get();
 
 		if (!database.isPlayerInTeam(gameProfile.getId(), team)) {
-			context.getSource().sendFailure(Component.literal(gameProfile.getName() + " is not a member of " + team.getName())
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.player_not_in_team", gameProfile.getName(), team.getName()).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -88,8 +86,7 @@ class TeamPlayerCommand {
 		try {
 			permission = Permission.valueOf(permissionName);
 		} catch (IllegalArgumentException e) {
-			context.getSource().sendFailure(Component.literal(permissionName + " is not a valid permission.")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.invalid_permission", permissionName).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -103,14 +100,12 @@ class TeamPlayerCommand {
 
 		database.setIndividualPermissions(gameProfile.getId(), team, newIndividual);
 
-		context.getSource().sendSuccess(() -> Component.literal("Permission ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA))
-			.append(Component.literal(" for ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
-			.append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED))
-			.append(Component.literal(" → ").withStyle(ChatFormatting.DARK_GRAY))
-			.append(Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.permission_toggle",
+			Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA),
+			Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE),
+			Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED),
+			Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
@@ -119,13 +114,12 @@ class TeamPlayerCommand {
 		var player = context.getSource().getPlayer();
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to manage individual permissions")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.player.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -133,23 +127,22 @@ class TeamPlayerCommand {
 		GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
 		Optional<GameProfile> profile = profileCache.get(playerName);
 		if (profile.isEmpty()) {
-			context.getSource().sendFailure(Component.literal("There is no player called " + playerName).withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.no_player_found", playerName).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		GameProfile gameProfile = profile.get();
 
 		if (!database.isPlayerInTeam(gameProfile.getId(), team)) {
-			context.getSource().sendFailure(Component.literal(gameProfile.getName() + " is not a member of " + team.getName())
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.player_not_in_team", gameProfile.getName(), team.getName()).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		database.removeIndividualPermissions(gameProfile.getId(), team);
 
-		context.getSource().sendSuccess(() -> Component.literal("Individual permissions for ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
-			.append(Component.literal(" reset to role defaults.").withStyle(ChatFormatting.GRAY)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.player.perms.reset",
+			Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 }
