@@ -44,11 +44,9 @@ public class ServerPayloadHandler {
 
 		ChunkPos playerChunk = player.chunkPosition();
 		int claimRadius = CapitolConfig.CLAIM_RADIUS.get();
-		if (claimRadius > 0) {
-			if (Math.abs(playerChunk.x - chunkPos.x) > claimRadius || Math.abs(playerChunk.z - chunkPos.z) > claimRadius) {
-				player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
-				return;
-			}
+		if (claimRadius > 0 && (Math.abs(playerChunk.x - chunkPos.x) > claimRadius || Math.abs(playerChunk.z - chunkPos.z) > claimRadius)) {
+			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
+			return;
 		}
 
 		if (!Permission.CLAIM_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
@@ -94,11 +92,9 @@ public class ServerPayloadHandler {
 
 		ChunkPos playerChunk = player.chunkPosition();
 		int claimRadius = CapitolConfig.CLAIM_RADIUS.get();
-		if (claimRadius > 0) {
-			if (Math.abs(playerChunk.x - chunkPos.x) > claimRadius || Math.abs(playerChunk.z - chunkPos.z) > claimRadius) {
-				player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
-				return;
-			}
+		if (claimRadius > 0 && (Math.abs(playerChunk.x - chunkPos.x) > claimRadius || Math.abs(playerChunk.z - chunkPos.z) > claimRadius)) {
+			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
+			return;
 		}
 
 		if (!Permission.UNCLAIM_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
