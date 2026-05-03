@@ -10,6 +10,7 @@ public class CapitolConfig {
 
 	// Claims
 	public static final ModConfigSpec.IntValue MAX_TEAM_CLAIMS;
+	public static final ModConfigSpec.IntValue CLAIM_RADIUS;
 	public static final ModConfigSpec.EnumValue<ListType> CLAIMABLE_DIMENSIONS_LIST_TYPE;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> CLAIMABLE_DIMENSIONS;
 	public static final ModConfigSpec.BooleanValue SUBLEVEL_CLAIM_OVERLAP;
@@ -59,6 +60,10 @@ public class CapitolConfig {
 		MAX_TEAM_CLAIMS = builder
 			.comment("Maximum chunks a team can claim.")
 			.defineInRange("maxTeamClaims", 1000, 1, Integer.MAX_VALUE);
+
+		CLAIM_RADIUS = builder
+			.comment("Max chunk radius from the player for claim/unclaim actions.")
+			.defineInRange("claimRadius", 8, 0, Integer.MAX_VALUE);
 
 		CLAIMABLE_DIMENSIONS_LIST_TYPE = builder
 			.comment("ONLY = only listed dimensions are claimable. ALL_BUT = all except listed.")

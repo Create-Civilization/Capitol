@@ -8,6 +8,7 @@ import java.util.Map;
 public class ClientClaimCache {
 
 	public static Map<ChunkPos, Team> claims = new HashMap<ChunkPos, Team>();
+	public static int claimRadius = 0;
 
 	public static Map<ChunkPos, Team> get(){
 		return claims;
@@ -31,6 +32,10 @@ public class ClientClaimCache {
 
 	public static void clearClaims() {
 		claims.clear();
+	}
+
+	public static void setClaimRadius(int radius) {
+		claimRadius = radius;
 	}
 
 }

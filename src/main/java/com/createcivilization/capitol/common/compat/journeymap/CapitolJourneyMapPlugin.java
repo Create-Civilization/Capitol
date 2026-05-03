@@ -33,7 +33,6 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 	private static final int REFRESH_INTERVAL_TICKS = 20;
 	private static final int RANGE_UPDATE_INTERVAL = 2; //smoother movemnt but without overdo-ing it, change this if you like
-	private static final int CLAIM_RADIUS = 7;
 
 	private IClientAPI api;
 	private int tickCounter;
@@ -116,6 +115,9 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 		if (!rangeVisible) return;
 
+		int claimRadius = ClientClaimCache.claimRadius;
+		if (claimRadius <= 0) return;
+
 		ChunkPos currentChunk = player.chunkPosition();
 		if (currentChunk.equals(lastPlayerChunk) && rangeOverlay != null) return;
 		lastPlayerChunk = currentChunk;
@@ -124,7 +126,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			api.remove(rangeOverlay);
 		}
 
-		MapPolygon poly = PolygonHelper.createRangePolygon(currentChunk, CLAIM_RADIUS);
+		MapPolygon poly = PolygonHelper.createRangePolygon(currentChunk, claimRadius);
 		
 		ShapeProperties props = new ShapeProperties()
 			.setFillColor(0x800080) // Purple, you can change to whatever
