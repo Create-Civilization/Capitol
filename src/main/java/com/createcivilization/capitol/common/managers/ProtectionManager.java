@@ -70,7 +70,7 @@ public class ProtectionManager {
 	 * Core player-vs-block check for real-world chunks with a config exception list.
 	 * Used for break, place, interact, container, and redstone checks.
 	 */
-	public static Result checkBlockAction(Player player, Block block, Permission permission, Level level, ChunkPos pos, @Nullable ResourceMatcher exceptions) {
+	static Result checkBlockAction(Player player, Block block, Permission permission, Level level, ChunkPos pos, @Nullable ResourceMatcher exceptions) {
 		if (player.hasPermissions(4)) return Result.ALLOW;
 
 		Team team = database().getChunkOwner(pos, level);
@@ -88,7 +88,7 @@ public class ProtectionManager {
 	 * When the sub-level overlaps a differently-owned real-world chunk and
 	 * {@code SUBLEVEL_CLAIM_OVERLAP} is enabled, the player must satisfy both teams' permissions.
 	 */
-	public static Result checkSublevelBlockAction(Player player, Block block, Permission permission, SubLevelAccess subLevelAccess, @Nullable ResourceMatcher exceptions){
+	static Result checkSublevelBlockAction(Player player, Block block, Permission permission, SubLevelAccess subLevelAccess, @Nullable ResourceMatcher exceptions){
 		if(player.hasPermissions(4)) return Result.ALLOW;
 
 		Team team = database().getSubLevelOwner(subLevelAccess.getUniqueId());

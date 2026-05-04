@@ -2,11 +2,8 @@ package com.createcivilization.capitol.server.events;
 
 import com.createcivilization.capitol .Capitol;
 import com.createcivilization.capitol.common.data.Permission;
-import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager.Result;
-import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
-import com.simibubi.create.api.event.BlockEntityBehaviourEvent;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.ChatFormatting;
@@ -14,7 +11,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -29,9 +25,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.FrostedIceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.Event;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.TriState;
@@ -42,6 +35,8 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.*;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
+import java.util.Objects;
+
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class PlayerInteractionEvents {
 
@@ -51,14 +46,15 @@ public class PlayerInteractionEvents {
 		BlockPos blockPos = event.getPos();
 		Level level = event.getLevel();
 
-		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
-		if(subLevelAccess != null){
-			if(ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
-				event.setCanceled(true);
-				sendDenied("You can't place blocks here!", player);
-			}
-			return;
-		}
+		// FIXME: This code was clearly copied over from onPlayerPlaceBlock, but needs to actually do _break_ block logic.
+//		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
+//		if (subLevelAccess != null) {
+//			if (ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
+//				event.setCanceled(true);
+//				sendDenied("You can't place blocks here!", player);
+//			}
+//			return;
+//		}
 
 		if (ProtectionManager.checkBlockBreak(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
 			event.setCanceled(true);
@@ -86,8 +82,8 @@ public class PlayerInteractionEvents {
 
 		//Sable stuff
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
-		if(subLevelAccess != null){
-			if(ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
+		if (subLevelAccess != null) {
+			if (ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
 				event.setCancellationResult(InteractionResult.FAIL);
 				event.setCanceled(true);
 				player.inventoryMenu.sendAllDataToRemote();
@@ -122,7 +118,7 @@ public class PlayerInteractionEvents {
 
 		//Sable stuff
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
-		if(subLevelAccess != null){
+		if (subLevelAccess != null) {
 			return ProtectionManager.checkContainerOpen(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY;
 		}
 
@@ -140,7 +136,7 @@ public class PlayerInteractionEvents {
 		if (!state.isSignalSource()) return false;
 
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
-		if(subLevelAccess != null){
+		if (subLevelAccess != null) {
 			return ProtectionManager.checkRedstoneInteract(player, level.getBlockState(pos).getBlock(), subLevelAccess) != Result.DENY;
 		}
 
@@ -148,25 +144,26 @@ public class PlayerInteractionEvents {
 	}
 
 	private static void handleGenericBlock(PlayerInteractEvent.RightClickBlock event, Player player, Level level, BlockState state, BlockPos pos, ChunkPos chunkPos) {
-
 		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, pos);
-		if(subLevelAccess != null){
-			if(ProtectionManager.checkBlockInteract(player, state.getBlock(), subLevelAccess) == Result.DENY) {
-				event.setCancellationResult(InteractionResult.FAIL);
-				event.setCanceled(true);
-				sendDenied("You can't interact with this block!", player);
-				if (player instanceof ServerPlayer serverPlayer)
-					serverPlayer.getServer().execute(serverPlayer::closeContainer);
+		if (subLevelAccess != null) {
+			if (ProtectionManager.checkBlockInteract(player, state.getBlock(), subLevelAccess) == Result.DENY) {
+				genericBlockFailed(event, player);
 			}
 			return;
 		}
 
 		if (ProtectionManager.checkBlockInteract(player, state.getBlock(), level, chunkPos) == Result.DENY) {
-			event.setCancellationResult(InteractionResult.FAIL);
-			event.setCanceled(true);
-			sendDenied("You can't interact with this block!", player);
-			if (player instanceof ServerPlayer serverPlayer)
-				serverPlayer.getServer().execute(serverPlayer::closeContainer);
+			genericBlockFailed(event, player);
+		}
+	}
+
+	private static void genericBlockFailed(PlayerInteractEvent.RightClickBlock event, Player player) {
+		event.setCancellationResult(InteractionResult.FAIL);
+		event.setCanceled(true);
+		sendDenied("You can't interact with this block!", player);
+		if (player instanceof ServerPlayer serverPlayer) {
+			Objects.requireNonNull(serverPlayer.getServer(), "serverPlayer.getServer()")
+				.execute(serverPlayer::closeContainer);
 		}
 	}
 
@@ -200,15 +197,15 @@ public class PlayerInteractionEvents {
 		Level level = target.level();
 
 		if (target instanceof Player) {
-			if (ProtectionManager.checkEntityAction(player, target, Permission.PLAYER_ATTACK, level, pos) == Result.DENY) {
+			if (ProtectionManager.checkEntityAction(player, target, Permission.ATTACK_PLAYER, level, pos) == Result.DENY) {
 				event.setCanceled(true);
 				sendDenied("You can't attack players here!", player);
 			}
 			return;
 		}
 
-		Permission perm = target instanceof Monster ? Permission.KILL_HOSTILE : Permission.KILL_ENTITIES;
-		String msg = target instanceof Monster ? "You can't kill hostile mobs here!" : "You can't kill entities here!";
+		Permission perm = target instanceof Monster ? Permission.ATTACK_HOSTILE : Permission.ATTACK_PASSIVE;
+		String msg = target instanceof Monster ? "You can't attack hostile mobs here!" : "You can't attack passive mobs here!";
 
 		if (ProtectionManager.checkEntityAction(player, target, perm, level, pos) == Result.DENY) {
 			event.setCanceled(true);
@@ -234,7 +231,7 @@ public class PlayerInteractionEvents {
 	public static void onItemDrop(ItemTossEvent event) {
 		Player player = event.getPlayer();
 		ItemStack itemStack = event.getEntity().getItem();
-		if (ProtectionManager.checkPlayerAction(player, Permission.TOSS_ITEMS, player.level(), new ChunkPos(player.getOnPos())) == Result.DENY) {
+		if (ProtectionManager.checkPlayerAction(player, Permission.DROP_ITEMS, player.level(), new ChunkPos(player.getOnPos())) == Result.DENY) {
 			event.setCanceled(true);
 			player.addItem(itemStack);
 			sendDenied("You can't drop items here!", player);
