@@ -16,5 +16,118 @@
 	"gui.capitol.manage_team": "Team Manager",
 
 	"gui.journeymap.capitol.claim_chunk": "Claim chunk",
-	"gui.journeymap.capitol.unclaim_chunk": "Unclaim chunk"
+	"gui.journeymap.capitol.unclaim_chunk": "Unclaim chunk",
+
+"commands.capitol.not_in_team_error": "You are not in any team",
+	"commands.capitol.no_player_found": "There is no player called %s",
+	"commands.capitol.player_not_in_team": "%s is not a member of %s",
+	"commands.capitol.invalid_permission": "%s is not a valid permission.",
+	"commands.capitol.not_in_sub_level": "You are not in any sub-level",
+	"commands.capitol.permission_toggle": "Permission %s for %s: %s → %s",
+	"commands.capitol.enabled": "enabled",
+	"commands.capitol.disabled": "disabled",
+
+	"commands.capitol.team.invite.no_permission": "You do not have permission to invite players to this team",
+	"commands.capitol.team.invite.invalid_player": "Invalid Player",
+	"commands.capitol.team.invite.target_in_team": "Player is already in a team",
+	"commands.capitol.team.invite.success": "Invite sent to %s.",
+
+	"commands.capitol.team.info.color": "Color: ",
+	"commands.capitol.team.info.description": "Description: ",
+	"commands.capitol.team.info.claims": "Claims: ",
+
+	"commands.capitol.team.create.already_in_team": "You are already in a team, please leave before creating a new one",
+	"commands.capitol.team.create.name_exists": "A team with that name already exists.",
+	"commands.capitol.team.create.invalid_color": "Invalid hex color: #%s",
+	"commands.capitol.team.create.success": "Team %s created!",
+
+	"commands.capitol.team.kick.no_permission": "You do not have permission to kick players from this team",
+	"commands.capitol.team.kick.success": "Kicked %s from the team.",
+
+	"commands.capitol.team.leave.is_owner": "You are the owner of this team. Disband it instead.",
+	"commands.capitol.team.leave.success": "You have left %s.",
+
+	"commands.capitol.team.disband.no_permission": "You do not have permission to disband this team",
+	"commands.capitol.team.disband.confirm": "Are you sure you would like to delete %s?",
+	"commands.capitol.team.disband.confirm_yes": "[YES]",
+	"commands.capitol.team.disband.confirm_no": "[NO]",
+	"commands.capitol.team.disband.confirm_hover": "Click to confirm deletion",
+	"commands.capitol.team.disband.success": "Team disbanded.",
+
+	"commands.capitol.team.role.no_manage_permission": "You do not have permission to edit this role",
+	"commands.capitol.team.role.not_found": "The role %s does not exist in %s",
+
+	"commands.capitol.team.role.create.no_permission": "You do not have permission to create a role",
+	"commands.capitol.team.role.create.success": "Role %s added to %s",
+
+	"commands.capitol.team.role.remove.owner": "You cannot remove owner role.",
+	"commands.capitol.team.role.remove.default": "You cannot remove default role.",
+	"commands.capitol.team.role.remove.success": "Deleted role %s",
+
+	"commands.capitol.team.role.assign.no_permission": "You do not have permission to assign roles",
+	"commands.capitol.team.role.assign.owner": "You cannot assign the owner role.",
+	"commands.capitol.team.role.assign.success": "Assigned %s the role %s",
+
+	"commands.capitol.team.role.edit.no_owner": "You cannot edit owner role.",
+	"commands.capitol.team.role.edit.no_default": "You cannot edit default role name.",
+	"commands.capitol.team.role.name.success": "Renamed role %s → %s",
+
+	"commands.capitol.team.player.no_permission": "You do not have permission to manage individual permissions",
+	"commands.capitol.team.player.perms.reset": "Individual permissions for %s reset to role defaults.",
+
+	"commands.capitol.team.protection.no_permission": "You do not have permission to change protection settings",
+	"commands.capitol.invalid_protection": "%s is not a valid protection.",
+	"commands.capitol.team.protection.server_disabled": "The server does not allow teams to change '%s'",
+	"commands.capitol.team.protection.success": "%s is now %s",
+
+	"commands.capitol.team.forceload.server_disabled": "Chunk forceloading is disabled on this server",
+	"commands.capitol.team.forceload.no_permission": "You do not have permission to forceload chunks",
+	"commands.capitol.team.forceload.not_owner": "Your team does not own this chunk",
+	"commands.capitol.team.forceload.limit_reached": "Your team has reached the forceloaded chunk limit (%s)",
+	"commands.capitol.team.forceload.success_enabled": "Forceloading enabled for this chunk.",
+	"commands.capitol.team.forceload.success_disabled": "Forceloading disabled for this chunk.",
+
+	"commands.capitol.claim.no_permission": "You do not have permission to claim chunks",
+	"commands.capitol.claim.limit_reached": "Your team has reached the %s claim limit (%s)",
+	"commands.capitol.claim.already_claimed": "This chunk is already claimed by %s",
+	"commands.capitol.claim.success": "Chunk claimed!",
+	"commands.capitol.claim.sub_level.already_claimed": "This sub-level is already claimed by %s",
+	"commands.capitol.claim.sub_level.success": "Sub-level claimed!",
+	"commands.capitol.claim.info.unclaimed": "This chunk is not claimed",
+	"commands.capitol.claim.info.owner": "Claimed by %s",
+	"commands.capitol.claim.sub_level.info.unclaimed": "This sub-level is not claimed",
+
+	"commands.capitol.unclaim.no_permission": "You do not have permission to unclaim chunks",
+	"commands.capitol.unclaim.not_claimed": "This chunk is not claimed",
+	"commands.capitol.unclaim.not_owner": "Your team does not own this chunk",
+	"commands.capitol.unclaim.success": "Chunk unclaimed from %s",
+	"commands.capitol.unclaim.sub_level.not_claimed": "This sub-level is not claimed",
+	"commands.capitol.unclaim.sub_level.not_owner": "Your team does not own this sub-level",
+	"commands.capitol.unclaim.sub_level.success": "Sub-level unclaimed from %s",
+
+	"commands.capitol.invites.join.announcement": "%s joined %s!",
+	"commands.capitol.invites.join.success": "Joined %s!",
+	"commands.capitol.invites.deny.success": "Invite from %s denied.",
+	"commands.capitol.invites.no_invites": "You have no pending invites.",
+	"commands.capitol.invites.not_found": "No invite from team \"%s\".",
+
+	"commands.capitol.help.title": "=== Capitol Commands ===",
+	"commands.capitol.help.help": "Show this help message",
+	"commands.capitol.help.claim.chunk": "Claim the chunk you're standing in",
+	"commands.capitol.help.claim.sub_level": "Claim the sub-level you're in",
+	"commands.capitol.help.claim.info": "Show who owns the current chunk",
+	"commands.capitol.help.claim.info.sub_level": "Show who owns the current sub-level",
+	"commands.capitol.help.unclaim.chunk": "Unclaim the chunk you're standing in",
+	"commands.capitol.help.unclaim.sub_level": "Unclaim the sub-level you're in",
+	"commands.capitol.help.team.create": "Create a new team",
+	"commands.capitol.help.team.info": "View your team's details",
+	"commands.capitol.help.team.invite": "Invite a player to your team",
+	"commands.capitol.help.team.kick": "Kick a player from your team",
+	"commands.capitol.help.team.disband": "Disband your team",
+	"commands.capitol.help.team.role.edit": "Manage team roles",
+	"commands.capitol.help.team.role.create": "Create team roles",
+	"commands.capitol.help.team.protection": "Toggle a claim protection setting",
+	"commands.capitol.help.team.player.permission": "Toggle an individual permission override",
+	"commands.capitol.help.team.player.permission.reset": "Reset a player's individual permission overrides",
+	"commands.capitol.help.invites": "Accept or deny a team invite"
 }

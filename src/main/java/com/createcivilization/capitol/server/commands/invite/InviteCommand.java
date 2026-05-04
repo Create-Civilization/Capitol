@@ -48,10 +48,10 @@ public class InviteCommand {
 		DatabaseManager.database.addPlayerToTeam(player, team, role);
 		InviteHandler.clearInvites(player);
 
-		MutableComponent joinMsg = Component.literal(player.getName().getString()).withStyle(ChatFormatting.WHITE)
-			.append(Component.literal(" joined ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
-			.append(Component.literal("!").withStyle(ChatFormatting.GRAY));
+		MutableComponent joinMsg = Component.translatable("commands.capitol.invites.join.announcement",
+			Component.literal(player.getName().getString()).withStyle(ChatFormatting.WHITE),
+			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY);
 
 		for (TeamMember member : DatabaseManager.database.getTeamMembers(team)) {
 			if (member.playerUUID().equals(player.getUUID())) continue;
@@ -59,9 +59,9 @@ public class InviteCommand {
 			if (online != null) online.sendSystemMessage(joinMsg);
 		}
 
-		context.getSource().sendSuccess(() -> Component.literal("Joined ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
-			.append(Component.literal("!").withStyle(ChatFormatting.GRAY)), false);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.invites.join.success",
+			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY), false);
 		return 1;
 	}
 
@@ -73,9 +73,9 @@ public class InviteCommand {
 		if (team == null) return 0;
 
 		InviteHandler.removeInvite(player, team);
-		context.getSource().sendSuccess(() -> Component.literal("Invite from ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
-			.append(Component.literal(" denied.").withStyle(ChatFormatting.GRAY)), false);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.invites.deny.success",
+			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY), false);
 		return 1;
 	}
 
@@ -83,12 +83,12 @@ public class InviteCommand {
 		String teamName = StringArgumentType.getString(context, "team");
 		List<Team> invites = InviteHandler.getInvites(player);
 		if (invites == null) {
-			context.getSource().sendFailure(Component.literal("You have no pending invites.").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.invites.no_invites").withStyle(ChatFormatting.RED));
 			return null;
 		}
 		Team team = invites.stream().filter(t -> t.getName().equals(teamName)).findFirst().orElse(null);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("No invite from team \"" + teamName + "\".").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.invites.not_found", teamName).withStyle(ChatFormatting.RED));
 			return null;
 		}
 		return team;

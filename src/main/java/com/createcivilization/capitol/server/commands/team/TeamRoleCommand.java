@@ -77,107 +77,99 @@ class TeamRoleCommand {
 	private static int createRole(CommandContext<CommandSourceStack> context) {
 		CapitolDatabase database = DatabaseManager.database;
 		var player = context.getSource().getPlayer();
+		if (player == null) {
+			return failCommand(context, "commands.capitol.command_source_was_console_error");
+		}
+
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.not_in_team_error");
 		}
 
 		if (!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to create a role")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.create.no_permission");
 		}
 		String roleName = StringArgumentType.getString(context, "role_name");
 
 		database.addRole(team, roleName, 0);
-		context.getSource().sendSuccess(() -> Component.literal("Role ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA))
-			.append(Component.literal(" added to ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(team.getName()).withStyle(ChatFormatting.GOLD)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.create.success",
+			Component.literal(roleName).withStyle(ChatFormatting.AQUA),
+			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
 	private static int removeRole(CommandContext<CommandSourceStack> context) {
 		CapitolDatabase database = DatabaseManager.database;
 		var player = context.getSource().getPlayer();
+		if (player == null) {
+			return failCommand(context, "commands.capitol.command_source_was_console_error");
+		}
+
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.not_in_team_error");
 		}
 
 		if (!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to edit this role")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.no_manage_permission");
 		}
 		String roleName = StringArgumentType.getString(context, "role_name");
 
 		if (Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)) {
-			context.getSource().sendFailure(Component.literal("You cannot remove owner role.")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.remove.owner");
 		}
 
 		if (Objects.equals(roleName, TeamRole.DEFAULT_ROLE_NAME)) {
-			context.getSource().sendFailure(Component.literal("You cannot remove default role.")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.remove.default");
 		}
 
 		TeamRole role = database.getRoleByName(team, roleName);
 
 		if (role == null) {
-			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.not_found", roleName, team.getName());
 		}
 
 		database.deleteRole(team, roleName);
 
-		context.getSource().sendSuccess(() -> Component.literal("Deleted role ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.remove.success",
+			Component.literal(roleName).withStyle(ChatFormatting.AQUA))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
 	private static int assignRole(CommandContext<CommandSourceStack> context) {
 		CapitolDatabase database = DatabaseManager.database;
 		var player = context.getSource().getPlayer();
+		if (player == null) {
+			return failCommand(context, "commands.capitol.command_source_was_console_error");
+		}
+
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.not_in_team_error");
 		}
 
 		if (!Permission.ASSIGN_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to assign roles")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.assign.no_permission");
 		}
 
 		String roleName = StringArgumentType.getString(context, "role_name");
 		String playerName = StringArgumentType.getString(context, "player");
 
 		if (Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)) {
-			context.getSource().sendFailure(Component.literal("You cannot assign the owner role.")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.assign.owner");
 		}
 
 		TeamRole role = database.getRoleByName(team, roleName);
 		if (role == null) {
-			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.not_found", roleName, team.getName());
 		}
 
 		GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
 		Optional<GameProfile> profile = profileCache.get(playerName);
 		if (profile.isEmpty()) {
-			context.getSource().sendFailure(Component.literal("There is no player called " + playerName)
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.no_player_found", playerName);
 		}
 
 		GameProfile gameProfile = profile.get();
@@ -185,64 +177,57 @@ class TeamRoleCommand {
 		List<TeamMember> members = database.getTeamMembers(team);
 		boolean isMember = members.stream().anyMatch(m -> m.playerUUID().equals(gameProfile.getId()));
 		if (!isMember) {
-			context.getSource().sendFailure(Component.literal(gameProfile.getName() + " is not a member of " + team.getName())
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.player_not_in_team", gameProfile.getName(), team.getName());
 		}
 
 		database.updatePlayerRole(gameProfile.getId(), team, role);
 
-		context.getSource().sendSuccess(() -> Component.literal("Assigned ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE))
-			.append(Component.literal(" the role ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.assign.success",
+			Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE),
+			Component.literal(roleName).withStyle(ChatFormatting.AQUA))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
 	private static int editRoleName(CommandContext<CommandSourceStack> context) {
 		CapitolDatabase database = DatabaseManager.database;
 		var player = context.getSource().getPlayer();
+		if (player == null) {
+			return failCommand(context, "commands.capitol.command_source_was_console_error");
+		}
+
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.not_in_team_error");
 		}
 
 		if (!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to edit this role")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.no_manage_permission");
 		}
 		String roleName = StringArgumentType.getString(context, "role_name");
 
 		if (Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)) {
-			context.getSource().sendFailure(Component.literal("You cannot edit owner role.")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.edit.no_owner");
 		}
 
 		if (Objects.equals(roleName, TeamRole.DEFAULT_ROLE_NAME)) {
-			context.getSource().sendFailure(Component.literal("You cannot edit default role name.")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.edit.no_default");
 		}
 
 		TeamRole role = database.getRoleByName(team, roleName);
 
 		if (role == null) {
-			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.not_found", roleName, team.getName());
 		}
 
 		String newRoleName = StringArgumentType.getString(context, "new_name");
 
 		database.updateRoleName(team, roleName, newRoleName);
 
-		context.getSource().sendSuccess(() -> Component.literal("Renamed role ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(roleName).withStyle(ChatFormatting.AQUA))
-			.append(Component.literal(" → ").withStyle(ChatFormatting.DARK_GRAY))
-			.append(Component.literal(newRoleName).withStyle(ChatFormatting.AQUA)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.name.success",
+			Component.literal(roleName).withStyle(ChatFormatting.AQUA),
+			Component.literal(newRoleName).withStyle(ChatFormatting.AQUA))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 
@@ -251,29 +236,22 @@ class TeamRoleCommand {
 		var player = context.getSource().getPlayer();
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.not_in_team_error");
 		}
 
 		if (!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to edit this role")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.no_manage_permission");
 		}
 		String roleName = StringArgumentType.getString(context, "role_name");
 
 		if (Objects.equals(roleName, TeamRole.OWNER_ROLE_NAME)) {
-			context.getSource().sendFailure(Component.literal("You cannot edit owner role.")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.edit.no_owner");
 		}
 
 		TeamRole role = database.getRoleByName(team, roleName);
 
 		if (role == null) {
-			context.getSource().sendFailure(Component.literal("The role " + roleName + " does not exist in " + team.getName())
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.team.role.not_found", roleName, team.getName());
 		}
 
 		String permissionName = StringArgumentType.getString(context, "permission_value").toUpperCase();
@@ -281,9 +259,7 @@ class TeamRoleCommand {
 		try {
 			permission = Permission.valueOf(permissionName);
 		} catch (IllegalArgumentException e) {
-			context.getSource().sendFailure(Component.literal(permissionName + " is not a valid permission.")
-				.withStyle(ChatFormatting.RED));
-			return 0;
+			return failCommand(context, "commands.capitol.invalid_permission", permissionName);
 		}
 
 		long rolePerms = role.permissions();
@@ -293,14 +269,17 @@ class TeamRoleCommand {
 
 		database.updateRolePermissions(team, roleName, rolePerms);
 
-		context.getSource().sendSuccess(() -> Component.literal("Permission ").withStyle(ChatFormatting.GRAY)
-			.append(Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA))
-			.append(Component.literal(" for ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(roleName).withStyle(ChatFormatting.GOLD))
-			.append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED))
-			.append(Component.literal(" → ").withStyle(ChatFormatting.DARK_GRAY))
-			.append(Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.permission_toggle",
+			Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA),
+			Component.literal(roleName).withStyle(ChatFormatting.GOLD),
+			Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED),
+			Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
+	}
+
+	static int failCommand(CommandContext<CommandSourceStack> context, String key, Object... args) {
+		context.getSource().sendFailure(Component.translatable(key, args).withStyle(ChatFormatting.RED));
+		return 0;
 	}
 }

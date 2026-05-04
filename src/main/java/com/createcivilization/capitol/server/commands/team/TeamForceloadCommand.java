@@ -29,27 +29,25 @@ class TeamForceloadCommand {
 		if (player == null) return 0;
 
 		if (!CapitolConfig.FORCELOAD_ENABLED.get()) {
-			context.getSource().sendFailure(Component.literal("Chunk forceloading is disabled on this server")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.forceload.server_disabled").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.FORCELOAD_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to forceload chunks")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.forceload.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		ChunkPos chunkPos = player.chunkPosition();
 		Team owner = database.getChunkOwner(chunkPos, player.level());
 		if (owner == null || !owner.getId().equals(team.getId())) {
-			context.getSource().sendFailure(Component.literal("Your team does not own this chunk").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.forceload.not_owner").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -57,8 +55,7 @@ class TeamForceloadCommand {
 		if (!isCurrentlyForced) {
 			int max = CapitolConfig.FORCELOAD_MAX_PER_TEAM.get();
 			if (max > 0 && database.getTeamForceloadedCount(team) >= max) {
-				context.getSource().sendFailure(Component.literal("Your team has reached the forceloaded chunk limit (" + max + ")")
-					.withStyle(ChatFormatting.RED));
+				context.getSource().sendFailure(Component.translatable("commands.capitol.team.forceload.limit_reached", max).withStyle(ChatFormatting.RED));
 				return 0;
 			}
 		}
@@ -67,8 +64,8 @@ class TeamForceloadCommand {
 		ServerLevel level = context.getSource().getLevel();
 		level.setChunkForced(chunkPos.x, chunkPos.z, nowForced);
 
-		String state = nowForced ? "enabled" : "disabled";
-		context.getSource().sendSuccess(() -> Component.literal("Forceloading " + state + " for this chunk.")
+		context.getSource().sendSuccess(() -> Component.translatable(
+			nowForced ? "commands.capitol.team.forceload.success_enabled" : "commands.capitol.team.forceload.success_disabled")
 			.withStyle(ChatFormatting.GREEN), true);
 		return 1;
 	}

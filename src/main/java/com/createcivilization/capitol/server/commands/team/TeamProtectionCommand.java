@@ -35,13 +35,12 @@ class TeamProtectionCommand {
 		var player = context.getSource().getPlayer();
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
-			context.getSource().sendFailure(Component.literal("You are not in any team").withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!Permission.MANAGE_TEAM.hasPermission(database.getPlayerPermission(player, team))) {
-			context.getSource().sendFailure(Component.literal("You do not have permission to change protection settings")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.protection.no_permission").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
@@ -50,22 +49,22 @@ class TeamProtectionCommand {
 		try {
 			protection = TeamProtection.valueOf(protectionName);
 		} catch (IllegalArgumentException e) {
-			context.getSource().sendFailure(Component.literal(protectionName + " is not a valid protection.")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.invalid_protection", protectionName).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		if (!ProtectionManager.isTeamConfigurable(protection)) {
-			context.getSource().sendFailure(Component.literal("The server does not allow teams to change '" + protection.getKey() + "'")
-				.withStyle(ChatFormatting.RED));
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.protection.server_disabled", protection.getKey()).withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		boolean newState = database.toggleProtection(team, protection);
 
-		context.getSource().sendSuccess(() -> Component.literal(protection.getKey()).withStyle(ChatFormatting.AQUA)
-			.append(Component.literal(" is now ").withStyle(ChatFormatting.GRAY))
-			.append(Component.literal(newState ? "enabled" : "disabled").withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED)), true);
+		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.protection.success",
+			Component.literal(protection.getKey()).withStyle(ChatFormatting.AQUA),
+			Component.translatable(newState ? "commands.capitol.enabled" : "commands.capitol.disabled")
+				.withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
+			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
 }
