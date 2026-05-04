@@ -117,6 +117,10 @@ public class ProtectionManager {
 		return checkBlockAction(player, block, Permission.BREAK_BLOCKS, level, pos, blockBreakExceptions);
 	}
 
+	public static Result checkBlockBreak(Player player, Block block, SubLevelAccess subLevel) {
+		return checkSublevelBlockAction(player, block, Permission.BREAK_BLOCKS, subLevel, blockBreakExceptions);
+	}
+
 	/** Checks whether {@code player} can place {@code block} in the real-world chunk at {@code pos}. */
 	public static Result checkBlockPlace(Player player, Block block, Level level, ChunkPos pos) {
 		return checkBlockAction(player, block, Permission.PLACE_BLOCKS, level, pos, blockPlaceExceptions);

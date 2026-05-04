@@ -46,15 +46,14 @@ public class PlayerInteractionEvents {
 		BlockPos blockPos = event.getPos();
 		Level level = event.getLevel();
 
-		// FIXME: This code was clearly copied over from onPlayerPlaceBlock, but needs to actually do _break_ block logic.
-//		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
-//		if (subLevelAccess != null) {
-//			if (ProtectionManager.checkBlockPlace(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
-//				event.setCanceled(true);
-//				sendDenied("You can't place blocks here!", player);
-//			}
-//			return;
-//		}
+		SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, blockPos);
+		if (subLevelAccess != null) {
+			if (ProtectionManager.checkBlockBreak(player, level.getBlockState(blockPos).getBlock(), subLevelAccess) == Result.DENY) {
+				event.setCanceled(true);
+				sendDenied("You can't break blocks here!", player);
+			}
+			return;
+		}
 
 		if (ProtectionManager.checkBlockBreak(player, level.getBlockState(blockPos).getBlock(), level, new ChunkPos(blockPos)) == Result.DENY) {
 			event.setCanceled(true);
