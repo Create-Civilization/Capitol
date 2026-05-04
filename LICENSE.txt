@@ -1,3 +1,0 @@
-Capitol. A Minecraft mod using MinecraftForge to add a oldTeam and claims system to the game.
-Copyright (C) 2025 Create-Civilization
-All Rights Reserved
