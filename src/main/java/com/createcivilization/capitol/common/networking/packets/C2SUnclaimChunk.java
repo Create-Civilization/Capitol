@@ -6,15 +6,30 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record C2SUnclaimChunk(long packedChunkPos) implements CustomPacketPayload {
+public record C2SUnclaimChunk(long[] packedChunkPositions) implements CustomPacketPayload {
 
 	public static final CustomPacketPayload.Type<C2SUnclaimChunk> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("capitol", "c2s_unclaim_chunk"));
 
-	public static final StreamCodec<ByteBuf, C2SUnclaimChunk> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.VAR_LONG,
-		C2SUnclaimChunk::packedChunkPos,
-		C2SUnclaimChunk::new
-	);
+	public static final StreamCodec<ByteBuf, C2SUnclaimChunk> STREAM_CODEC = new StreamCodec<>() {
+		@Override
+		public C2SUnclaimChunk decode(ByteBuf buffer) {
+			int len = ByteBufCodecs.VAR_INT.decode(buffer);
+			long[] chunks = new long[len];
+			for (int i = 0; i < len; i++) {
+				chunks[i] = ByteBufCodecs.VAR_LONG.decode(buffer);
+			}
+			return new C2SUnclaimChunk(chunks);
+		}
+
+		@Override
+		public void encode(ByteBuf buffer, C2SUnclaimChunk value) {
+			long[] chunks = value.packedChunkPositions();
+			ByteBufCodecs.VAR_INT.encode(buffer, chunks.length);
+			for (long chunk : chunks) {
+				ByteBufCodecs.VAR_LONG.encode(buffer, chunk);
+			}
+		}
+	};
 
 	@Override
 	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {

@@ -205,16 +205,14 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		ModPopupMenu menu = event.getPopupMenu();
 
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
-			for (ChunkPos chunkPos : selected) {
-				PacketDistributor.sendToServer(new C2SClaimChunk(chunkPos.toLong()));
-			}
+			long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
+			PacketDistributor.sendToServer(new C2SClaimChunk(packed));
 			clearSelection();
 		});
 
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> {
-			for (ChunkPos chunkPos : selected) {
-				PacketDistributor.sendToServer(new C2SUnclaimChunk(chunkPos.toLong()));
-			}
+			long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
+			PacketDistributor.sendToServer(new C2SUnclaimChunk(packed));
 			clearSelection();
 		});
 	}
@@ -222,26 +220,31 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private void tick(ClientTickEvent.Post event) {
 		if (api == null || Minecraft.getInstance().player == null) return;
 
-		if (claimingMode) {
+		boolean fullscreenMapOpen = isFullscreenMapOpen();
+
+		if (claimingMode && fullscreenMapOpen) {
 			if (!rangeVisible) {
 				rangeVisible = true;
 				updateRangeOverlay();
 			}
-		} else if (rangeVisible) {
-			tracking = false;
-			trackingButton = -1;
-			selectionDimension = null;
-			lastRmbDown = false;
-			pendingSelectionMenu = false;
-			clearSelection();
-			hideRangeOverlay();
-		}
-
-		if (claimingMode) {
 			ensureAreaUpToDate();
+		} else {
+			if (rangeVisible) {
+				hideRangeOverlay();
+			}
+			if (tracking) {
+				tracking = false;
+				trackingButton = -1;
+				lastRmbDown = false;
+			}
+			if (!selected.isEmpty()) {
+				clearSelection();
+			}
+			pendingSelectionMenu = false;
+			selectionDimension = null;
 		}
 
-		if (tracking) {
+		if (tracking && fullscreenMapOpen) {
 			boolean down = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 			if (lastRmbDown && !down) {
 				tracking = false;
@@ -323,20 +326,29 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 	private void claimSelected() {
 		if (selected.isEmpty()) return;
-		for (ChunkPos chunkPos : selected) {
-			PacketDistributor.sendToServer(new C2SClaimChunk(chunkPos.toLong()));
-		}
+		long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
+		PacketDistributor.sendToServer(new C2SClaimChunk(packed));
 		clearSelection();
 		updateClaimModeUiState();
 	}
 
 	private void unclaimSelected() {
 		if (selected.isEmpty()) return;
-		for (ChunkPos chunkPos : selected) {
-			PacketDistributor.sendToServer(new C2SUnclaimChunk(chunkPos.toLong()));
-		}
+		long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
+		PacketDistributor.sendToServer(new C2SUnclaimChunk(packed));
 		clearSelection();
 		updateClaimModeUiState();
+	}
+
+	private boolean isFullscreenMapOpen() {
+		var screen = Minecraft.getInstance().screen;
+		if (screen == null) return false;
+		try {
+			Class<?> fullscreen = Class.forName("journeymap.api.v2.client.fullscreen.IFullscreen");
+			return fullscreen.isInstance(screen);
+		} catch (Throwable ignored) {
+			return false;
+		}
 	}
 
 	private void updateRangeOverlay() {

@@ -41,16 +41,10 @@ public class ServerPayloadHandler {
 	public static void handleClaimChunk(final C2SClaimChunk request, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
 		Player player = context.player();
-		ChunkPos chunkPos = new ChunkPos(request.packedChunkPos());
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
 			player.displayClientMessage(Component.literal("You are not in any team").withStyle(ChatFormatting.RED), false);
-			return;
-		}
-
-		if (isOutsideClaimRadius(player, chunkPos)) {
-			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
 			return;
 		}
 
@@ -62,8 +56,8 @@ public class ServerPayloadHandler {
 		int serverLimit = CapitolConfig.MAX_TEAM_CLAIMS.get();
 		int teamLimit = team.getMaxClaims();
 		int effectiveLimit = (teamLimit > 0) ? Math.min(serverLimit, teamLimit) : serverLimit;
-
-		if (team.getCurrentClaims() >= effectiveLimit) {
+		int remaining = Math.max(0, effectiveLimit - team.getCurrentClaims());
+		if (remaining <= 0) {
 			boolean isServerLimit = (teamLimit <= 0) || (serverLimit <= teamLimit);
 			String limitName = isServerLimit ? "server" : "team";
 			int limitValue = isServerLimit ? serverLimit : teamLimit;
@@ -71,32 +65,33 @@ public class ServerPayloadHandler {
 			return;
 		}
 
-		Team existingOwner = database.getChunkOwner(chunkPos, player.level());
-		if (existingOwner != null) {
-			player.displayClientMessage(Component.literal("This chunk is already claimed by " + existingOwner.getName()).withStyle(ChatFormatting.RED), false);
-			return;
+		int claimed = 0;
+		long[] packed = request.packedChunkPositions();
+		for (long packedPos : packed) {
+			if (claimed >= remaining) break;
+
+			ChunkPos chunkPos = new ChunkPos(packedPos);
+			if (isOutsideClaimRadius(player, chunkPos)) continue;
+
+			Team existingOwner = database.getChunkOwner(chunkPos, player.level());
+			if (existingOwner != null) continue;
+
+			database.claimChunk(team, chunkPos, player.level());
+			S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
+			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
+			claimed++;
 		}
 
-		database.claimChunk(team, chunkPos, player.level());
-		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
-		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
-
-		player.displayClientMessage(Component.literal("Chunk claimed!").withStyle(ChatFormatting.GREEN), false);
+		player.displayClientMessage(Component.literal("Claimed " + claimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
 	}
 
 	public static void handleUnclaimChunk(final C2SUnclaimChunk request, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
 		Player player = context.player();
-		ChunkPos chunkPos = new ChunkPos(request.packedChunkPos());
 
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
 			player.displayClientMessage(Component.literal("You are not in any team").withStyle(ChatFormatting.RED), false);
-			return;
-		}
-
-		if (isOutsideClaimRadius(player, chunkPos)) {
-			player.displayClientMessage(Component.literal("Chunk is too far away").withStyle(ChatFormatting.RED), false);
 			return;
 		}
 
@@ -105,21 +100,22 @@ public class ServerPayloadHandler {
 			return;
 		}
 
-		Team existingOwner = database.getChunkOwner(chunkPos, player.level());
-		if (existingOwner == null) {
-			player.displayClientMessage(Component.literal("This chunk is not claimed").withStyle(ChatFormatting.RED), false);
-			return;
+		int unclaimed = 0;
+		long[] packed = request.packedChunkPositions();
+		for (long packedPos : packed) {
+			ChunkPos chunkPos = new ChunkPos(packedPos);
+			if (isOutsideClaimRadius(player, chunkPos)) continue;
+
+			Team existingOwner = database.getChunkOwner(chunkPos, player.level());
+			if (existingOwner == null) continue;
+			if (!existingOwner.getId().equals(team.getId())) continue;
+
+			database.unclaimChunk(team, chunkPos, player.level());
+			S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
+			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
+			unclaimed++;
 		}
 
-		if (!existingOwner.getId().equals(team.getId())) {
-			player.displayClientMessage(Component.literal("This chunk is not owned by your team").withStyle(ChatFormatting.RED), false);
-			return;
-		}
-
-		database.unclaimChunk(team, chunkPos, player.level());
-		S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
-		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
-
-		player.displayClientMessage(Component.literal("Chunk unclaimed!").withStyle(ChatFormatting.GREEN), false);
+		player.displayClientMessage(Component.literal("Unclaimed " + unclaimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
 	}
 }
