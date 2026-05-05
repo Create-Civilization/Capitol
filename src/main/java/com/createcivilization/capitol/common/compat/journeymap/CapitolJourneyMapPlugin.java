@@ -17,10 +17,10 @@ import journeymap.api.v2.client.model.ShapeProperties;
 import journeymap.api.v2.client.event.FullscreenDisplayEvent;
 import journeymap.api.v2.client.event.FullscreenMapEvent;
 import journeymap.api.v2.client.event.PopupMenuEvent;
+import journeymap.api.v2.client.fullscreen.ModPopupMenu;
+import journeymap.api.v2.client.fullscreen.IThemeButton;
 import journeymap.api.v2.common.event.FullscreenEventRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -59,7 +59,12 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private final Map<ChunkPos, PolygonOverlay> selectedOverlays = new HashMap<>();
 	private ResourceKey<Level> selectionDimension;
 	private boolean lastRmbDown;
-	private boolean suppressPopupMenuOnce;
+	private boolean pendingSelectionMenu;
+	private int lastClickButton = -1;
+
+	private IThemeButton claimModeButton;
+	private IThemeButton claimSelectedButton;
+	private IThemeButton unclaimSelectedButton;
 
 	@Override
 	public String getModId() {
@@ -70,6 +75,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	public void initialize(IClientAPI jmClientApi) {
 		this.api = jmClientApi;
 		NeoForge.EVENT_BUS.addListener(this::tick);
+		FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(getModId(), this::onMapClick);
 		FullscreenEventRegistry.FULLSCREEN_MAP_DRAG_EVENT.subscribe(getModId(), this::onMapDrag);
 		FullscreenEventRegistry.FULLSCREEN_MAP_MOVE_EVENT.subscribe(getModId(), this::onMapMove);
 		FullscreenEventRegistry.FULLSCREEN_POPUP_MENU_EVENT.subscribe(getModId(), this::onPopupMenu);
@@ -78,23 +84,43 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 	private void onAddonButtonDisplay(FullscreenDisplayEvent.AddonButtonDisplayEvent event) {
 		ResourceLocation icon = ResourceLocation.fromNamespaceAndPath("journeymap", "theme/flat/icon/grid.png");
-		event.getThemeButtonDisplay().addThemeToggleButton("Claim Mode", icon, claimingMode, button -> {
+
+		claimModeButton = event.getThemeButtonDisplay().addThemeToggleButton("Claim Mode", icon, claimingMode, button -> {
 			claimingMode = !claimingMode;
 			button.setToggled(claimingMode);
-			if (claimingMode) {
-				rangeVisible = true;
-				updateRangeOverlay();
-				ensureAreaUpToDate();
-			} else {
-				tracking = false;
-				trackingButton = -1;
-				selectionDimension = null;
-				lastRmbDown = false;
-				suppressPopupMenuOnce = false;
-				clearSelection();
-				hideRangeOverlay();
-			}
+			updateClaimModeState();
 		});
+
+		claimSelectedButton = event.getThemeButtonDisplay().addThemeToggleButton("Claim", icon, false, button -> {
+			button.setToggled(false);
+			claimSelected();
+		});
+
+		unclaimSelectedButton = event.getThemeButtonDisplay().addThemeToggleButton("Unclaim", icon, false, button -> {
+			button.setToggled(false);
+			unclaimSelected();
+		});
+
+		updateClaimModeUiState();
+	}
+
+	private void onMapClick(FullscreenMapEvent.ClickEvent event) {
+		lastClickButton = event.getButton();
+
+		if (!claimingMode) return;
+		if (tracking) return;
+
+		if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+			selectionDimension = event.getLevel();
+			ensureAreaUpToDate();
+
+			ChunkPos chunkPos = new ChunkPos(event.getLocation());
+			if (!area.contains(chunkPos)) return;
+
+			clearSelection();
+			addSelectedChunk(chunkPos);
+			pendingSelectionMenu = true;
+		}
 	}
 
 	private void onMapDrag(FullscreenMapEvent.MouseDraggedEvent event) {
@@ -116,9 +142,11 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 
 		if (!tracking) {
+			clearSelection();
 			tracking = true;
 			trackingButton = event.getButton();
 			lastRmbDown = true;
+			pendingSelectionMenu = false;
 		}
 
 		addSelectedChunk(chunkPos);
@@ -139,9 +167,11 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			ChunkPos startPos = new ChunkPos(event.getLocation());
 			if (!area.contains(startPos)) return;
 
+			clearSelection();
 			tracking = true;
 			trackingButton = GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 			lastRmbDown = true;
+			pendingSelectionMenu = false;
 			addSelectedChunk(startPos);
 			return;
 		}
@@ -158,14 +188,54 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private void onPopupMenu(PopupMenuEvent event) {
 		if (event.getLayer() != PopupMenuEvent.Layer.FULLSCREEN) return;
 		if (!claimingMode) return;
-		if (tracking || suppressPopupMenuOnce) {
+
+		if (lastClickButton == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
 			event.cancel();
-			suppressPopupMenuOnce = false;
+			return;
 		}
+
+		if (tracking) {
+			event.cancel();
+			return;
+		}
+
+		if (!pendingSelectionMenu || selected.isEmpty()) return;
+		pendingSelectionMenu = false;
+
+		ModPopupMenu menu = event.getPopupMenu();
+
+		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
+			for (ChunkPos chunkPos : selected) {
+				PacketDistributor.sendToServer(new C2SClaimChunk(chunkPos.toLong()));
+			}
+			clearSelection();
+		});
+
+		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> {
+			for (ChunkPos chunkPos : selected) {
+				PacketDistributor.sendToServer(new C2SUnclaimChunk(chunkPos.toLong()));
+			}
+			clearSelection();
+		});
 	}
 
 	private void tick(ClientTickEvent.Post event) {
 		if (api == null || Minecraft.getInstance().player == null) return;
+
+		if (claimingMode) {
+			if (!rangeVisible) {
+				rangeVisible = true;
+				updateRangeOverlay();
+			}
+		} else if (rangeVisible) {
+			tracking = false;
+			trackingButton = -1;
+			selectionDimension = null;
+			lastRmbDown = false;
+			pendingSelectionMenu = false;
+			clearSelection();
+			hideRangeOverlay();
+		}
 
 		if (claimingMode) {
 			ensureAreaUpToDate();
@@ -176,8 +246,6 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			if (lastRmbDown && !down) {
 				tracking = false;
 				trackingButton = -1;
-				suppressPopupMenuOnce = true;
-				Minecraft.getInstance().setScreen(new ClaimActionScreen(Minecraft.getInstance().screen));
 			}
 			lastRmbDown = down;
 			return;
@@ -211,6 +279,64 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 				Capitol.LOGGER.error("Failed to show claim overlay", e);
 			}
 		}
+	}
+
+	private void updateClaimModeState() {
+		if (claimingMode) {
+			rangeVisible = true;
+			updateRangeOverlay();
+			ensureAreaUpToDate();
+		} else {
+			tracking = false;
+			trackingButton = -1;
+			selectionDimension = null;
+			lastRmbDown = false;
+			pendingSelectionMenu = false;
+			clearSelection();
+			hideRangeOverlay();
+		}
+		updateClaimModeUiState();
+	}
+
+	private void updateClaimModeUiState() {
+		if (claimModeButton != null) {
+			try {
+				claimModeButton.setToggled(claimingMode);
+			} catch (Throwable ignored) {
+			}
+		}
+
+		boolean actionEnabled = claimingMode && !selected.isEmpty();
+		if (claimSelectedButton != null) {
+			try {
+				claimSelectedButton.setEnabled(actionEnabled);
+			} catch (Throwable ignored) {
+			}
+		}
+		if (unclaimSelectedButton != null) {
+			try {
+				unclaimSelectedButton.setEnabled(actionEnabled);
+			} catch (Throwable ignored) {
+			}
+		}
+	}
+
+	private void claimSelected() {
+		if (selected.isEmpty()) return;
+		for (ChunkPos chunkPos : selected) {
+			PacketDistributor.sendToServer(new C2SClaimChunk(chunkPos.toLong()));
+		}
+		clearSelection();
+		updateClaimModeUiState();
+	}
+
+	private void unclaimSelected() {
+		if (selected.isEmpty()) return;
+		for (ChunkPos chunkPos : selected) {
+			PacketDistributor.sendToServer(new C2SUnclaimChunk(chunkPos.toLong()));
+		}
+		clearSelection();
+		updateClaimModeUiState();
 	}
 
 	private void updateRangeOverlay() {
@@ -310,6 +436,8 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		} catch (Exception e) {
 			Capitol.LOGGER.error("Failed to show selection overlay", e);
 		}
+
+		updateClaimModeUiState();
 	}
 
 	private void clearSelection() {
@@ -321,49 +449,6 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			}
 		}
 		selectedOverlays.clear();
-	}
-
-	private class ClaimActionScreen extends Screen {
-		private final Screen parent;
-
-		protected ClaimActionScreen(Screen parent) {
-			super(Component.literal("Capitol Claiming"));
-			this.parent = parent;
-		}
-
-		@Override
-		protected void init() {
-			int buttonWidth = 140;
-			int buttonHeight = 20;
-			int x = (this.width - buttonWidth) / 2;
-			int y = (this.height - (buttonHeight * 2 + 6)) / 2;
-
-			this.addRenderableWidget(Button.builder(Component.literal("Claim chunks"), b -> {
-				for (ChunkPos pos : selected) {
-					PacketDistributor.sendToServer(new C2SClaimChunk(pos.toLong()));
-				}
-				clearSelection();
-				Minecraft.getInstance().setScreen(parent);
-			}).bounds(x, y, buttonWidth, buttonHeight).build());
-
-			this.addRenderableWidget(Button.builder(Component.literal("Unclaim chunks"), b -> {
-				for (ChunkPos pos : selected) {
-					PacketDistributor.sendToServer(new C2SUnclaimChunk(pos.toLong()));
-				}
-				clearSelection();
-				Minecraft.getInstance().setScreen(parent);
-			}).bounds(x, y + buttonHeight + 6, buttonWidth, buttonHeight).build());
-		}
-
-		@Override
-		public void onClose() {
-			clearSelection();
-			Minecraft.getInstance().setScreen(parent);
-		}
-
-		@Override
-		public boolean isPauseScreen() {
-			return false;
-		}
+		updateClaimModeUiState();
 	}
 }
