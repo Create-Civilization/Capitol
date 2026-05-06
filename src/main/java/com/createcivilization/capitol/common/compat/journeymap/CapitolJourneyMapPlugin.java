@@ -29,7 +29,6 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +38,11 @@ import java.util.Set;
 @SuppressWarnings("removal")
 @JourneyMapPlugin(apiVersion = "v2")
 public class CapitolJourneyMapPlugin implements IClientPlugin {
+
+	private static final int MOUSE_BUTTON_LEFT = 0;
+	private static final int MOUSE_BUTTON_RIGHT = 1;
+	private static volatile Class<?> fullscreenClass;
+	private static volatile boolean fullscreenClassResolved;
 
 	private static final int REFRESH_INTERVAL_TICKS = 20;
 	private static final int RANGE_UPDATE_INTERVAL = 2; //smoother movemnt but without overdo-ing it, change this if you like
@@ -110,7 +114,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		if (!claimingMode) return;
 		if (tracking) return;
 
-		if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+		if (event.getButton() == MOUSE_BUTTON_LEFT) {
 			selectionDimension = event.getLevel();
 			ensureAreaUpToDate();
 
@@ -125,7 +129,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 	private void onMapDrag(FullscreenMapEvent.MouseDraggedEvent event) {
 		if (!claimingMode) return;
-		if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_RIGHT) return;
+		if (event.getButton() != MOUSE_BUTTON_RIGHT) return;
 
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
@@ -158,7 +162,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private void onMapMove(FullscreenMapEvent.MouseMoveEvent event) {
 		if (!claimingMode) return;
 
-		boolean rmbDown = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+		boolean rmbDown = isRightMouseDown();
 		if (!tracking) {
 			if (!rmbDown) return;
 			selectionDimension = event.getLevel();
@@ -169,14 +173,14 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 			clearSelection();
 			tracking = true;
-			trackingButton = GLFW.GLFW_MOUSE_BUTTON_RIGHT;
+			trackingButton = MOUSE_BUTTON_RIGHT;
 			lastRmbDown = true;
 			pendingSelectionMenu = false;
 			addSelectedChunk(startPos);
 			return;
 		}
 
-		if (trackingButton != GLFW.GLFW_MOUSE_BUTTON_RIGHT) return;
+		if (trackingButton != MOUSE_BUTTON_RIGHT) return;
 		if (!rmbDown) return;
 
 		ChunkPos chunkPos = new ChunkPos(event.getLocation());
@@ -189,12 +193,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		if (event.getLayer() != PopupMenuEvent.Layer.FULLSCREEN) return;
 		if (!claimingMode) return;
 
-		if (lastClickButton == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-			event.cancel();
-			return;
-		}
-
-		if (tracking) {
+		if (lastClickButton == MOUSE_BUTTON_RIGHT || tracking) {
 			event.cancel();
 			return;
 		}
@@ -245,7 +244,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 
 		if (tracking && fullscreenMapOpen) {
-			boolean down = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+			boolean down = isRightMouseDown();
 			if (lastRmbDown && !down) {
 				tracking = false;
 				trackingButton = -1;
@@ -343,10 +342,33 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private boolean isFullscreenMapOpen() {
 		var screen = Minecraft.getInstance().screen;
 		if (screen == null) return false;
+		Class<?> fullscreen = getFullscreenClass();
+		return fullscreen != null && fullscreen.isInstance(screen);
+	}
+
+	private static Class<?> getFullscreenClass() {
+		if (fullscreenClassResolved) return fullscreenClass;
+		synchronized (CapitolJourneyMapPlugin.class) {
+			if (fullscreenClassResolved) return fullscreenClass;
+			try {
+				fullscreenClass = Class.forName("journeymap.api.v2.client.fullscreen.IFullscreen");
+			} catch (Throwable ignored) {
+				// jm is a soft dependency and can be absent or mismatched at runtime
+				// Class.forName can throw ClassNotFoundException or linkage-related errors
+				// in those cases treat fullscreen detection as unsupported, skip fullscreen-only behavior
+				fullscreenClass = null;
+			} finally {
+				fullscreenClassResolved = true;
+			}
+			return fullscreenClass;
+		}
+	}
+
+	private boolean isRightMouseDown() {
 		try {
-			Class<?> fullscreen = Class.forName("journeymap.api.v2.client.fullscreen.IFullscreen");
-			return fullscreen.isInstance(screen);
+			return Minecraft.getInstance().mouseHandler.isRightPressed();
 		} catch (Throwable ignored) {
+			// Some client lifecycle states (early init, teardown, odd screen contexts) can briefly make input state unavailable. default "not pressed" rather than crashing.
 			return false;
 		}
 	}
@@ -368,6 +390,9 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			try {
 				api.remove(rangeOverlay);
 			} catch (Exception ignored) {
+				// api can throw during map ransitions
+				// or if the overlay registry was already cleared. 
+				// Removal is best-effort and should never crash the client.
 			}
 		}
 
@@ -396,6 +421,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		try {
 			api.remove(rangeOverlay);
 		} catch (Exception ignored) {
+			// same as updateRangeOverlay()
 		}
 		rangeOverlay = null;
 	}
@@ -458,6 +484,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			try {
 				api.remove(overlay);
 			} catch (Exception ignored) {
+				// same as updateRangeOverlay()
 			}
 		}
 		selectedOverlays.clear();
