@@ -7,6 +7,7 @@ import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
+import com.createcivilization.capitol.server.events.AutoClaimEvents;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
@@ -28,6 +29,9 @@ public class ClaimCommand {
 		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("claim")
 			.then(Commands.literal("chunk")
 				.executes(ClaimCommand::claim));
+
+		builder.then(Commands.literal("auto")
+			.executes(ClaimCommand::auto));
 
 		if (SableCompat.LOADED) {
 			builder.then(Commands.literal("sub_level")
@@ -149,6 +153,32 @@ public class ClaimCommand {
 			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.info.owner",
 				Component.literal(owner.getName()).withStyle(ChatFormatting.GOLD))
 				.withStyle(ChatFormatting.GRAY), false);
+		}
+		return 1;
+	}
+
+	private static int auto(CommandContext<CommandSourceStack> context) {
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.getSource().getPlayer();
+		if (player == null) return 0;
+
+		Team team = database.getPlayerTeam(player);
+		if (team == null) {
+			context.getSource().sendFailure(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if (!Permission.CLAIM_CHUNKS.hasPermission(database.getPlayerPermission(player, team))) {
+			context.getSource().sendFailure(Component.translatable("commands.capitol.claim.no_permission").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
+		if (AutoClaimEvents.isAutoClaimer(player)) {
+			AutoClaimEvents.removeAutoClaimer(player);
+			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claim.stop").withStyle(ChatFormatting.GREEN), true);
+		} else {
+			AutoClaimEvents.addAutoClaimer(player);
+			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claim.start").withStyle(ChatFormatting.GREEN), true);
 		}
 		return 1;
 	}
