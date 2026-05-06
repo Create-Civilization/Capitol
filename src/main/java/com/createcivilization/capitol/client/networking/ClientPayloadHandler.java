@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.client.networking;
 
+import com.createcivilization.capitol.client.journeymap.ClientJMClaims;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
@@ -12,10 +13,14 @@ public class ClientPayloadHandler {
 		ChunkPos chunkPos = new ChunkPos(chunkData.packedChunkPos());
 		Team team = chunkData.team();
 		ClientClaimCache.addClaim(chunkPos, team);
+		ClientJMClaims.instance().upsert(chunkPos, team);
+		ClientJMClaims.instance().flushIfDirty();
 	}
 
 	public static void chunkRemoveHandler(final S2CChunkRemove chunkData, final IPayloadContext context) {
 		ChunkPos chunkPos = new ChunkPos(chunkData.packedChunkPos());
 		ClientClaimCache.removeClaim(chunkPos);
+		ClientJMClaims.instance().remove(chunkPos);
+		ClientJMClaims.instance().flushIfDirty();
 	}
 }

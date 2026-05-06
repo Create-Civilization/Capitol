@@ -1,6 +1,5 @@
 package com.createcivilization.capitol.server.networking;
 
-import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;

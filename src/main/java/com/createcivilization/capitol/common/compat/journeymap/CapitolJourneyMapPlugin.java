@@ -29,6 +29,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,13 +40,10 @@ import java.util.Set;
 @JourneyMapPlugin(apiVersion = "v2")
 public class CapitolJourneyMapPlugin implements IClientPlugin {
 
-	private static final int MOUSE_BUTTON_LEFT = 0;
-	private static final int MOUSE_BUTTON_RIGHT = 1;
-	private static volatile Class<?> fullscreenClass;
-	private static volatile boolean fullscreenClassResolved;
-
 	private static final int REFRESH_INTERVAL_TICKS = 20;
 	private static final int RANGE_UPDATE_INTERVAL = 2; //smoother movemnt but without overdo-ing it, change this if you like
+	private static final Class<?> FULLSCREEN_MAP_SCREEN_CLASS = resolveFullscreenMapScreenClass();
+	private static final String MOD_ID = Capitol.MOD_ID;
 
 	private IClientAPI api;
 	private int tickCounter;
@@ -56,10 +54,12 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private boolean rangeVisible;
 
 	private boolean claimingMode;
+	// tracking means the user is currently doing a right-click drag selection
 	private boolean tracking;
 	private int trackingButton;
 	private final Set<ChunkPos> area = new HashSet<>();
 	private final Set<ChunkPos> selected = new HashSet<>();
+	// we keep these so we can remove the highlight overlays later
 	private final Map<ChunkPos, PolygonOverlay> selectedOverlays = new HashMap<>();
 	private ResourceKey<Level> selectionDimension;
 	private boolean lastRmbDown;
@@ -72,20 +72,22 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 	@Override
 	public String getModId() {
-		return Capitol.MOD_ID;
+		return MOD_ID;
 	}
 
 	@Override
 	public void initialize(IClientAPI jmClientApi) {
 		this.api = jmClientApi;
 		NeoForge.EVENT_BUS.addListener(this::tick);
-		FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(getModId(), this::onMapClick);
-		FullscreenEventRegistry.FULLSCREEN_MAP_DRAG_EVENT.subscribe(getModId(), this::onMapDrag);
-		FullscreenEventRegistry.FULLSCREEN_MAP_MOVE_EVENT.subscribe(getModId(), this::onMapMove);
-		FullscreenEventRegistry.FULLSCREEN_POPUP_MENU_EVENT.subscribe(getModId(), this::onPopupMenu);
-		FullscreenEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(getModId(), this::onAddonButtonDisplay);
+		FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(MOD_ID, this::onMapClick);
+		FullscreenEventRegistry.FULLSCREEN_MAP_DRAG_EVENT.subscribe(MOD_ID, this::onMapDrag);
+		FullscreenEventRegistry.FULLSCREEN_MAP_MOVE_EVENT.subscribe(MOD_ID, this::onMapMove);
+		FullscreenEventRegistry.FULLSCREEN_POPUP_MENU_EVENT.subscribe(MOD_ID, this::onPopupMenu);
+		FullscreenEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(MOD_ID, this::onAddonButtonDisplay);
 	}
 
+	// this runs when journeymap builds the fullscreen ui buttons
+	// we add claim mode + claim/unclaim buttons here
 	private void onAddonButtonDisplay(FullscreenDisplayEvent.AddonButtonDisplayEvent event) {
 		ResourceLocation icon = ResourceLocation.fromNamespaceAndPath("journeymap", "theme/flat/icon/grid.png");
 
@@ -108,13 +110,14 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		updateClaimModeUiState();
 	}
 
+	// left click selects exactly one chunk (if its in range), and we let the popup menu show claim/unclaim
+	// right click should not do anything here because rmb is for drag selection only
 	private void onMapClick(FullscreenMapEvent.ClickEvent event) {
 		lastClickButton = event.getButton();
 
-		if (!claimingMode) return;
-		if (tracking) return;
+		if (!claimingMode || tracking) return;
 
-		if (event.getButton() == MOUSE_BUTTON_LEFT) {
+		if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
 			selectionDimension = event.getLevel();
 			ensureAreaUpToDate();
 
@@ -127,9 +130,10 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 	}
 
+	// this is the "real" rmb drag hook when journeymap fires a drag event
+	// we cancel the event so the map doesn't pan while we're selecting
 	private void onMapDrag(FullscreenMapEvent.MouseDraggedEvent event) {
-		if (!claimingMode) return;
-		if (event.getButton() != MOUSE_BUTTON_RIGHT) return;
+		if (!claimingMode || event.getButton() != GLFW.GLFW_MOUSE_BUTTON_RIGHT) return;
 
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
@@ -159,10 +163,12 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 	}
 
+	// some journeymap builds are weird about drag events, so this is a backup
+	// if rmb is held and the mouse moves over new chunks, we add them to selection too
 	private void onMapMove(FullscreenMapEvent.MouseMoveEvent event) {
 		if (!claimingMode) return;
 
-		boolean rmbDown = isRightMouseDown();
+		boolean rmbDown = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 		if (!tracking) {
 			if (!rmbDown) return;
 			selectionDimension = event.getLevel();
@@ -173,15 +179,15 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 			clearSelection();
 			tracking = true;
-			trackingButton = MOUSE_BUTTON_RIGHT;
+			trackingButton = GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 			lastRmbDown = true;
 			pendingSelectionMenu = false;
 			addSelectedChunk(startPos);
 			return;
 		}
 
-		if (trackingButton != MOUSE_BUTTON_RIGHT) return;
-		if (!rmbDown) return;
+		if (trackingButton != GLFW.GLFW_MOUSE_BUTTON_RIGHT || !rmbDown) return;
+
 
 		ChunkPos chunkPos = new ChunkPos(event.getLocation());
 		if (!area.contains(chunkPos)) return;
@@ -189,11 +195,13 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		addSelectedChunk(chunkPos);
 	}
 
+	// we only want the popup menu for left click single selection
+	// if someone right clicks in claim mode, we cancel the menu so rmb stays "selection only"
 	private void onPopupMenu(PopupMenuEvent event) {
 		if (event.getLayer() != PopupMenuEvent.Layer.FULLSCREEN) return;
 		if (!claimingMode) return;
 
-		if (lastClickButton == MOUSE_BUTTON_RIGHT || tracking) {
+		if (lastClickButton == GLFW.GLFW_MOUSE_BUTTON_RIGHT || tracking) {
 			event.cancel();
 			return;
 		}
@@ -216,6 +224,8 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		});
 	}
 
+	// main client loop for journeymap overlays
+	// important to only show the claim radius overlay on the fullscreen map, not on the minimap
 	private void tick(ClientTickEvent.Post event) {
 		if (api == null || Minecraft.getInstance().player == null) return;
 
@@ -244,7 +254,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 
 		if (tracking && fullscreenMapOpen) {
-			boolean down = isRightMouseDown();
+			boolean down = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 			if (lastRmbDown && !down) {
 				tracking = false;
 				trackingButton = -1;
@@ -264,7 +274,9 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		if (signature == lastSignature) return;
 		lastSignature = signature;
 
-		api.removeAll(getModId(), DisplayType.Polygon);
+		// remove all our polygons then rebuild them from our caches
+		// we re-show the selected overlays because removeAll will wipe them too
+		api.removeAll(MOD_ID, DisplayType.Polygon);
 		if (rangeVisible) updateRangeOverlay();
 		for (PolygonOverlay overlay : selectedOverlays.values()) {
 			try {
@@ -274,7 +286,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			}
 		}
 
-		for (PolygonOverlay overlay : PolygonHelper.buildClaimOverlays(getModId(), Level.OVERWORLD)) {
+		for (PolygonOverlay overlay : PolygonHelper.buildClaimOverlays(MOD_ID, Level.OVERWORLD)) {
 			try {
 				api.show(overlay);
 			} catch (Exception e) {
@@ -283,6 +295,8 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 	}
 
+	// hard reset when claim mode toggles off
+	// also makes sure we instantly show the purple radius when toggling on
 	private void updateClaimModeState() {
 		if (claimingMode) {
 			rangeVisible = true;
@@ -300,6 +314,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		updateClaimModeUiState();
 	}
 
+	// enables/disables buttons based on claim mode and if we have anything selected
 	private void updateClaimModeUiState() {
 		if (claimModeButton != null) {
 			try {
@@ -323,6 +338,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 	}
 
+	// this sends a single packet for the whole selection, so chat doesn't get spammed
 	private void claimSelected() {
 		if (selected.isEmpty()) return;
 		long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
@@ -331,6 +347,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		updateClaimModeUiState();
 	}
 
+	// same as claimSelected but for unclaim
 	private void unclaimSelected() {
 		if (selected.isEmpty()) return;
 		long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
@@ -339,37 +356,19 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		updateClaimModeUiState();
 	}
 
+	// only want the radius overlay in fullscreen, not in minimap
 	private boolean isFullscreenMapOpen() {
 		var screen = Minecraft.getInstance().screen;
 		if (screen == null) return false;
-		Class<?> fullscreen = getFullscreenClass();
-		return fullscreen != null && fullscreen.isInstance(screen);
+		return FULLSCREEN_MAP_SCREEN_CLASS != null && FULLSCREEN_MAP_SCREEN_CLASS.isInstance(screen);
 	}
 
-	private static Class<?> getFullscreenClass() {
-		if (fullscreenClassResolved) return fullscreenClass;
-		synchronized (CapitolJourneyMapPlugin.class) {
-			if (fullscreenClassResolved) return fullscreenClass;
-			try {
-				fullscreenClass = Class.forName("journeymap.api.v2.client.fullscreen.IFullscreen");
-			} catch (Throwable ignored) {
-				// jm is a soft dependency and can be absent or mismatched at runtime
-				// Class.forName can throw ClassNotFoundException or linkage-related errors
-				// in those cases treat fullscreen detection as unsupported, skip fullscreen-only behavior
-				fullscreenClass = null;
-			} finally {
-				fullscreenClassResolved = true;
-			}
-			return fullscreenClass;
-		}
-	}
-
-	private boolean isRightMouseDown() {
+	// this only runs once (cached), so we dont do the class lookup every tick
+	private static Class<?> resolveFullscreenMapScreenClass() {
 		try {
-			return Minecraft.getInstance().mouseHandler.isRightPressed();
+			return Class.forName("journeymap.api.v2.client.fullscreen.IFullscreen");
 		} catch (Throwable ignored) {
-			// Some client lifecycle states (early init, teardown, odd screen contexts) can briefly make input state unavailable. default "not pressed" rather than crashing.
-			return false;
+			return null;
 		}
 	}
 
@@ -390,9 +389,6 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			try {
 				api.remove(rangeOverlay);
 			} catch (Exception ignored) {
-				// api can throw during map ransitions
-				// or if the overlay registry was already cleared. 
-				// Removal is best-effort and should never crash the client.
 			}
 		}
 
@@ -405,7 +401,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			.setStrokeOpacity(0.4f)
 			.setStrokeWidth(2f);
 
-		rangeOverlay = new PolygonOverlay(getModId(), player.level().dimension(), props, poly);
+		rangeOverlay = new PolygonOverlay(MOD_ID, player.level().dimension(), props, poly);
 		try {
 			api.show(rangeOverlay);
 		} catch (Exception e) {
@@ -421,11 +417,12 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		try {
 			api.remove(rangeOverlay);
 		} catch (Exception ignored) {
-			// same as updateRangeOverlay()
 		}
 		rangeOverlay = null;
 	}
 
+	// builds the "in range" chunk set around the player using config claim radius
+	// we rebuild only when player changes chunk, so its cheap on memory
 	private void ensureAreaUpToDate() {
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
@@ -449,6 +446,8 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		}
 	}
 
+	// adds a selected chunk and shows a white highlight overlay for it
+	// if its already selected, nothing happens
 	private void addSelectedChunk(ChunkPos chunkPos) {
 		if (!selected.add(chunkPos)) return;
 
@@ -467,7 +466,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			.setStrokeOpacity(0.85f)
 			.setStrokeWidth(2f);
 
-		PolygonOverlay overlay = new PolygonOverlay(getModId(), dim, props, poly);
+		PolygonOverlay overlay = new PolygonOverlay(MOD_ID, dim, props, poly);
 		selectedOverlays.put(chunkPos, overlay);
 		try {
 			api.show(overlay);
@@ -478,13 +477,13 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		updateClaimModeUiState();
 	}
 
+	// removes all selection highlights + clears the selected chunk list
 	private void clearSelection() {
 		selected.clear();
 		for (PolygonOverlay overlay : selectedOverlays.values()) {
 			try {
 				api.remove(overlay);
 			} catch (Exception ignored) {
-				// same as updateRangeOverlay()
 			}
 		}
 		selectedOverlays.clear();
