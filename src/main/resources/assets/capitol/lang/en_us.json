@@ -96,9 +96,9 @@
 	"commands.capitol.claim.info.unclaimed": "This chunk is not claimed",
 	"commands.capitol.claim.info.owner": "Claimed by %s",
 	"commands.capitol.claim.sub_level.info.unclaimed": "This sub-level is not claimed",
-	"commands.capitol.claim.auto_claim.too_fast": "You are claiming too quickly!",
-	"commands.capitol.claim.auto_claim.start": "Started auto claiming.",
-	"commands.capitol.claim.auto_claim.stop": "Stopped auto claiming.",
+	"commands.capitol.claim.auto_claiming.too_fast": "You are claiming too quickly!",
+	"commands.capitol.claim.auto_claiming.start": "Started auto claiming.",
+	"commands.capitol.claim.auto_claiming.stop": "Stopped auto claiming.",
 
 	"commands.capitol.unclaim.no_permission": "You do not have permission to unclaim chunks",
 	"commands.capitol.unclaim.not_claimed": "This chunk is not claimed",

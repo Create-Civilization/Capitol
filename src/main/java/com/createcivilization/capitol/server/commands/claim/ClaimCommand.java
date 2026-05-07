@@ -177,7 +177,7 @@ public class ClaimCommand {
 			AutoClaimEvents.removeAutoClaimer(player);
 			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claim.stop").withStyle(ChatFormatting.GREEN), true);
 		} else {
-			AutoClaimEvents.addAutoClaimer(player);
+			AutoClaimEvents.updateAutoClaimer(player);
 			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claim.start").withStyle(ChatFormatting.GREEN), true);
 		}
 		return 1;
