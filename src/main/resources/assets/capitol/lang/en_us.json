@@ -132,5 +132,6 @@
 	"commands.capitol.help.team.protection": "Toggle a claim protection setting",
 	"commands.capitol.help.team.player.permission": "Toggle an individual permission override",
 	"commands.capitol.help.team.player.permission.reset": "Reset a player's individual permission overrides",
-	"commands.capitol.help.invites": "Accept or deny a team invite"
+	"commands.capitol.help.invites": "Accept or deny a team invite",
+	"commands.capitol.help.claim.auto": "Toggles auto claiming mode, while in auto mode walk into unclaimed chunks to claim them."
 }
