@@ -14,13 +14,13 @@ public class ClientPayloadHandler {
 		Team team = chunkData.team();
 		ClientClaimCache.addClaim(chunkPos, team);
 		ClientJMClaims.instance().upsert(chunkPos, team);
-		ClientJMClaims.instance().flushIfDirty();
+		ClientJMClaims.instance().flush();
 	}
 
 	public static void chunkRemoveHandler(final S2CChunkRemove chunkData, final IPayloadContext context) {
 		ChunkPos chunkPos = new ChunkPos(chunkData.packedChunkPos());
 		ClientClaimCache.removeClaim(chunkPos);
 		ClientJMClaims.instance().remove(chunkPos);
-		ClientJMClaims.instance().flushIfDirty();
+		ClientJMClaims.instance().flush();
 	}
 }

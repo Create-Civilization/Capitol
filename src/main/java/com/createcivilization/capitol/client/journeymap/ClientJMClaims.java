@@ -7,34 +7,34 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.ChunkPos;
-import net.neoforged.fml.loading.FMLPaths;
 
 import java.awt.Color;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ClientJMClaims {
 
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static final ClientJMClaims INSTANCE = new ClientJMClaims();
 
+	private ClientJMClaims() {}
+
 	// this points at something like:
 	// run/journeymap/data/mp/<server>/claims/claims.json
 	// or run/journeymap/data/sp/<world>/claims/claims.json
 	private Path claimsFile;
 	// key is chunkpos packed as long, value is the team owning it
-	private final Map<Long, Team> claims = new HashMap<>();
+	private final Map<Long, Team> claims = new ConcurrentHashMap<>();
 	// lazy load so we dont hit disk unless we actually need it
 	private boolean loaded;
 	// if dirty is true we write the json back out
@@ -42,6 +42,23 @@ public final class ClientJMClaims {
 
 	public static ClientJMClaims instance() {
 		return INSTANCE;
+	}
+
+	public synchronized void setJourneyMapDataPath(File addonDataModPath) {
+		if (addonDataModPath == null) return;
+		Path path = addonDataModPath.toPath().normalize();
+		Path addonDataDir = path.getParent();
+		if (addonDataDir == null) return;
+		Path worldDir = addonDataDir.getParent();
+		if (worldDir == null) return;
+
+		Path nextClaimsFile = worldDir.resolve("claims").resolve("claims.json");
+		if (claimsFile != null && claimsFile.equals(nextClaimsFile)) return;
+
+		claimsFile = nextClaimsFile;
+		loaded = false;
+		claims.clear();
+		dirty = false;
 	}
 
 	public synchronized Map<ChunkPos, Team> snapshot() {
@@ -69,7 +86,7 @@ public final class ClientJMClaims {
 		}
 	}
 
-	public synchronized void flushIfDirty() {
+	public synchronized void flush() {
 		if (!dirty) return;
 		ensureLoaded();
 		writeFile();
@@ -77,55 +94,10 @@ public final class ClientJMClaims {
 	}
 
 	private void ensureLoaded() {
-		Path resolved = resolveClaimsFile();
-		if (resolved == null) return;
-		if (claimsFile == null || !claimsFile.equals(resolved)) {
-			claimsFile = resolved;
-			loaded = false;
-			claims.clear();
-			dirty = false;
-		}
+		if (claimsFile == null) return;
 		if (loaded) return;
 		readFile();
 		loaded = true;
-	}
-
-	private Path resolveClaimsFile() {
-		Path dataRoot = FMLPaths.GAMEDIR.get().resolve("journeymap").resolve("data");
-		boolean singleplayer = Minecraft.getInstance().hasSingleplayerServer();
-		Path modeRoot = dataRoot.resolve(singleplayer ? "sp" : "mp");
-		if (!Files.isDirectory(modeRoot)) return null;
-
-		Path worldDir = newestDirectory(modeRoot);
-		if (worldDir == null) return null;
-
-		Path claimsDir = worldDir.resolve("claims");
-		try {
-			Files.createDirectories(claimsDir);
-		} catch (IOException e) {
-			Capitol.LOGGER.error("Failed to create JourneyMap claims directory {}", claimsDir, e);
-			return null;
-		}
-		return claimsDir.resolve("claims.json");
-	}
-
-	private static Path newestDirectory(Path root) {
-		try (Stream<Path> stream = Files.list(root)) {
-			return stream
-				.filter(Files::isDirectory)
-				.max(Comparator.comparingLong(ClientJMClaims::lastModifiedSafe))
-				.orElse(null);
-		} catch (IOException e) {
-			return null;
-		}
-	}
-
-	private static long lastModifiedSafe(Path path) {
-		try {
-			return Files.getLastModifiedTime(path).toMillis();
-		} catch (IOException e) {
-			return 0L;
-		}
 	}
 
 	private void readFile() {
@@ -213,4 +185,3 @@ public final class ClientJMClaims {
 		}
 	}
 }
-

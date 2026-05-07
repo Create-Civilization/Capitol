@@ -2,6 +2,7 @@ package com.createcivilization.capitol.common.compat.journeymap;
 
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.client.journeymap.ClientJMClaims;
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
 import com.createcivilization.capitol.common.compat.journeymap.util.PolygonHelper;
 import com.createcivilization.capitol.common.config.CapitolConfig;
@@ -228,6 +229,11 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	// important to only show the claim radius overlay on the fullscreen map, not on the minimap
 	private void tick(ClientTickEvent.Post event) {
 		if (api == null || Minecraft.getInstance().player == null) return;
+
+		var jmDataPath = api.getDataPath(MOD_ID);
+		if (jmDataPath != null) {
+			ClientJMClaims.instance().setJourneyMapDataPath(jmDataPath);
+		}
 
 		boolean fullscreenMapOpen = isFullscreenMapOpen();
 
@@ -458,15 +464,17 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			dim = player.level().dimension();
 		}
 
-		MapPolygon poly = PolygonHelper.createRangePolygon(chunkPos, 0);
-		ShapeProperties props = new ShapeProperties()
-			.setFillColor(0xFFFFFF)
-			.setFillOpacity(0.35f)
-			.setStrokeColor(0xFFFFFF)
-			.setStrokeOpacity(0.85f)
-			.setStrokeWidth(2f);
-
-		PolygonOverlay overlay = new PolygonOverlay(MOD_ID, dim, props, poly);
+		PolygonOverlay overlay = new PolygonOverlay(
+			MOD_ID,
+			dim,
+			new ShapeProperties()
+				.setFillColor(0xFFFFFF)
+				.setFillOpacity(0.35f)
+				.setStrokeColor(0xFFFFFF)
+				.setStrokeOpacity(0.85f)
+				.setStrokeWidth(2f),
+			PolygonHelper.createRangePolygon(chunkPos, 0)
+		);
 		selectedOverlays.put(chunkPos, overlay);
 		try {
 			api.show(overlay);
