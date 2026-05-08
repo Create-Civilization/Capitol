@@ -23,6 +23,7 @@ public class HelpCommand {
 		msg.append(entry("/capitol claim sub_level", Component.translatable("commands.capitol.help.claim.sub_level")));
 		msg.append(entry("/capitol claim info", Component.translatable("commands.capitol.help.claim.info")));
 		msg.append(entry("/capitol claim info sub_level", Component.translatable("commands.capitol.help.claim.info.sub_level")));
+		msg.append(entry("/capitol claim auto", Component.translatable("commands.capitol.help.claim.auto")));
 		msg.append(entry("/capitol unclaim chunk", Component.translatable("commands.capitol.help.unclaim.chunk")));
 		msg.append(entry("/capitol unclaim sub_level", Component.translatable("commands.capitol.help.unclaim.sub_level")));
 		msg.append(entry("/capitol team create <name> <tag> <color> [desc]", Component.translatable("commands.capitol.help.team.create")));

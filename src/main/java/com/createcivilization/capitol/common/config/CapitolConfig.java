@@ -14,6 +14,7 @@ public class CapitolConfig {
 	public static final ModConfigSpec.EnumValue<ListType> CLAIMABLE_DIMENSIONS_LIST_TYPE;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> CLAIMABLE_DIMENSIONS;
 	public static final ModConfigSpec.BooleanValue SUBLEVEL_CLAIM_OVERLAP;
+	public static final ModConfigSpec.DoubleValue AUTO_CLAIM_COOLDOWN;
 
 	// Forceloading
 	public static final ModConfigSpec.BooleanValue FORCELOAD_ENABLED;
@@ -78,6 +79,11 @@ public class CapitolConfig {
 				"This is good to use if you are worried about players being able to grief with sub-levels,",
 				"or don't want a looming airship over your base you can't do anything about")
 				.define("sublevelClaimOverlap", true);
+
+		AUTO_CLAIM_COOLDOWN = builder
+			.comment("How long a player must wait before being able to claim the next chunk while autoclaiming.",
+				"Given in seconds.")
+				.defineInRange("autoClaimCooldown", 1.0, 0, Integer.MAX_VALUE);
 
 		builder.pop();
 
