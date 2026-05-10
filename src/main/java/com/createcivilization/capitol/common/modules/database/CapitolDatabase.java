@@ -319,6 +319,7 @@ public class CapitolDatabase extends Database {
 		}
 
 		addRole(team, TeamRole.OWNER_ROLE_NAME, TeamRole.ownerPermissions());
+		addRole(team, TeamRole.MEMBER_ROLE_NAME, TeamRole.memberPermissions());
 		addRole(team, TeamRole.DEFAULT_ROLE_NAME, TeamRole.defaultPermissions());
 	}
 
