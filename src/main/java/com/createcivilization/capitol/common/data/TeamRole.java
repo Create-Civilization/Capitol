@@ -35,6 +35,6 @@ public record TeamRole(int id, UUID teamId, String name, long permissions) {
 	}
 
 	public static long defaultPermissions() {
-		return Permission.of();
+		return 0b111111111111111111100000000L;
 	}
 }
