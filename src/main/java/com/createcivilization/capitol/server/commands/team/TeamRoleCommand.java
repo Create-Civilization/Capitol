@@ -304,9 +304,9 @@ class TeamRoleCommand {
 		for (Permission perm : Permission.values()) {
 			MutableComponent comp = Component.literal("[").append(perm.hasPermission(role.permissions()) ? Component.literal("✔").withStyle(ChatFormatting.GREEN) : Component.literal("❌").withStyle(ChatFormatting.RED)).append("]");
 			comp.withStyle(s -> s.withClickEvent(
-				new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("", roleName, perm.name().toLowerCase()))
+				new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/capitol team role edit %s permission %s", roleName, perm.name().toLowerCase()))
 			).withHoverEvent(
-				new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to swap permissions"))
+				new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("commands.capitol.team.role.permission_list.hover"))
 			));
 			context.getSource().sendSuccess(() ->
 					comp.append(Component.literal(" ").withStyle(ChatFormatting.GOLD)).append(Component.literal(perm.name()).withStyle(ChatFormatting.WHITE))
