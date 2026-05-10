@@ -175,10 +175,10 @@ public class ClaimCommand {
 
 		if (AutoClaimEvents.isAutoClaimer(player)) {
 			AutoClaimEvents.removeAutoClaimer(player);
-			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claim.stop").withStyle(ChatFormatting.GREEN), true);
+			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claiming.stop").withStyle(ChatFormatting.GREEN), true);
 		} else {
 			AutoClaimEvents.updateAutoClaimer(player);
-			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claim.start").withStyle(ChatFormatting.GREEN), true);
+			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.auto_claiming.start").withStyle(ChatFormatting.GREEN), true);
 		}
 		return 1;
 	}
