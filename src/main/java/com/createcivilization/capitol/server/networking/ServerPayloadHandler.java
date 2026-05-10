@@ -24,7 +24,11 @@ public class ServerPayloadHandler {
 		CapitolDatabase database = DatabaseManager.database;
 		ChunkPos chunkPos = new ChunkPos(request.packedChunkPos());
 		Team team = database.getChunkOwner(chunkPos, context.player().level());
-		if(team == null) return;
+		if (team == null) {
+			S2CChunkRemove packet = new S2CChunkRemove(request.packedChunkPos());
+			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) context.player().level(), chunkPos, packet);
+			return;
+		}
 		S2CChunkData packet = new S2CChunkData(request.packedChunkPos(), team);
 		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) context.player().level(), chunkPos, packet);
 	}
