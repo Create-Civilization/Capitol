@@ -7,12 +7,16 @@ import java.util.UUID;
 public record TeamRole(int id, UUID teamId, String name, long permissions) {
 
 	public static final String OWNER_ROLE_NAME = "owner";
+	public static final String MEMBER_ROLE_NAME = "member";
 	public static final String DEFAULT_ROLE_NAME = "default";
 
 	public boolean isOwner() {
 		return OWNER_ROLE_NAME.equals(name);
 	}
 
+	public boolean isMemberRole() {
+		return MEMBER_ROLE_NAME.equals(name);
+	}
 	public boolean isDefaultRole() {
 		return DEFAULT_ROLE_NAME.equals(name);
 	}
@@ -34,7 +38,10 @@ public record TeamRole(int id, UUID teamId, String name, long permissions) {
 		return Permission.of(Permission.values());
 	}
 
-	public static long defaultPermissions() {
+	public static long memberPermissions() {
 		return 0b111111111111111111100000000L;
+	}
+	public static long defaultPermissions() {
+		return 0;
 	}
 }

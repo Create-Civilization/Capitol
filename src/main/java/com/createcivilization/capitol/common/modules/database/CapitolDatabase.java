@@ -166,6 +166,16 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
+	 * Convenience method that returns the "member" role for a team.
+	 *
+	 * @param team the team to query
+	 * @return the default {@link TeamRole}, or {@code null} if not found
+	 */
+	public TeamRole getMemberRole(Team team) {
+		return getRoleByName(team, TeamRole.MEMBER_ROLE_NAME);
+	}
+
+	/**
 	 * Updates the permission bitfield for a role identified by team and role name.
 	 *
 	 * @param team        the team the role belongs to
