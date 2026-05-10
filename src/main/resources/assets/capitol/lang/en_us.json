@@ -72,6 +72,8 @@
 	"commands.capitol.team.role.edit.no_default": "You cannot edit default role name.",
 	"commands.capitol.team.role.name.success": "Renamed role %s → %s",
 
+	"commands.capitol.team.role.permission_list.role": "Role: ",
+
 	"commands.capitol.team.player.no_permission": "You do not have permission to manage individual permissions",
 	"commands.capitol.team.player.perms.reset": "Individual permissions for %s reset to role defaults.",
 
