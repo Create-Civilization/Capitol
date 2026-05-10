@@ -2,12 +2,12 @@ package com.createcivilization.capitol.client.networking;
 
 import com.createcivilization.capitol.common.data.Team;
 import net.minecraft.world.level.ChunkPos;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientClaimCache {
 
-	public static Map<ChunkPos, Team> claims = new HashMap<ChunkPos, Team>();
+	public static final Map<ChunkPos, Team> claims = new ConcurrentHashMap<>();
 
 	public static Map<ChunkPos, Team> get(){
 		return claims;

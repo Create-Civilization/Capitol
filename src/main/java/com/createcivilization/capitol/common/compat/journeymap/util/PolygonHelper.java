@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.common.compat.journeymap.util;
 
+import com.createcivilization.capitol.client.journeymap.ClientJMClaims;
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
 import com.createcivilization.capitol.common.data.Team;
 import journeymap.api.v2.client.display.PolygonOverlay;
@@ -25,7 +26,11 @@ public class PolygonHelper {
 
 	public static List<PolygonOverlay> buildClaimOverlays(String modId, ResourceKey<Level> dimension) {
 		Map<UUID, TeamClaims> byTeam = new HashMap<>();
-		for (Map.Entry<ChunkPos, Team> entry : new ArrayList<>(ClientClaimCache.claims.entrySet())) {
+		Map<ChunkPos, Team> source = ClientJMClaims.instance().snapshot();
+		if (source.isEmpty()) {
+			source = new HashMap<>(ClientClaimCache.claims);
+		}
+		for (Map.Entry<ChunkPos, Team> entry : new ArrayList<>(source.entrySet())) {
 			Team team = entry.getValue();
 			byTeam.computeIfAbsent(team.getId(), k -> new TeamClaims(team)).chunks.add(entry.getKey());
 		}
