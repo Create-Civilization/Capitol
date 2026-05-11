@@ -73,6 +73,9 @@
 	"commands.capitol.team.role.edit.no_default": "You cannot edit default role name.",
 	"commands.capitol.team.role.name.success": "Renamed role %s → %s",
 
+	"commands.capitol.team.role.color.success": "Set role %s's color to %s",
+	"commands.capitol.team.role.color.clear.success": "Cleared role %s's color",
+
 	"commands.capitol.team.role.permission_list.role": "Role: ",
 	"commands.capitol.team.role.permission_list.hover": "Click to swap permissions",
 

@@ -339,4 +339,8 @@ public class TeamCommand {
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.disband.success").withStyle(ChatFormatting.GREEN), true);
 		return 1;
 	}
+
+	public static Map<String, String> getNamedColors() {
+		return NAMED_COLORS;
+	}
 }

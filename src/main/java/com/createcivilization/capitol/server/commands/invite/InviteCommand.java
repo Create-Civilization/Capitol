@@ -38,7 +38,7 @@ public class InviteCommand {
 	}
 
 	private static int acceptInvite(CommandContext<CommandSourceStack> context) {
-		Player player = context.getSource().getPlayer();
+		ServerPlayer player = context.getSource().getPlayer();
 		if (player == null) return 0;
 
 		Team team = resolveInvitedTeam(context, player);
@@ -47,6 +47,9 @@ public class InviteCommand {
 		TeamRole role = DatabaseManager.database.getDefaultRole(team);
 		DatabaseManager.database.addPlayerToTeam(player, team, role);
 		InviteHandler.clearInvites(player);
+
+		player.refreshDisplayName();
+		player.refreshTabListName(); // needs to be a ServerPlayer for this.
 
 		MutableComponent joinMsg = Component.translatable("commands.capitol.invites.join.announcement",
 			Component.literal(player.getName().getString()).withStyle(ChatFormatting.WHITE),
