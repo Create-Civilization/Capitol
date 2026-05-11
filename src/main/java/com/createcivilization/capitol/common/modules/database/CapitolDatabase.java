@@ -335,7 +335,7 @@ public class CapitolDatabase extends Database {
 			throw new RuntimeException(e);
 		}
 
-		addRole(team, TeamRole.OWNER_ROLE_NAME, TeamRole.ownerPermissions());
+		addRole(team, TeamRole.OWNER_ROLE_NAME, TeamRole.ownerPermissions(), new Color(0x800080));
 		addRole(team, TeamRole.DEFAULT_ROLE_NAME, TeamRole.defaultPermissions());
 	}
 

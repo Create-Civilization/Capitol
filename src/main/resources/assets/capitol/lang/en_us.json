@@ -39,6 +39,7 @@
 
 	"commands.capitol.team.create.already_in_team": "You are already in a team, please leave before creating a new one",
 	"commands.capitol.team.create.name_exists": "A team with that name already exists.",
+	"commands.capitol.team.create.tag_too_long": "Tag is too long, max length of %d",
 	"commands.capitol.team.create.invalid_color": "Invalid hex color: #%s",
 	"commands.capitol.team.create.success": "Team %s created!",
 

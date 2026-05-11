@@ -48,10 +48,13 @@ public class CapitolConfig {
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_PLACE_EXCEPTIONS;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_USE_EXCEPTIONS;
 
-	// Role Exceptions
+	// Roles
 
 	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_CHAT;
 	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_TAB_LIST;
+
+	// Teams
+	public static final ModConfigSpec.IntValue TEAM_TAG_MAX_LENGTH;
 
 	public enum ListType {
 		ONLY,
@@ -183,6 +186,14 @@ public class CapitolConfig {
 		DISPLAY_TAGS_IN_TAB_LIST = builder
 			.comment("Whether the tab list will have the players nation tag attached.")
 			.define("displayTagsInTabList", true);
+
+		builder.pop();
+
+		builder.comment("Role settings").push("team");
+
+		TEAM_TAG_MAX_LENGTH = builder
+			.comment("Max length for a team to have as a tag.")
+			.defineInRange("teamTagMaxLength", 3, 0, 16);
 
 		builder.pop();
 
