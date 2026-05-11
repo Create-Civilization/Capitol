@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.server.events;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
@@ -19,10 +20,15 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 public class NameFormatEvents {
 	@SubscribeEvent
 	public static void onNameFormat(PlayerEvent.NameFormat event) { // Mainly for chat messages
+		if (!CapitolConfig.DISPLAY_TAGS_IN_CHAT.get()) {
+			return;
+		}
+
 		Team team = DatabaseManager.database.getPlayerTeam(event.getEntity().getUUID());
 		if (team == null) {
 			return;
 		}
+
 		Component prevName = event.getDisplayname(); // the spelling mistake in getDisplayname instead of getDisplayName lmao
 		Component tag = getTag(team);
 		event.setDisplayname(Component.literal("").append(tag).append(" ").append(prevName));
@@ -30,10 +36,15 @@ public class NameFormatEvents {
 
 	@SubscribeEvent
 	public static void onTabListNameFormat(PlayerEvent.TabListNameFormat event) { // Only for tab list
+		if (!CapitolConfig.DISPLAY_TAGS_IN_TAB_LIST.get()) {
+			return;
+		}
+
 		Team team = DatabaseManager.database.getPlayerTeam(event.getEntity().getUUID());
 		if (team == null) {
 			return;
 		}
+
 		Component tag = getTag(team);
 		event.setDisplayName(Component.literal("[").append(tag).append("] ").append(event.getEntity().getName()));
 	}

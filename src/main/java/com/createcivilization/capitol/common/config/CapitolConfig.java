@@ -48,6 +48,11 @@ public class CapitolConfig {
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_PLACE_EXCEPTIONS;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_USE_EXCEPTIONS;
 
+	// Role Exceptions
+
+	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_CHAT;
+	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_TAB_LIST;
+
 	public enum ListType {
 		ONLY,
 		ALL_BUT
@@ -166,6 +171,18 @@ public class CapitolConfig {
 		ITEM_USE_EXCEPTIONS = builder
 			.comment("Items anyone can use in claims.")
 			.defineListAllowEmpty("itemUseExceptions", List.of(), () -> "", o -> o instanceof String);
+
+		builder.pop();
+
+		builder.comment("Role settings").push("roles");
+
+		DISPLAY_TAGS_IN_CHAT = builder
+			.comment("Whether chat messages with have the players nation tag attached.")
+			.define("displayTagsInChat", true);
+
+		DISPLAY_TAGS_IN_TAB_LIST = builder
+			.comment("Whether the tab list will have the players nation tag attached.")
+			.define("displayTagsInTabList", true);
 
 		builder.pop();
 
