@@ -18,7 +18,8 @@
 	"gui.journeymap.capitol.claim_chunk": "Claim chunk",
 	"gui.journeymap.capitol.unclaim_chunk": "Unclaim chunk",
 
-"commands.capitol.not_in_team_error": "You are not in any team",
+	"commands.capitol.not_player": "You must be a player to run this command.",
+	"commands.capitol.not_in_team_error": "You are not in any team",
 	"commands.capitol.no_player_found": "There is no player called %s",
 	"commands.capitol.player_not_in_team": "%s is not a member of %s",
 	"commands.capitol.invalid_permission": "%s is not a valid permission.",
@@ -71,6 +72,9 @@
 	"commands.capitol.team.role.edit.no_owner": "You cannot edit owner role.",
 	"commands.capitol.team.role.edit.no_default": "You cannot edit default role name.",
 	"commands.capitol.team.role.name.success": "Renamed role %s → %s",
+
+	"commands.capitol.team.role.permission_list.role": "Role: ",
+	"commands.capitol.team.role.permission_list.hover": "Click to swap permissions",
 
 	"commands.capitol.team.player.no_permission": "You do not have permission to manage individual permissions",
 	"commands.capitol.team.player.perms.reset": "Individual permissions for %s reset to role defaults.",
