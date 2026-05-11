@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.server.commands.team;
 
+import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.*;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
@@ -197,6 +198,11 @@ public class TeamCommand {
 			StringArgumentType.getString(context, "color")
 		).replace("#", "");
 		String tag = StringArgumentType.getString(context, "tag");
+
+		if (tag.length() > CapitolConfig.TEAM_TAG_MAX_LENGTH.get()) {
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.create.tag_too_long", CapitolConfig.TEAM_TAG_MAX_LENGTH.get()).withStyle(ChatFormatting.RED));
+			return 0;
+		}
 
 		String description;
 		try {
