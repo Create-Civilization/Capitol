@@ -14,9 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.GameProfileCache;
-import net.minecraft.world.entity.player.Player;
 
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.util.List;
 import java.util.Objects;

@@ -5,19 +5,12 @@ import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamRole;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
-import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
-import com.createcivilization.capitol.common.modules.database.Database;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.ServerChatEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-
-import javax.management.relation.Role;
 
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class NameFormatEvents {
