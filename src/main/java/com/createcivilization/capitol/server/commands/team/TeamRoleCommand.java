@@ -14,6 +14,7 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.GameProfileCache;
 
 import java.util.List;
@@ -284,7 +285,10 @@ class TeamRoleCommand {
 
 	private static int viewRolePermList(CommandContext<CommandSourceStack> context) {
 		CapitolDatabase database = DatabaseManager.database;
-		var player = context.getSource().getPlayer();
+		ServerPlayer player = context.getSource().getPlayer();
+		if (player == null) {
+			return failCommand(context, "commands.capitol.not_player");
+		}
 		Team team = database.getPlayerTeam(player);
 		if (team == null) {
 			return failCommand(context, "commands.capitol.not_in_team_error");
