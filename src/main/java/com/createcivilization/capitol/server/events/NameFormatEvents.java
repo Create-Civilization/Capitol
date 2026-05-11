@@ -3,6 +3,7 @@ package com.createcivilization.capitol.server.events;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Team;
+import com.createcivilization.capitol.common.data.TeamRole;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.modules.database.Database;
@@ -16,6 +17,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.ServerChatEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
+import javax.management.relation.Role;
+
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class NameFormatEvents {
 	@SubscribeEvent
@@ -28,9 +31,10 @@ public class NameFormatEvents {
 		if (team == null) {
 			return;
 		}
+		TeamRole role = DatabaseManager.database.getPlayerRole(event.getEntity(), team);
 
 		Component prevName = event.getDisplayname(); // the spelling mistake in getDisplayname instead of getDisplayName lmao
-		Component tag = getTag(team);
+		Component tag = getTag(team, role);
 		event.setDisplayname(Component.literal("").append(tag).append(" ").append(prevName));
 	}
 
@@ -44,12 +48,17 @@ public class NameFormatEvents {
 		if (team == null) {
 			return;
 		}
+		TeamRole role = DatabaseManager.database.getPlayerRole(event.getEntity(), team);
 
-		Component tag = getTag(team);
+		Component tag = getTag(team, role);
 		event.setDisplayName(Component.literal("[").append(tag).append("] ").append(event.getEntity().getName()));
 	}
 
-	public static Component getTag(Team team) {
-		return Component.literal(team.getTag()).withStyle(style -> style.withColor(TextColor.fromRgb(team.getColor().getRGB())));
+	public static Component getTag(Team team, TeamRole role) {
+		if (role.color() == null) {
+			return Component.literal(team.getTag()).withStyle(style -> style.withColor(TextColor.fromRgb(team.getColor().getRGB())));
+		} else {
+			return Component.literal(team.getTag()).withStyle(style -> style.withColor(TextColor.fromRgb(role.color().getRGB())));
+		}
 	}
 }

@@ -67,6 +67,7 @@ public class DatabaseManager {
 					"team_id TEXT NOT NULL," +
 					"name TEXT NOT NULL," +
 					"permissions INTEGER NOT NULL DEFAULT 0," +
+					"color INTEGER NOT NULL DEFAULT -1,"+
 					"UNIQUE (team_id, name)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);

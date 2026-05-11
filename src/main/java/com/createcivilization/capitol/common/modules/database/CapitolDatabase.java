@@ -8,9 +8,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
+import java.awt.*;
 import java.sql.*;
 import java.time.Instant;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CapitolDatabase extends Database {
@@ -78,18 +80,30 @@ public class CapitolDatabase extends Database {
 	 * @param team        the team this role belongs to
 	 * @param name        the role name (e.g. "owner", "default")
 	 * @param permissions the bitfield of {@link Permission} flags
+	 * @param color       the color this role will override to for nation tags
 	 */
-	public void addRole(Team team, String name, long permissions) {
+	public void addRole(Team team, String name, long permissions, Color color) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"INSERT INTO team_roles (team_id, name, permissions) VALUES (?, ?, ?)")) {
+			"INSERT INTO team_roles (team_id, name, permissions, color) VALUES (?, ?, ?, ?)")) {
 			ps.setString(1, team.getId().toString());
 			ps.setString(2, name);
 			ps.setLong(3, permissions);
+			ps.setInt(4, color == null ? -1 : color.getRGB()); // -1 if the role has no associated color
 			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while adding role to database.", e);
 			throw new RuntimeException(e);
 		}
+	}
+	/**
+	 * Inserts a new role into the {@code team_roles} table.
+	 *
+	 * @param team        the team this role belongs to
+	 * @param name        the role name (e.g. "owner", "default")
+	 * @param permissions the bitfield of {@link Permission} flags
+	 */
+	public void addRole(Team team, String name, long permissions) {
+		addRole(team, name, permissions, null);
 	}
 
 	/**
@@ -196,6 +210,19 @@ public class CapitolDatabase extends Database {
 			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while updating role name in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void updateRoleColor(Team team, String roleName, Color color) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE team_roles SET color = ? WHERE team_id = ? AND name = ?")) {
+			ps.setInt(1, color == null ? -1 : color.getRGB());
+			ps.setString(2, team.getId().toString());
+			ps.setString(3, roleName);
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while updating role color in database.", e);
 			throw new RuntimeException(e);
 		}
 	}
