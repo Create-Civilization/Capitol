@@ -10,7 +10,11 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.GameProfileCache;
 
 import java.util.List;
@@ -67,6 +71,7 @@ class TeamRoleCommand {
 							return builder.buildFuture();
 						})
 						.executes(TeamRoleCommand::editRolePerms)))
+					.then(Commands.literal("list").executes(TeamRoleCommand::viewRolePermList))
 				.then(Commands.literal("name")
 					.then(Commands.argument("new_name", StringArgumentType.string())
 						.executes(TeamRoleCommand::editRoleName)))
@@ -275,6 +280,49 @@ class TeamRoleCommand {
 			Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED),
 			Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
 			.withStyle(ChatFormatting.GRAY), true);
+		return 1;
+	}
+
+	private static int viewRolePermList(CommandContext<CommandSourceStack> context) {
+		CapitolDatabase database = DatabaseManager.database;
+		ServerPlayer player = context.getSource().getPlayer();
+		if (player == null) {
+			return failCommand(context, "commands.capitol.not_player");
+		}
+		Team team = database.getPlayerTeam(player);
+		if (team == null) {
+			return failCommand(context, "commands.capitol.not_in_team_error");
+		}
+
+		String roleName = StringArgumentType.getString(context, "role_name");
+		TeamRole role = database.getRoleByName(team, roleName);
+
+		if (role == null) {
+			return failCommand(context, "commands.capitol.team.role.not_found", roleName, team.getName());
+		}
+
+		context.getSource().sendSuccess(() ->
+				Component.translatable("commands.capitol.team.role.permission_list.role").append(roleName).withStyle(ChatFormatting.GOLD)
+			, false);
+
+		for (Permission perm : Permission.values()) {
+			MutableComponent comp = Component.literal("[").append(perm.hasPermission(role.permissions()) ? Component.literal("✔").withStyle(ChatFormatting.GREEN) : Component.literal("❌").withStyle(ChatFormatting.RED)).append("]");
+			comp.withStyle(s -> s.withClickEvent(
+				new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/capitol team role edit %s permission %s", roleName, perm.name().toLowerCase()))
+			).withHoverEvent(
+				new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("commands.capitol.team.role.permission_list.hover"))
+			));
+			context.getSource().sendSuccess(() ->
+					comp.append(Component.literal(" ").withStyle(ChatFormatting.GOLD)).append(Component.literal(perm.name()).withStyle(ChatFormatting.WHITE))
+				, false);
+		}
+
+		/*context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.permission_toggle",
+				Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA),
+				Component.literal(roleName).withStyle(ChatFormatting.GOLD),
+				Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED),
+				Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
+			.withStyle(ChatFormatting.GRAY), true);*/
 		return 1;
 	}
 
