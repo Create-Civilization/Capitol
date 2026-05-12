@@ -121,7 +121,7 @@ class TeamRoleCommand {
 				StringArgumentType.getString(context, "new_color").toLowerCase(),
 				StringArgumentType.getString(context, "new_color")
 			).replace("#", "");
-			Color color = new Color((int) Long.parseLong(hex, 16), true);
+			Color color = new Color(Integer.parseInt(hex, 16), true);
 
 			database.updateRoleColor(team, roleName, color);
 
