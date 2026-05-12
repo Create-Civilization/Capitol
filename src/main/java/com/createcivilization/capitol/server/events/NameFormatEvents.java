@@ -48,10 +48,14 @@ public class NameFormatEvents {
 	}
 
 	public static Component getTag(Team team, TeamRole role) {
-		if (role.color() == null) {
-			return Component.literal(team.getTag()).withStyle(style -> style.withColor(TextColor.fromRgb(team.getColor().getRGB())));
+		TextColor color;
+
+		if (role.color() != null) {
+			color = TextColor.fromRgb(role.color().getRGB());
 		} else {
-			return Component.literal(team.getTag()).withStyle(style -> style.withColor(TextColor.fromRgb(role.color().getRGB())));
+			color = TextColor.fromRgb(team.getColor().getRGB());
 		}
+
+		return Component.literal(team.getTag()).withStyle(style -> style.withColor(color));
 	}
 }
