@@ -282,9 +282,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		if (++tickCounter < REFRESH_INTERVAL_TICKS) return;
 		tickCounter = 0;
 
-		int signature = 1;
-		signature = 31 * signature + ClientJMClaims.instance().signature();
-		signature = 31 * signature + ClientClaimCache.claims.entrySet().hashCode();
+		int signature = computeClaimsSignature();
 		if (signature == lastSignature) return;
 		lastSignature = signature;
 
@@ -307,6 +305,13 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 				Capitol.LOGGER.error("Failed to show claim overlay", e);
 			}
 		}
+	}
+
+	private int computeClaimsSignature() {
+		int signature = 1;
+		signature = 31 * signature + ClientJMClaims.instance().signature();
+		signature = 31 * signature + ClientClaimCache.claims.entrySet().hashCode();
+		return signature;
 	}
 
 	// hard reset when claim mode toggles off

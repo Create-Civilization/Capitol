@@ -22,10 +22,11 @@ import java.util.UUID;
 
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.CLIENT)
 public class ChunkEvents {
-	private static ChunkPos lastPlayerChunk;
-	private static ChunkPos pendingChunkAnnouncement;
-	private static boolean hasLastTerritory;
-	private static UUID lastTerritoryTeamId;
+	private static final int RGB_24_BIT_MASK = 0xFFFFFF;
+	private static ChunkPos lastPlayerChunk = null;
+	private static ChunkPos pendingChunkAnnouncement = null;
+	private static boolean hasLastTerritory = false;
+	private static UUID lastTerritoryTeamId = null;
 
 	/**
 	 * Handles sending packets to server when loading chunks to fetch claims and adding to cache
@@ -41,8 +42,7 @@ public class ChunkEvents {
 
 	@SubscribeEvent
 	private static void onClientTick(ClientTickEvent.Post event) {
-		var mc = Minecraft.getInstance();
-		var player = mc.player;
+		var player = Minecraft.getInstance().player;
 		if (player == null) return;
 
 		ChunkPos current = player.chunkPosition();
@@ -90,7 +90,7 @@ public class ChunkEvents {
 	private static void showTerritory(Team team) {
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
-		int rgb = team.getColor().getRGB() & 0xFFFFFF;
+		int rgb = team.getColor().getRGB() & RGB_24_BIT_MASK;
 		player.displayClientMessage(
 			Component.literal(team.getName()).withStyle(style -> style.withColor(TextColor.fromRgb(rgb))),
 			true
@@ -100,7 +100,7 @@ public class ChunkEvents {
 	private static void showWilderness() {
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
-		player.displayClientMessage(Component.literal("Wilderness").withStyle(ChatFormatting.DARK_GREEN), true);
+		player.displayClientMessage(Component.translatable("hud.capitol.territory.wilderness").withStyle(ChatFormatting.DARK_GREEN), true);
 	}
 
 	/**
