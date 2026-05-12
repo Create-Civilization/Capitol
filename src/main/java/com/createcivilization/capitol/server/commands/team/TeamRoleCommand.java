@@ -33,7 +33,7 @@ class TeamRoleCommand {
 						CapitolDatabase database = DatabaseManager.database;
 						Team team = database.getPlayerTeam(context.getSource().getPlayer());
 						if (team == null) {
-							builder.suggest("YOU ARE NOT IN A TEAM");
+							builder.suggest(Component.translatable("commands.capitol.not_in_team_error").toString());
 							return builder.buildFuture();
 						}
 						List<TeamRole> roles = database.getTeamRoles(team);
@@ -48,7 +48,7 @@ class TeamRoleCommand {
 								CapitolDatabase database = DatabaseManager.database;
 								Team team = database.getPlayerTeam(context.getSource().getPlayer());
 								if (team == null) {
-									builder.suggest("YOU ARE NOT IN A TEAM");
+									builder.suggest(Component.translatable("commands.capitol.not_in_team_error").toString());
 									return builder.buildFuture();
 								}
 								List<TeamMember> members = database.getTeamMembers(team);
