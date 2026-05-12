@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.createcivilization.capitol.common.managers.DatabaseManager.database;
+
 class TeamRoleCommand {
 
 	static LiteralArgumentBuilder<CommandSourceStack> register() {
@@ -131,13 +133,7 @@ class TeamRoleCommand {
 					.withStyle(ChatFormatting.GRAY)), true);
 		}
 
-		for (TeamMember member : database.getTeamMembers(team)) {
-			ServerPlayer online = context.getSource().getServer().getPlayerList().getPlayer(member.playerUUID());
-			if (online != null) {
-				online.refreshDisplayName();
-				online.refreshTabListName();
-			}
-		}
+		refreshTeamPlayers(context, team);
 
 		return 1;
 	}
@@ -200,13 +196,7 @@ class TeamRoleCommand {
 
 		database.deleteRole(team, roleName);
 
-		for (TeamMember member : database.getTeamMembers(team)) { // Sweeping update, applies to all players in a team currently online.
-			ServerPlayer online = context.getSource().getServer().getPlayerList().getPlayer(member.playerUUID());
-			if (online != null) {
-				online.refreshDisplayName();
-				online.refreshTabListName();
-			}
-		}
+		refreshTeamPlayers(context, team);
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.remove.success",
 				Component.literal(roleName).withStyle(ChatFormatting.AQUA))
@@ -402,6 +392,16 @@ class TeamRoleCommand {
 				Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
 			.withStyle(ChatFormatting.GRAY), true);*/
 		return 1;
+	}
+
+	public static void refreshTeamPlayers(CommandContext<CommandSourceStack> context, Team team) {
+		for (TeamMember member : database.getTeamMembers(team)) {
+			ServerPlayer online = context.getSource().getServer().getPlayerList().getPlayer(member.playerUUID());
+			if (online != null) {
+				online.refreshDisplayName();
+				online.refreshTabListName();
+			}
+		}
 	}
 
 	static int failCommand(CommandContext<CommandSourceStack> context, String key, Object... args) {
