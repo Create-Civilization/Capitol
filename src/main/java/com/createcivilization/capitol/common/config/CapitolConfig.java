@@ -180,11 +180,11 @@ public class CapitolConfig {
 		builder.comment("Role settings").push("roles");
 
 		DISPLAY_TAGS_IN_CHAT = builder
-			.comment("Whether chat messages with have the players nation tag attached.")
+			.comment("Whether chat messages with have the players team tag attached.")
 			.define("displayTagsInChat", true);
 
 		DISPLAY_TAGS_IN_TAB_LIST = builder
-			.comment("Whether the tab list will have the players nation tag attached.")
+			.comment("Whether the tab list will have the players team tag attached.")
 			.define("displayTagsInTabList", true);
 
 		builder.pop();
