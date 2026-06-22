@@ -62,7 +62,7 @@
 
 	"commands.capitol.team.role.remove.owner": "You cannot remove owner role.",
 	"commands.capitol.team.role.remove.default": "You cannot remove default role.",
-	"commands.capitol.team.role.remove.member": "You cannot remove member role.",
+	"commands.capitol.team.role.remove.member": "You cannot remove the 'member' role.",
 	"commands.capitol.team.role.remove.success": "Deleted role %s",
 
 	"commands.capitol.team.role.assign.no_permission": "You do not have permission to assign roles",
