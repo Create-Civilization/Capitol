@@ -31,7 +31,7 @@ public class HelpCommand {
 		msg.append(entry("/capitol team invite <player>", Component.translatable("commands.capitol.help.team.invite")));
 		msg.append(entry("/capitol team kick <player>", Component.translatable("commands.capitol.help.team.kick")));
 		msg.append(entry("/capitol team disband", Component.translatable("commands.capitol.help.team.disband")));
-		msg.append(entry("/capitol team role edit <name> remove|rename|assign|permission", Component.translatable("commands.capitol.help.team.role.edit")));
+		msg.append(entry("/capitol team role edit <name> remove|rename|assign|permission|list", Component.translatable("commands.capitol.help.team.role.edit")));
 		msg.append(entry("/capitol team role create <name>", Component.translatable("commands.capitol.help.team.role.create")));
 		msg.append(entry("/capitol team protection <name>", Component.translatable("commands.capitol.help.team.protection")));
 		msg.append(entry("/capitol team player <player> permission <perm>", Component.translatable("commands.capitol.help.team.player.permission")));

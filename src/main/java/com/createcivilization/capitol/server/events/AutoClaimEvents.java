@@ -32,7 +32,7 @@ public class AutoClaimEvents {
 		}
 		if (isAutoClaimer(player)) {
 			if (Calendar.getInstance().getTimeInMillis() - autoClaimingPlayers.get(player.getUUID()) < CapitolConfig.AUTO_CLAIM_COOLDOWN.get() * 1000) {
-				player.displayClientMessage(Component.translatable("commands.capitol.claim.auto_claim.too_fast").withStyle(ChatFormatting.RED), false);
+				player.displayClientMessage(Component.translatable("commands.capitol.claim.auto_claiming.too_fast").withStyle(ChatFormatting.RED), false);
 				return;
 			}
 
