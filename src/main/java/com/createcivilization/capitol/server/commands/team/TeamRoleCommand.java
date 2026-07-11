@@ -129,6 +129,10 @@ class TeamRoleCommand {
 			return failCommand(context, "commands.capitol.team.role.remove.default");
 		}
 
+		if (Objects.equals(roleName, TeamRole.MEMBER_ROLE_NAME)) {
+			return failCommand(context, "commands.capitol.team.role.remove.member");
+		}
+
 		TeamRole role = database.getRoleByName(team, roleName);
 
 		if (role == null) {
