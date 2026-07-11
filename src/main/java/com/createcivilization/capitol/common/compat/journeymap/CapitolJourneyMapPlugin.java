@@ -48,7 +48,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 	private IClientAPI api;
 	private int tickCounter;
-	private int lastSignature;
+	private int lastSignature = Integer.MIN_VALUE;
 	private ChunkPos lastPlayerChunk;
 	private ChunkPos lastAreaCenterChunk;
 	private PolygonOverlay rangeOverlay;
@@ -70,6 +70,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private IThemeButton claimModeButton;
 	private IThemeButton claimSelectedButton;
 	private IThemeButton unclaimSelectedButton;
+	private IThemeButton autoClaimButton;
 
 	@Override
 	public String getModId() {
@@ -106,6 +107,11 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		unclaimSelectedButton = event.getThemeButtonDisplay().addThemeToggleButton("Unclaim", icon, false, button -> {
 			button.setToggled(false);
 			unclaimSelected();
+		});
+
+		autoClaimButton = event.getThemeButtonDisplay().addThemeToggleButton("Autoclaim", icon, false, button -> {
+			button.setToggled(false);
+			toggleAutoClaim();
 		});
 
 		updateClaimModeUiState();
@@ -276,7 +282,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 		if (++tickCounter < REFRESH_INTERVAL_TICKS) return;
 		tickCounter = 0;
 
-		int signature = ClientClaimCache.claims.entrySet().hashCode();
+		int signature = computeClaimsSignature();
 		if (signature == lastSignature) return;
 		lastSignature = signature;
 
@@ -299,6 +305,13 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 				Capitol.LOGGER.error("Failed to show claim overlay", e);
 			}
 		}
+	}
+
+	private int computeClaimsSignature() {
+		int signature = 1;
+		signature = 31 * signature + ClientJMClaims.instance().signature();
+		signature = 31 * signature + ClientClaimCache.claims.entrySet().hashCode();
+		return signature;
 	}
 
 	// hard reset when claim mode toggles off
@@ -342,6 +355,19 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 			} catch (Throwable ignored) {
 			}
 		}
+		if (autoClaimButton != null) {
+			try {
+				autoClaimButton.setEnabled(claimingMode);
+			} catch (Throwable ignored) {
+			}
+		}
+	}
+
+	private void toggleAutoClaim() {
+		var player = Minecraft.getInstance().player;
+		if (player == null || player.connection == null) return;
+
+		player.connection.sendCommand("capitol claim auto");
 	}
 
 	// this sends a single packet for the whole selection, so chat doesn't get spammed

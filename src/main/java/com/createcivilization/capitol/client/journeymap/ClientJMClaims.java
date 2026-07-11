@@ -55,10 +55,19 @@ public final class ClientJMClaims {
 		Path nextClaimsFile = worldDir.resolve("claims").resolve("claims.json");
 		if (claimsFile != null && claimsFile.equals(nextClaimsFile)) return;
 
+		boolean hadExistingFile = claimsFile != null;
+		if (hadExistingFile) {
+			flush();
+		}
+
 		claimsFile = nextClaimsFile;
 		loaded = false;
-		claims.clear();
-		dirty = false;
+		if (hadExistingFile) {
+			claims.clear();
+			dirty = false;
+		} else if (dirty) {
+			flush();
+		}
 	}
 
 	public synchronized Map<ChunkPos, Team> snapshot() {
@@ -68,6 +77,11 @@ public final class ClientJMClaims {
 			out.put(new ChunkPos(e.getKey()), e.getValue());
 		}
 		return out;
+	}
+
+	public synchronized int signature() {
+		ensureLoaded();
+		return claims.entrySet().hashCode();
 	}
 
 	public synchronized void upsert(ChunkPos pos, Team team) {
@@ -88,6 +102,7 @@ public final class ClientJMClaims {
 
 	public synchronized void flush() {
 		if (!dirty) return;
+		if (claimsFile == null) return;
 		ensureLoaded();
 		writeFile();
 		dirty = false;
