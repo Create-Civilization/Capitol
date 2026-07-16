@@ -44,7 +44,7 @@ public class InviteCommand {
 		Team team = resolveInvitedTeam(context, player);
 		if (team == null) return 0;
 
-		TeamRole role = DatabaseManager.database.getDefaultRole(team);
+		TeamRole role = DatabaseManager.database.getMemberRole(team);
 		DatabaseManager.database.addPlayerToTeam(player, team, role);
 		InviteHandler.clearInvites(player);
 
