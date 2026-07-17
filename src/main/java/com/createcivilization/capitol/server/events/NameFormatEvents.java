@@ -29,7 +29,7 @@ public class NameFormatEvents {
 		Component prevName = event.getDisplayname();
 		Component tag = getTag(team, role);
 		// This is so we can easily preserve the previous name and team tag's styles
-		String formatted = CapitolConfig.TEAM_TAG_FORMAT.get().replaceAll("%t", "%1$s").replaceAll("%p", "%2$s");
+		String formatted = CapitolConfig.TEAM_TAG_LIST_FORMAT.get().replace("%t", "%1$s").replace("%p", "%2$s");
 		event.setDisplayname(Component.translatable(formatted, tag, prevName));
 	}
 
@@ -46,8 +46,8 @@ public class NameFormatEvents {
 		TeamRole role = DatabaseManager.database.getPlayerRole(event.getEntity(), team);
 
 		Component tag = getTag(team, role);
-		String formatted = CapitolConfig.TEAM_TAG_FORMAT.get().replaceAll("%t", "%1$s").replaceAll("%p", "%2$s");
-		event.setDisplayName(Component.translatable(formatted, tag, event.getDisplayName()));
+		String formatted = CapitolConfig.TEAM_TAG_LIST_FORMAT.get().replace("%t", "%1$s").replace("%p", "%2$s");
+		event.setDisplayName(Component.translatable(formatted, tag, event.getEntity().getName()));
 	}
 
 	public static Component getTag(Team team, TeamRole role) {
