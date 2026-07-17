@@ -130,6 +130,7 @@ public class DatabaseManager {
 		}
 		if (current == 0) { // a schema of 0 means that the database is brand new, thus no migrations are needed
 			setSchemaVersion(SCHEMA_VERSION);
+			return;
 		}
 		Capitol.LOGGER.info("Schema out of date, updating to version " + SCHEMA_VERSION + " from version " + current);
 		int updates = SCHEMA_VERSION - current;
