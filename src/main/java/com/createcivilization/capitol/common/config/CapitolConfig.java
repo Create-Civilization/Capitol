@@ -50,6 +50,7 @@ public class CapitolConfig {
 
 	// Roles
 
+	public static final ModConfigSpec.BooleanValue ALLOW_PLAYER_ROLE_COLOURS;
 	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_CHAT;
 	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_TAB_LIST;
 
@@ -180,6 +181,10 @@ public class CapitolConfig {
 		builder.pop();
 
 		builder.comment("Role settings").push("roles");
+
+		ALLOW_PLAYER_ROLE_COLOURS = builder
+			.comment("Wether or not players can choose colors for their roles. Defaults to team colour otherwise.")
+			.define("allowPlayerRoleColours", true);
 
 		DISPLAY_TAGS_IN_CHAT = builder
 			.comment("Whether chat messages with have the players team tag attached.")
