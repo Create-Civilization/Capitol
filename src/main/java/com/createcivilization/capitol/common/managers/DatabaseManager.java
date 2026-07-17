@@ -23,9 +23,6 @@ public class DatabaseManager {
 
 			connection = DriverManager.getConnection(url);
 
-			int version = getSchemaVersion();
-			runMigrations(version);
-
 			try (Statement stmt = connection.createStatement()) {
 				stmt.execute("PRAGMA journal_mode=WAL;");
 				stmt.execute("PRAGMA synchronous=NORMAL;");
@@ -33,6 +30,11 @@ public class DatabaseManager {
 			}
 
 			createTables();
+			Capitol.LOGGER.info("Capitol Database tables initialized");
+
+			int version = getSchemaVersion();
+			runMigrations(version);
+
 			Capitol.LOGGER.info("Capitol Database initialized");
 
 			Capitol.LOGGER.info("Warming Cache");
@@ -120,11 +122,14 @@ public class DatabaseManager {
 		}
 	}
 
-	public static int SCHEMA_VERSION = 1;
+	public static int SCHEMA_VERSION = 2;
 	//Will be used for DB migrations ect
 	private static void runMigrations(int current) throws SQLException {
 		if (SCHEMA_VERSION == current){
 			return;
+		}
+		if (current == 0) { // a schema of 0 means that the database is brand new, thus no migrations are needed
+			setSchemaVersion(SCHEMA_VERSION);
 		}
 		Capitol.LOGGER.info("Schema out of date, updating to version " + SCHEMA_VERSION + " from version " + current);
 		int updates = SCHEMA_VERSION - current;
@@ -133,7 +138,7 @@ public class DatabaseManager {
 			// E.G, current version 2 -> desired version 4 will result in versions
 			// 3 & 4 being run
 			switch (version) {
-				case 1:
+				case 2:
 					try (Statement stmt = connection.createStatement()) {
 						stmt.execute("ALTER TABLE team_roles ADD COLUMN color INTEGER NOT NULL DEFAULT -1;");
 					}
