@@ -53,7 +53,7 @@ public class NameFormatEvents {
 	public static Component getTag(Team team, TeamRole role) {
 		TextColor color;
 
-		if (role.color() != null) {
+		if (CapitolConfig.ALLOW_PLAYER_ROLE_COLOURS.get() && role.color() != null) {
 			color = TextColor.fromRgb(role.color().getRGB());
 		} else {
 			color = TextColor.fromRgb(team.getColor().getRGB());
