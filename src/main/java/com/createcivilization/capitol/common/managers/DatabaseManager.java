@@ -120,8 +120,26 @@ public class DatabaseManager {
 		}
 	}
 
+	public static int SCHEMA_VERSION = 1;
 	//Will be used for DB migrations ect
-	private static void runMigrations(int current) throws SQLException {}
+	private static void runMigrations(int current) throws SQLException {
+		if (SCHEMA_VERSION == current){
+			return;
+		}
+		int updates = SCHEMA_VERSION - current;
+		for (int version = current; version <= updates; ++version) {
+			// Runs for every update that has occured between now and the previous db version.
+			// E.G, current version 2 -> desired version 4 will result in versions
+			// 3 & 4 being run
+			switch (version) {
+				case 1:
+					try (Statement stmt = connection.createStatement()) {
+						stmt.execute("ALTER TABLE team_roles ADD COLUMN color INTEGER NOT NULL DEFAULT -1;");
+					}
+			}
+		}
+		setSchemaVersion(SCHEMA_VERSION);
+	}
 
 	private static int getSchemaVersion() throws SQLException {
 		try (ResultSet rs = connection.createStatement().executeQuery("PRAGMA user_version")) {
