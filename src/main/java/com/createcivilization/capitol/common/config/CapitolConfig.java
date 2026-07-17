@@ -55,6 +55,7 @@ public class CapitolConfig {
 
 	// Teams
 	public static final ModConfigSpec.IntValue TEAM_TAG_MAX_LENGTH;
+	public static final ModConfigSpec.ConfigValue<String> TEAM_TAG_FORMAT;
 
 	public enum ListType {
 		ONLY,
@@ -194,6 +195,11 @@ public class CapitolConfig {
 		TEAM_TAG_MAX_LENGTH = builder
 			.comment("Max length for a team to have as a tag.")
 			.defineInRange("teamTagMaxLength", 3, 0, 16);
+
+		TEAM_TAG_FORMAT = builder
+			.comment("Format for rendering the players name in chat and the tab list. ",
+				"%t will be replaced with the team tag and %p will be replaced with the player name.")
+				.define("teamTagFormat", "[%t] %p");
 
 		builder.pop();
 
