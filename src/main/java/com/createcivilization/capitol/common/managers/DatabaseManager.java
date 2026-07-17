@@ -126,6 +126,7 @@ public class DatabaseManager {
 		if (SCHEMA_VERSION == current){
 			return;
 		}
+		Capitol.LOGGER.info("Schema out of date, updating to version " + SCHEMA_VERSION + " from version " + current);
 		int updates = SCHEMA_VERSION - current;
 		for (int version = current; version <= updates; ++version) {
 			// Runs for every update that has occured between now and the previous db version.
