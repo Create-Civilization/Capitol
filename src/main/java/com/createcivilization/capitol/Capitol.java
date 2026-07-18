@@ -1,7 +1,9 @@
 package com.createcivilization.capitol;
 
+import com.createcivilization.capitol.common.CapitolCreativeTab;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.ClaimedChunk;
+import com.createcivilization.capitol.common.item.CapitolItems;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.server.commands.CapitolCommands;
@@ -42,6 +44,9 @@ public class Capitol {
 
     public Capitol(IEventBus modEventBus, ModContainer container) {
 		container.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SPEC);
+
+		CapitolItems.register(modEventBus);
+		CapitolCreativeTab.register(modEventBus);
 
 		Capitol.LOGGER.info("Registering Listeners.");
 
