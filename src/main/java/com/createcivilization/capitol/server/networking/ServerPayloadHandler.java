@@ -5,6 +5,7 @@ import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import com.createcivilization.capitol.common.networking.packets.C2SBulkChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
@@ -21,15 +22,25 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class ServerPayloadHandler {
 
 	public static void handleChunkRequest(final C2SChunkRequest request, final IPayloadContext context) {
+		handleSingleChunk(request.packedChunkPos(), context);
+	}
+
+	public static void handleBulkChunkRequest(final C2SBulkChunkRequest request, final IPayloadContext context) {
+		for (long packedPos : request.packedChunkPositions()) {
+			handleSingleChunk(packedPos, context);
+		}
+	}
+
+	private static void handleSingleChunk(long packedPos, IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
-		ChunkPos chunkPos = new ChunkPos(request.packedChunkPos());
+		ChunkPos chunkPos = new ChunkPos(packedPos);
 		Team team = database.getChunkOwner(chunkPos, context.player().level());
 		if (team == null) {
-			S2CChunkRemove packet = new S2CChunkRemove(request.packedChunkPos());
+			S2CChunkRemove packet = new S2CChunkRemove(packedPos);
 			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) context.player().level(), chunkPos, packet);
 			return;
 		}
-		S2CChunkData packet = new S2CChunkData(request.packedChunkPos(), team);
+		S2CChunkData packet = new S2CChunkData(packedPos, team);
 		PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) context.player().level(), chunkPos, packet);
 	}
 
