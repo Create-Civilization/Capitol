@@ -48,6 +48,17 @@ public class CapitolConfig {
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_PLACE_EXCEPTIONS;
 	public static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_USE_EXCEPTIONS;
 
+	// Roles
+
+	public static final ModConfigSpec.BooleanValue ALLOW_PLAYER_ROLE_COLOURS;
+	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_CHAT;
+	public static final ModConfigSpec.BooleanValue DISPLAY_TAGS_IN_TAB_LIST;
+
+	// Teams
+	public static final ModConfigSpec.IntValue TEAM_TAG_MAX_LENGTH;
+	public static final ModConfigSpec.ConfigValue<String> TEAM_TAG_LIST_FORMAT;
+	public static final ModConfigSpec.ConfigValue<String> TEAM_TAG_CHAT_FORMAT;
+
 	public enum ListType {
 		ONLY,
 		ALL_BUT
@@ -166,6 +177,40 @@ public class CapitolConfig {
 		ITEM_USE_EXCEPTIONS = builder
 			.comment("Items anyone can use in claims.")
 			.defineListAllowEmpty("itemUseExceptions", List.of(), () -> "", o -> o instanceof String);
+
+		builder.pop();
+
+		builder.comment("Role settings").push("roles");
+
+		ALLOW_PLAYER_ROLE_COLOURS = builder
+			.comment("Wether or not players can choose colors for their roles. Defaults to team colour otherwise.")
+			.define("allowPlayerRoleColours", true);
+
+		DISPLAY_TAGS_IN_CHAT = builder
+			.comment("Whether chat messages with have the players team tag attached.")
+			.define("displayTagsInChat", true);
+
+		DISPLAY_TAGS_IN_TAB_LIST = builder
+			.comment("Whether the tab list will have the players team tag attached.")
+			.define("displayTagsInTabList", true);
+
+		builder.pop();
+
+		builder.comment("Role settings").push("team");
+
+		TEAM_TAG_MAX_LENGTH = builder
+			.comment("Max length for a team to have as a tag.")
+			.defineInRange("teamTagMaxLength", 3, 0, 16);
+
+		TEAM_TAG_LIST_FORMAT = builder
+			.comment("Format for rendering the players name in the tab list. ",
+				"%t will be replaced with the team tag and %p will be replaced with the player name.")
+				.define("teamTagListFormat", "[%t] %p");
+
+		TEAM_TAG_CHAT_FORMAT = builder
+			.comment("Format for rendering the players name in chat. ",
+				"%t will be replaced with the team tag and %p will be replaced with the player name.")
+			.define("teamTagChatFormat", "<[%t] %p>");
 
 		builder.pop();
 
