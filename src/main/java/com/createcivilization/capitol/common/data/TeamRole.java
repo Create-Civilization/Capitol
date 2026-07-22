@@ -1,11 +1,12 @@
 package com.createcivilization.capitol.common.data;
 
+import javax.annotation.Nullable;
 import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-public record TeamRole(int id, UUID teamId, String name, long permissions, Color color) {
+public record TeamRole(int id, UUID teamId, String name, long permissions, @Nullable Color color) {
 
 	public static final String OWNER_ROLE_NAME = "owner";
 	public static final String MEMBER_ROLE_NAME = "member";
