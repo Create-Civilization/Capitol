@@ -51,13 +51,9 @@ public class NameFormatEvents {
 	}
 
 	public static Component getTag(Team team, TeamRole role) {
-		TextColor color;
+		boolean useRoleColor = CapitolConfig.ALLOW_PLAYER_ROLE_COLOURS.get() && role.color() != null;
 
-		if (CapitolConfig.ALLOW_PLAYER_ROLE_COLOURS.get() && role.color() != null) {
-			color = TextColor.fromRgb(role.color().getRGB());
-		} else {
-			color = TextColor.fromRgb(team.getColor().getRGB());
-		}
+		TextColor color = TextColor.fromRgb(useRoleColor ? role.color().getRGB() : team.getColor().getRGB());
 
 		return Component.literal(team.getTag()).withStyle(style -> style.withColor(color));
 	}
