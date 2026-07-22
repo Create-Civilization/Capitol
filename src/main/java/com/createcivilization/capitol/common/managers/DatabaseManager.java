@@ -128,7 +128,7 @@ public class DatabaseManager {
 		if (SCHEMA_VERSION == current){
 			return;
 		}
-		if (current == 0) { // a schema of 0 means that the database is brand new, thus no migrations are needed
+		if (current == -1) { // a schema of 0 means that the database is brand new, thus no migrations are needed
 			setSchemaVersion(SCHEMA_VERSION);
 			return;
 		}
@@ -150,7 +150,7 @@ public class DatabaseManager {
 
 	private static int getSchemaVersion() throws SQLException {
 		try (ResultSet rs = connection.createStatement().executeQuery("PRAGMA user_version")) {
-			return rs.next() ? rs.getInt(1) : 0;
+			return rs.next() ? rs.getInt(1) : -1;
 		}
 	}
 
