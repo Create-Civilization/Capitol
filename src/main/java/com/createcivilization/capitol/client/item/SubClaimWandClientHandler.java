@@ -36,7 +36,7 @@ public class SubClaimWandClientHandler {
 		int phase = SubClaimWand.getPhase(stack);
 		if (phase == 0) return;
 
-		int delta = event.getScrollDeltaY() > 0 ? 1 : -1;
+		int delta = event.getScrollDeltaY() > 0 ? -1 : 1;
 
 		Vec3 look = mc.player.getLookAngle();
 		Direction bestDir = null;
@@ -52,7 +52,9 @@ public class SubClaimWandClientHandler {
 
 		if (bestDir == null) return;
 
-		String key = switch (bestDir) {
+		Direction faceLookedAt = bestDir.getOpposite();
+
+		String key = switch (faceLookedAt) {
 			case EAST  -> SubClaimWand.OFF_POS_X;
 			case WEST  -> SubClaimWand.OFF_NEG_X;
 			case UP    -> SubClaimWand.OFF_POS_Y;

@@ -14,7 +14,10 @@ public class CapitolItems {
 
 	public static final DeferredHolder<Item, Item> SUB_CLAIM_WAND = ITEMS.register(
 		"sub_claim_wand",
-		() -> new SubClaimWand(new Item.Properties())
+		() -> new SubClaimWand(new Item.Properties()
+    	.durability(20)
+    	.stacksTo(1)
+		)
 	);
 
 	public static void register(IEventBus eventBus) {

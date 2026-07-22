@@ -90,7 +90,7 @@ public class SubClaimWandRenderer {
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.disableDepthTest();
-		RenderSystem.lineWidth(2.0f);
+		RenderSystem.lineWidth(32.0f);
 
 		// RenderType.lines() manages the line shader internally — no manual setShader() needed.
 		MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();

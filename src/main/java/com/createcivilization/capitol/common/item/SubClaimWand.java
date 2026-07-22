@@ -2,14 +2,25 @@ package com.createcivilization.capitol.common.item;
 
 import com.createcivilization.capitol.Capitol;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+
+import com.createcivilization.capitol.client.screen.SubClaimNamingScreen;
 
 import javax.annotation.Nullable;
 
@@ -37,12 +48,33 @@ public class SubClaimWand extends Item {
 	}
 
 	@Override
+	public ItemAttributeModifiers getDefaultAttributeModifiers() {
+		return ItemAttributeModifiers.builder()
+			.add(
+				Attributes.BLOCK_INTERACTION_RANGE,
+				new AttributeModifier(
+					ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "sub_claim_wand_range"),
+					10.5,
+					AttributeModifier.Operation.ADD_VALUE
+				),
+				EquipmentSlotGroup.MAINHAND
+			)
+			.build();
+	}
+
+	@Override
 	public InteractionResult useOn(UseOnContext ctx) {
+		ItemStack stack = ctx.getItemInHand();
+
+		// Server side: handle durability only
 		if (!ctx.getLevel().isClientSide()) {
-			return InteractionResult.PASS;
+			stack.hurtAndBreak(1, (ServerLevel) ctx.getLevel(),
+				ctx.getPlayer() instanceof ServerPlayer sp ? sp : null,
+				item -> {});
+			return InteractionResult.SUCCESS;
 		}
 
-		ItemStack stack = ctx.getItemInHand();
+		// Client side: handle selection state
 		CompoundTag tag = readTag(stack);
 		int phase = tag.getInt(TAG_PHASE);
 		BlockPos clickedPos = ctx.getClickedPos();
@@ -67,8 +99,9 @@ public class SubClaimWand extends Item {
 			case 2 -> {
 				BlockPos first = getFirstPos(stack);
 				BlockPos second = getSecondPos(stack);
-				Capitol.LOGGER.info("Sub-claim selection complete: {} -> {}", first, second);
-				stack.remove(DataComponents.CUSTOM_DATA);
+				if (first != null && second != null) {
+					Minecraft.getInstance().setScreen(new SubClaimNamingScreen(first, second, stack));
+				}
 				return InteractionResult.SUCCESS;
 			}
 			default -> {
@@ -98,6 +131,10 @@ public class SubClaimWand extends Item {
 	 */
 	public static void writeTag(ItemStack stack, CompoundTag tag) {
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+	}
+
+	public static void clearSelection(ItemStack stack) {
+		stack.remove(DataComponents.CUSTOM_DATA);
 	}
 
 	// ── Field accessors ────────────────────────────────────────────────────────
