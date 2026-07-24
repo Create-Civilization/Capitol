@@ -17,10 +17,10 @@ import org.lwjgl.glfw.GLFW;
 
 public class SubClaimNamingScreen extends Screen {
 
-	Component.translatable("screen.capitol.sub_claim_naming.title");
-	Component.translatable("screen.capitol.sub_claim_naming.placeholder");
-	Component.translatable("screen.capitol.sub_claim_naming.cancel");
-	Component.translatable("screen.capitol.sub_claim_naming.confirm");
+	private static final Component TITLE = Component.translatable("screen.capitol.sub_claim_naming.title");
+	private static final Component PLACEHOLDER = Component.translatable("screen.capitol.sub_claim_naming.placeholder");
+	private static final Component CANCEL = Component.translatable("screen.capitol.sub_claim_naming.cancel");
+	private static final Component CONFIRM = Component.translatable("screen.capitol.sub_claim_naming.confirm");
 
 	private static final int PANEL_WIDTH = 220;
 	private static final int PANEL_HEIGHT = 80;
@@ -57,17 +57,17 @@ public class SubClaimNamingScreen extends Screen {
 			Component.empty()
 		);
 		this.nameField.setMaxLength(32);
-		this.nameField.setHint(HINT);
+		this.nameField.setHint(PLACEHOLDER);
 		this.addRenderableWidget(this.nameField);
 
 		this.addRenderableWidget(
-			Button.builder(CANCEL_LABEL, button -> onClose())
+			Button.builder(CANCEL, button -> onClose())
 				.bounds(panelX + INSET, panelY + PANEL_HEIGHT - BUTTON_HEIGHT - INSET, BUTTON_WIDTH, BUTTON_HEIGHT)
 				.build()
 		);
 
 		this.addRenderableWidget(
-			Button.builder(CONFIRM_LABEL, button -> confirm())
+			Button.builder(CONFIRM, button -> confirm())
 				.bounds(panelX + PANEL_WIDTH - BUTTON_WIDTH - INSET, panelY + PANEL_HEIGHT - BUTTON_HEIGHT - INSET, BUTTON_WIDTH, BUTTON_HEIGHT)
 				.build()
 		);

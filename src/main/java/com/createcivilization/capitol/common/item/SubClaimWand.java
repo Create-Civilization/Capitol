@@ -54,7 +54,7 @@ public class SubClaimWand extends Item {
 				Attributes.BLOCK_INTERACTION_RANGE,
 				new AttributeModifier(
 					ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "sub_claim_wand_range"),
-					10.5,
+					25.5,
 					AttributeModifier.Operation.ADD_VALUE
 				),
 				EquipmentSlotGroup.MAINHAND
