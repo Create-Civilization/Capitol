@@ -31,7 +31,7 @@ public class ServerPayloadHandler {
 		}
 	}
 
-	private static void handleSingleChunk(long packedPos, IPayloadContext context) {
+	private static void handleSingleChunk(final long packedPos, final IPayloadContext context) {
 		CapitolDatabase database = DatabaseManager.database;
 		ChunkPos chunkPos = new ChunkPos(packedPos);
 		Team team = database.getChunkOwner(chunkPos, context.player().level());
