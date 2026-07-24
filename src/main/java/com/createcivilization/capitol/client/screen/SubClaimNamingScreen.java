@@ -17,10 +17,10 @@ import org.lwjgl.glfw.GLFW;
 
 public class SubClaimNamingScreen extends Screen {
 
-	private static final Component TITLE = Component.literal("Name Your Sub-Claim");
-	private static final Component HINT = Component.literal("Enter a name...");
-	private static final Component CANCEL_LABEL = Component.literal("Cancel");
-	private static final Component CONFIRM_LABEL = Component.literal("Confirm");
+	Component.translatable("screen.capitol.sub_claim_naming.title");
+	Component.translatable("screen.capitol.sub_claim_naming.placeholder");
+	Component.translatable("screen.capitol.sub_claim_naming.cancel");
+	Component.translatable("screen.capitol.sub_claim_naming.confirm");
 
 	private static final int PANEL_WIDTH = 220;
 	private static final int PANEL_HEIGHT = 80;

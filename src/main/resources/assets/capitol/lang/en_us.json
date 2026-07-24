@@ -23,6 +23,11 @@
 	"item.capitol.sub_claim_wand": "Sub-Claim Wand",
 	"itemGroup.capitol": "Capitol",
 
+	"screen.capitol.sub_claim_naming.title":       "Name Your Sub-Claim",
+	"screen.capitol.sub_claim_naming.placeholder": "Enter a name...",
+	"screen.capitol.sub_claim_naming.cancel":      "Cancel",
+	"screen.capitol.sub_claim_naming.confirm":     "Confirm",
+
 	"commands.capitol.not_in_team_error": "You are not in any team",
 	"commands.capitol.no_player_found": "There is no player called %s",
 	"commands.capitol.player_not_in_team": "%s is not a member of %s",
