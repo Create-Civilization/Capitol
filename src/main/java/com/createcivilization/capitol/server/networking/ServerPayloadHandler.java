@@ -10,6 +10,11 @@ import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
+import com.createcivilization.capitol.common.item.SubClaimWand;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -121,4 +126,15 @@ public class ServerPayloadHandler {
 
 		player.displayClientMessage(Component.literal("Unclaimed " + unclaimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
 	}
+
+	public static void handleDamageWand(C2SDamageWand packet, IPayloadContext context) {
+    context.enqueueWork(() -> {
+        ServerPlayer player = (ServerPlayer) context.player();
+        ItemStack held = player.getMainHandItem();
+        if (held.getItem() instanceof SubClaimWand) {
+            held.hurtAndBreak(1, (ServerLevel) player.level(),
+                player, item -> {});
+        }
+    });
+}
 }

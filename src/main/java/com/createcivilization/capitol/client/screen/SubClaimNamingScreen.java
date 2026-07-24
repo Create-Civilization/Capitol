@@ -2,7 +2,9 @@ package com.createcivilization.capitol.client.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.item.SubClaimWand;
+import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
 
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -82,6 +84,7 @@ public class SubClaimNamingScreen extends Screen {
 
 		Capitol.LOGGER.info("Sub-claim '{}' confirmed: {} -> {}", name, this.firstPos, this.secondPos);
 		SubClaimWand.clearSelection(this.wandStack);
+		PacketDistributor.sendToServer(new C2SDamageWand());
 		onClose();
 	}
 

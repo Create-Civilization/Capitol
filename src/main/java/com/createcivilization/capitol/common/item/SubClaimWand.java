@@ -64,17 +64,13 @@ public class SubClaimWand extends Item {
 
 	@Override
 	public InteractionResult useOn(UseOnContext ctx) {
-		ItemStack stack = ctx.getItemInHand();
 
-		// Server side: handle durability only
 		if (!ctx.getLevel().isClientSide()) {
-			stack.hurtAndBreak(1, (ServerLevel) ctx.getLevel(),
-				ctx.getPlayer() instanceof ServerPlayer sp ? sp : null,
-				item -> {});
-			return InteractionResult.SUCCESS;
+			return InteractionResult.PASS;
 		}
 
 		// Client side: handle selection state
+		ItemStack stack = ctx.getItemInHand();
 		CompoundTag tag = readTag(stack);
 		int phase = tag.getInt(TAG_PHASE);
 		BlockPos clickedPos = ctx.getClickedPos();
