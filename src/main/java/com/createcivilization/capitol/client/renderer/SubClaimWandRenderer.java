@@ -126,12 +126,17 @@ public class SubClaimWandRenderer {
 		RenderSystem.lineWidth(1.0f);
 	}
 
-	private static void addLine(VertexConsumer buf, PoseStack.Pose pose, Matrix4f mat,
-		float x0, float y0, float z0, float x1, float y1, float z1,
-		float r, float g, float b, float a) {
+	private static void addLine(
+    	VertexConsumer buf,
+    	PoseStack.Pose pose,
+    	Matrix4f mat,
+    	float x0, float y0, float z0,
+    	float x1, float y1, float z1,
+    	float r, float g, float b, float a
+	) {
 		float dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
 		float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
-		if (len == 0.0f) len = 1.0f;
+		if (len <= 0.0f) len = 1.0f;
 		float nx = dx / len, ny = dy / len, nz = dz / len;
 
 		buf.addVertex(mat, x0, y0, z0).setColor(r, g, b, a).setNormal(pose, nx, ny, nz);
