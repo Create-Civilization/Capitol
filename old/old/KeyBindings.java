@@ -1,10 +1,8 @@
-package com.createcivilization.capitol.old.old;
+package com.createcivilization.capitol.client;
 
 import com.createcivilization.capitol.Capitol;
 import com.mojang.blaze3d.platform.InputConstants;
-
 import net.minecraft.client.KeyMapping;
-
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -23,37 +21,50 @@ public class KeyBindings {
 	public static final KeyMapping openMenu = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".menu",
 		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(
-			InputConstants.KEY_M,
-			-1
-		),
+		InputConstants.getKey(InputConstants.KEY_UNKNOWN,-1),
 		CATEGORY
 	);
+
+	public static final KeyMapping claimChunk = new KeyMapping(
+        "key.capitol.claim_chunk",
+        KeyConflictContext.IN_GAME,
+        InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
+        CATEGORY
+    );
+
+    public static final KeyMapping unclaimChunk = new KeyMapping(
+        "key.capitol.unclaim_chunk",
+        KeyConflictContext.IN_GAME,
+        InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
+        CATEGORY
+    );
+
+    public static final KeyMapping toggleClaimBorders = new KeyMapping(
+        "key.capitol.toggle_claim_borders",
+        KeyConflictContext.IN_GAME,
+        InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
+        CATEGORY
+    );
+
 
 	public static final KeyMapping viewChunks = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".view_chunks",
 		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(
-			InputConstants.KEY_V,
-			-1
-		),
+		InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
 		CATEGORY
 	);
 
 	public static final KeyMapping toggleTeamChat = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".toggle_team_chat",
 		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(
-			InputConstants.KEY_H,
-			-1
-		),
+		InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
 		CATEGORY
 	);
 
 	public static final KeyMapping claim_chunk = new KeyMapping(
 		"key." + Capitol.MOD_ID + ".claim_chunk",
 		KeyConflictContext.IN_GAME,
-		InputConstants.UNKNOWN,
+		InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
 		CATEGORY
 	);
 

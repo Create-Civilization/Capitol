@@ -3,7 +3,11 @@ package com.createcivilization.capitol.client.events;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.client.CapitolKeyBindings;
 import com.createcivilization.capitol.client.TeamChatState;
+import com.createcivilization.capitol.client.renderer.BorderRenderer;
+import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -15,8 +19,8 @@ import net.neoforged.neoforge.client.event.ClientChatEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-@EventBusSubscriber(modid = Capitol.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
-public class TeamChatEvents {
+@EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.CLIENT)
+public class ToggleEvents {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
@@ -24,6 +28,7 @@ public class TeamChatEvents {
         Player player = mc.player;
         if (player == null) return;
 
+        // Team Chat
         if (CapitolKeyBindings.toggleTeamChat.consumeClick()) {
             TeamChatState.teamChatEnabled = !TeamChatState.teamChatEnabled;
 
@@ -39,6 +44,38 @@ public class TeamChatEvents {
                 );
             }
         }
+
+        // Claim chunk
+        if (CapitolKeyBindings.claimChunk.consumeClick()) {
+            PacketDistributor.sendToServer(new C2SClaimChunk(
+                new long[]{ mc.player.chunkPosition().toLong() }
+            ));
+        }
+
+        // Unclaim chunk
+        if (CapitolKeyBindings.unclaimChunk.consumeClick()) {
+            PacketDistributor.sendToServer(new C2SUnclaimChunk(
+                new long[]{ mc.player.chunkPosition().toLong() }
+            ));
+        }
+
+        // Toggle claim borders
+        if (CapitolKeyBindings.toggleClaimBorders.consumeClick()) {
+            BorderRenderer.showBorders = !BorderRenderer.showBorders;
+
+            if (BorderRenderer.showBorders) {
+                player.displayClientMessage(
+                    Component.literal("Claim borders visible").withStyle(ChatFormatting.GREEN),
+                    true
+                );
+            } else {
+                player.displayClientMessage(
+                    Component.literal("Claim borders hidden").withStyle(ChatFormatting.GRAY),
+                    true
+                );
+            }
+        }
+
     }
 
     @SubscribeEvent

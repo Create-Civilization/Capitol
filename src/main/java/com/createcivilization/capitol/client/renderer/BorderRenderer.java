@@ -21,12 +21,14 @@ import java.util.ArrayList;
 
 public class BorderRenderer {
 
+	public static boolean showBorders = true;
 	public static float LINE_THICKNESS = 0.25f;
 	private static final float Z_FIGHT_OFFSET = 0.002f;
 	private static final float BORDER_ALPHA = 0.85f;
 
 	@SubscribeEvent
 	public static void onRenderLevel(RenderLevelStageEvent event) {
+		if (!showBorders) return;
 		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return;
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level == null) return;

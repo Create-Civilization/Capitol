@@ -5,10 +5,11 @@
 
 	"key.categories.capitol": "Capitol",
 
+	"key.capitol.claim_chunk": "Claim Chunk",
+	"key.capitol.unclaim_chunk": "Unclaim Chunk",
+	"key.capitol.toggle_claim_borders": "View claim borders",
 	"key.capitol.stats": "Open claim statistics",
-	"key.capitol.view_chunks": "Toggle claim visibility",
 	"key.capitol.open_claim_menu": "Open claim menu",
-	"key.capitol.claim_chunk": "Claim chunk",
 	"key.capitol.toggle_team_chat": "Toggle team chat",
 
 	"gui.capitol.claim_block_menu": "Claim statistics",

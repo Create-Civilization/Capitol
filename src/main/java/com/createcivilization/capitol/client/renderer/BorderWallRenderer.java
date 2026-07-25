@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 public class BorderWallRenderer {
 
+	public static boolean showBorders = true;
 	public static float REVEAL_RADIUS = 8.0f;
 	public static float INNER_RADIUS = 1.5f;
 	public static float MAX_ALPHA = 0.35f;
@@ -24,6 +25,7 @@ public class BorderWallRenderer {
 
 	@SubscribeEvent
 	public static void onRenderLevel(RenderLevelStageEvent event) {
+		if (!showBorders) return;
 		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return;
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level == null) return;
