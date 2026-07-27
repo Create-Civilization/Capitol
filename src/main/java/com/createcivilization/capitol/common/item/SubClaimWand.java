@@ -2,7 +2,6 @@ package com.createcivilization.capitol.common.item;
 
 import com.createcivilization.capitol.Capitol;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -16,11 +15,6 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
-
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-
-import com.createcivilization.capitol.client.screen.SubClaimNamingScreen;
 
 import javax.annotation.Nullable;
 
@@ -43,6 +37,13 @@ public class SubClaimWand extends Item {
 	public static final String OFF_POS_Z = "OffPosZ";
 	public static final String OFF_NEG_Z = "OffNegZ";
 
+	@FunctionalInterface
+	public interface ScreenOpener {
+		void open(BlockPos first, BlockPos second, ItemStack stack);
+	}
+
+	public static ScreenOpener screenOpener = null;
+
 	public SubClaimWand(Properties properties) {
 		super(properties);
 	}
@@ -54,7 +55,7 @@ public class SubClaimWand extends Item {
 				Attributes.BLOCK_INTERACTION_RANGE,
 				new AttributeModifier(
 					ResourceLocation.fromNamespaceAndPath(Capitol.MOD_ID, "sub_claim_wand_range"),
-					25.5,
+					35.5,
 					AttributeModifier.Operation.ADD_VALUE
 				),
 				EquipmentSlotGroup.MAINHAND
@@ -95,8 +96,8 @@ public class SubClaimWand extends Item {
 			case 2 -> {
 				BlockPos first = getFirstPos(stack);
 				BlockPos second = getSecondPos(stack);
-				if (first != null && second != null) {
-					Minecraft.getInstance().setScreen(new SubClaimNamingScreen(first, second, stack));
+				if (first != null && second != null && screenOpener != null) {
+					screenOpener.open(first, second, stack);
 				}
 				return InteractionResult.SUCCESS;
 			}

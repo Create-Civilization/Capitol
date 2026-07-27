@@ -2,7 +2,8 @@ package com.createcivilization.capitol.client.item;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.item.SubClaimWand;
-
+import com.createcivilization.capitol.client.screen.SubClaimNamingScreen;
+import com.createcivilization.capitol.common.item.SubClaimWand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -123,5 +124,13 @@ public class SubClaimWandClientHandler {
 		}
 
 		return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+	}
+
+	static {
+        SubClaimWand.screenOpener = SubClaimWandClientHandler::openNamingScreen;
+    }
+
+	public static void openNamingScreen(BlockPos first, BlockPos second, ItemStack stack) {
+    Minecraft.getInstance().setScreen(new SubClaimNamingScreen(first, second, stack));
 	}
 }
