@@ -2,10 +2,8 @@ package com.createcivilization.capitol.common.networking;
 
 import com.createcivilization.capitol.client.networking.ClientPayloadHandler;
 import com.createcivilization.capitol.common.networking.packets.C2SBulkChunkRequest;
-import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
-import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
+import com.createcivilization.capitol.common.networking.packets.C2SChunkAction;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
-import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 import net.neoforged.bus.api.IEventBus;
@@ -42,14 +40,6 @@ public class CapitolNetworking {
 		);
 
 		registrar.playToServer(
-			C2SChunkRequest.TYPE,
-			C2SChunkRequest.STREAM_CODEC,
-			new MainThreadPayloadHandler<>(
-				ServerPayloadHandler::handleChunkRequest
-			)
-		);
-
-		registrar.playToServer(
 			C2SBulkChunkRequest.TYPE,
 			C2SBulkChunkRequest.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
@@ -58,18 +48,10 @@ public class CapitolNetworking {
 		);
 
 		registrar.playToServer(
-			C2SClaimChunk.TYPE,
-			C2SClaimChunk.STREAM_CODEC,
+			C2SChunkAction.TYPE,
+			C2SChunkAction.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
-				ServerPayloadHandler::handleClaimChunk
-			)
-		);
-
-		registrar.playToServer(
-			C2SUnclaimChunk.TYPE,
-			C2SUnclaimChunk.STREAM_CODEC,
-			new MainThreadPayloadHandler<>(
-				ServerPayloadHandler::handleUnclaimChunk
+				ServerPayloadHandler::handleChunkAction
 			)
 		);
 	}

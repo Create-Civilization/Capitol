@@ -62,7 +62,7 @@ public class ChunkEvents {
 		}
 
 		pendingChunkAnnouncement = current;
-		PacketDistributor.sendToServer(new C2SChunkRequest(current.toLong()));
+		PacketDistributor.sendToServer(new C2SBulkChunkRequest(new long[]{current.toLong()}));
 	}
 
 	private static void flushPendingChunkRequests() {
