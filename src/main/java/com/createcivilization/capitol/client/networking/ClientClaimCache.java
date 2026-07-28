@@ -7,30 +7,38 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientClaimCache {
 
-	public static final Map<ChunkPos, Team> claims = new ConcurrentHashMap<>();
+	 public static final Map<ChunkPos, Team> claims = new ConcurrentHashMap<>();
+	 private static volatile int changeCount = 0;
 
-	public static Map<ChunkPos, Team> get(){
-		return claims;
-	}
+	 public static Map<ChunkPos, Team> get(){
+	 	 return claims;
+	 }
 
-	public static void addClaim(ChunkPos cords, Team team) {
-		claims.put(cords, team);
-	}
+	 public static int getChangeCount() {
+	 	 return changeCount;
+	 }
 
-	public static void removeClaim(ChunkPos cords) {
-		claims.remove(cords);
-	}
+	 public static void addClaim(ChunkPos cords, Team team) {
+	 	 claims.put(cords, team);
+	 	 changeCount++;
+	 }
 
-	public static Team getClaim(ChunkPos cords) {
-		return claims.get(cords);
-	}
+	 public static void removeClaim(ChunkPos cords) {
+	 	 claims.remove(cords);
+	 	 changeCount++;
+	 }
 
-	public static boolean hasClaim(ChunkPos cords) {
-		return claims.containsKey(cords);
-	}
+	 public static Team getClaim(ChunkPos cords) {
+	 	 return claims.get(cords);
+	 }
 
-	public static void clearClaims() {
-		claims.clear();
-	}
+	 public static boolean hasClaim(ChunkPos cords) {
+	 	 return claims.containsKey(cords);
+	 }
 
-}
+	 public static void clearClaims() {
+	 	 claims.clear();
+	 	 changeCount++;
+	 }
+
+ }

@@ -4,7 +4,6 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.networking.packets.C2SBulkChunkRequest;
-import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
