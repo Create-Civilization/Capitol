@@ -18,6 +18,8 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.level.PistonEvent;
 
+import java.util.Iterator;
+
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.DEDICATED_SERVER)
 public class ClaimProtectionEvents {
 
@@ -26,11 +28,44 @@ public class ClaimProtectionEvents {
 		Level level = event.getLevel();
 		Entity source = event.getExplosion().getDirectSourceEntity();
 
-		event.getAffectedBlocks().removeIf(blockPos ->
-			ProtectionManager.checkExplosion(level, new ChunkPos(blockPos), source) == Result.DENY);
+		int lastChunkX = Integer.MIN_VALUE;
+		int lastChunkZ = Integer.MIN_VALUE;
+		Result lastResult = Result.PASS;
 
-		event.getAffectedEntities().removeIf(entity ->
-			ProtectionManager.checkExplosion(level, new ChunkPos(entity.blockPosition()), source) == Result.DENY);
+		Iterator<BlockPos> blockIt = event.getAffectedBlocks().iterator();
+		while (blockIt.hasNext()) {
+			BlockPos blockPos = blockIt.next();
+			int cx = blockPos.getX() >> 4;
+			int cz = blockPos.getZ() >> 4;
+			if (cx != lastChunkX || cz != lastChunkZ) {
+				lastChunkX = cx;
+				lastChunkZ = cz;
+				lastResult = ProtectionManager.checkExplosion(level, new ChunkPos(cx, cz), source);
+			}
+			if (lastResult == Result.DENY) {
+				blockIt.remove();
+			}
+		}
+
+		lastChunkX = Integer.MIN_VALUE;
+		lastChunkZ = Integer.MIN_VALUE;
+		lastResult = Result.PASS;
+
+		Iterator<Entity> entityIt = event.getAffectedEntities().iterator();
+		while (entityIt.hasNext()) {
+			Entity entity = entityIt.next();
+			BlockPos entityPos = entity.blockPosition();
+			int cx = entityPos.getX() >> 4;
+			int cz = entityPos.getZ() >> 4;
+			if (cx != lastChunkX || cz != lastChunkZ) {
+				lastChunkX = cx;
+				lastChunkZ = cz;
+				lastResult = ProtectionManager.checkExplosion(level, new ChunkPos(cx, cz), source);
+			}
+			if (lastResult == Result.DENY) {
+				entityIt.remove();
+			}
+		}
 	}
 
 	@SubscribeEvent
