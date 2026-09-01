@@ -2,9 +2,11 @@ package com.createcivilization.capitol.client.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.item.SubClaimWand;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
 import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
 
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -84,6 +86,23 @@ public class SubClaimNamingScreen extends Screen {
 
 		Capitol.LOGGER.info("Sub-claim '{}' confirmed: {} -> {}", name, this.firstPos, this.secondPos);
 		SubClaimWand.clearSelection(this.wandStack);
+
+		Minecraft mc = Minecraft.getInstance();
+		String dimension = mc.player.level().dimension().location().toString();
+
+		// Normalise corners so min is always less than max
+		int minX = Math.min(firstPos.getX(), secondPos.getX());
+		int minY = Math.min(firstPos.getY(), secondPos.getY());
+		int minZ = Math.min(firstPos.getZ(), secondPos.getZ());
+		int maxX = Math.max(firstPos.getX(), secondPos.getX());
+		int maxY = Math.max(firstPos.getY(), secondPos.getY());
+		int maxZ = Math.max(firstPos.getZ(), secondPos.getZ());
+
+		PacketDistributor.sendToServer(new C2SCreateSubClaim(
+			name, dimension,
+			minX, minY, minZ,
+			maxX, maxY, maxZ
+		));
 		PacketDistributor.sendToServer(new C2SDamageWand());
 		onClose();
 	}

@@ -102,6 +102,21 @@ public class DatabaseManager {
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS sub_claims (" +
+					"id TEXT PRIMARY KEY NOT NULL," +
+					"team_id TEXT NOT NULL," +
+					"name TEXT NOT NULL," +
+					"dimension TEXT NOT NULL," +
+					"min_x INTEGER NOT NULL," +
+					"min_y INTEGER NOT NULL," +
+					"min_z INTEGER NOT NULL," +
+					"max_x INTEGER NOT NULL," +
+					"max_y INTEGER NOT NULL," +
+					"max_z INTEGER NOT NULL," +
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+			);
+
 			if(SableCompat.LOADED){
 				stmt.execute(
 					"CREATE TABLE IF NOT EXISTS sub_levels (" +
@@ -120,7 +135,27 @@ public class DatabaseManager {
 	}
 
 	//Will be used for DB migrations ect
-	private static void runMigrations(int current) throws SQLException {}
+	private static void runMigrations(int current) throws SQLException {
+		if (current < 1) {
+			try (Statement stmt = connection.createStatement()) {
+				stmt.execute(
+					"CREATE TABLE IF NOT EXISTS sub_claims (" +
+						"id TEXT PRIMARY KEY NOT NULL," +
+						"team_id TEXT NOT NULL," +
+						"name TEXT NOT NULL," +
+						"dimension TEXT NOT NULL," +
+						"min_x INTEGER NOT NULL," +
+						"min_y INTEGER NOT NULL," +
+						"min_z INTEGER NOT NULL," +
+						"max_x INTEGER NOT NULL," +
+						"max_y INTEGER NOT NULL," +
+						"max_z INTEGER NOT NULL," +
+						"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+				);
+			}
+			setSchemaVersion(1);
+		}
+	}
 
 	private static int getSchemaVersion() throws SQLException {
 		try (ResultSet rs = connection.createStatement().executeQuery("PRAGMA user_version")) {

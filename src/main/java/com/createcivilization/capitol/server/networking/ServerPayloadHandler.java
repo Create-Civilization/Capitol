@@ -2,6 +2,7 @@ package com.createcivilization.capitol.server.networking;
 
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Permission;
+import com.createcivilization.capitol.common.data.SubClaim;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
@@ -10,6 +11,7 @@ import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
 import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
 import com.createcivilization.capitol.common.item.SubClaimWand;
 import net.minecraft.server.level.ServerLevel;
@@ -22,6 +24,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.UUID;
 
 public class ServerPayloadHandler {
 
@@ -137,4 +141,34 @@ public class ServerPayloadHandler {
         }
     });
 }
+
+	public static void handleCreateSubClaim(final C2SCreateSubClaim packet, final IPayloadContext context) {
+		context.enqueueWork(() -> {
+			ServerPlayer player = (ServerPlayer) context.player();
+			CapitolDatabase database = DatabaseManager.database;
+
+			Team team = database.getPlayerTeam(player);
+			if (team == null) return;
+
+			if (!Permission.CLAIM_SUB_CLAIMS.hasPermission(database.getPlayerPermission(player, team))) {
+				player.displayClientMessage(Component.literal("You do not have permission to create sub-claims").withStyle(ChatFormatting.RED), false);
+				return;
+			}
+
+			if (packet.name().isBlank()) return;
+
+			SubClaim subClaim = new SubClaim(
+				UUID.randomUUID(),
+				team.getId(),
+				packet.name(),
+				packet.dimension(),
+				packet.minX(), packet.minY(), packet.minZ(),
+				packet.maxX(), packet.maxY(), packet.maxZ()
+			);
+
+			database.addSubClaim(subClaim);
+
+			player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.created", packet.name()), false);
+		});
+	}
 }

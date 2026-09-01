@@ -997,4 +997,93 @@ public class CapitolDatabase extends Database {
 			throw new RuntimeException(e);
 		}
 	}
+
+
+	//Sub-Claim Stuff
+	//Inserts a new sub-claim into the {@code sub_claims} table.
+	public void addSubClaim(SubClaim subClaim) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT INTO sub_claims (id, team_id, name, dimension, min_x, min_y, min_z, max_x, max_y, max_z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+			ps.setString(1, subClaim.id().toString());
+			ps.setString(2, subClaim.teamId().toString());
+			ps.setString(3, subClaim.name());
+			ps.setString(4, subClaim.dimension());
+			ps.setInt(5, subClaim.minX());
+			ps.setInt(6, subClaim.minY());
+			ps.setInt(7, subClaim.minZ());
+			ps.setInt(8, subClaim.maxX());
+			ps.setInt(9, subClaim.maxY());
+			ps.setInt(10, subClaim.maxZ());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while inserting sub-claim into database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Deletes a sub-claim by its UUID.
+	 *
+	 * @param id the sub-claim's UUID
+	 */
+	public void removeSubClaim(UUID id) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM sub_claims WHERE id = ?")) {
+			ps.setString(1, id.toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while deleting sub-claim from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Returns all sub-claims belonging to a team.
+	 *
+	 * @param team the team to query
+	 * @return list of {@link SubClaim}s (may be empty)
+	 */
+	public List<SubClaim> getTeamSubClaims(Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM sub_claims WHERE team_id = ?")) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				List<SubClaim> subClaims = new ArrayList<>();
+				while (rs.next()) subClaims.add(SubClaim.fromResultSet(rs));
+				return subClaims;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting team sub-claims from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Returns the first sub-claim whose volume contains the given position, or null if none.
+	 *
+	 * @param dimension the dimension the position is in
+	 * @param x         the x coordinate
+	 * @param y         the y coordinate
+	 * @param z         the z coordinate
+	 * @return the containing {@link SubClaim}, or {@code null} if none
+	 */
+	public SubClaim getSubClaimAt(String dimension, int x, int y, int z) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM sub_claims WHERE dimension = ? AND min_x <= ? AND max_x >= ? AND min_y <= ? AND max_y >= ? AND min_z <= ? AND max_z >= ? LIMIT 1")) {
+			ps.setString(1, dimension);
+			ps.setInt(2, x);
+			ps.setInt(3, x);
+			ps.setInt(4, y);
+			ps.setInt(5, y);
+			ps.setInt(6, z);
+			ps.setInt(7, z);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return SubClaim.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting sub-claim at position from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
 }

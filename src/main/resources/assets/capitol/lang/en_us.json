@@ -107,6 +107,7 @@
 	"commands.capitol.claim.success": "Chunk claimed!",
 	"commands.capitol.claim.sub_level.already_claimed": "This sub-level is already claimed by %s",
 	"commands.capitol.claim.sub_level.success": "Sub-level claimed!",
+	"commands.capitol.sub_claim.created": "Sub-claim '%s' created successfully.",
 	"commands.capitol.claim.info.unclaimed": "This chunk is not claimed",
 	"commands.capitol.claim.info.owner": "Claimed by %s",
 	"commands.capitol.claim.sub_level.info.unclaimed": "This sub-level is not claimed",

@@ -7,6 +7,7 @@ import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
 import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 
 import net.neoforged.bus.api.IEventBus;
@@ -72,6 +73,14 @@ public class CapitolNetworking {
 			new MainThreadPayloadHandler<>(
 				ServerPayloadHandler::handleDamageWand
     		)
+		);
+
+		registrar.playToServer(
+			C2SCreateSubClaim.TYPE,
+			C2SCreateSubClaim.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleCreateSubClaim
+			)
 		);
 	}
 
