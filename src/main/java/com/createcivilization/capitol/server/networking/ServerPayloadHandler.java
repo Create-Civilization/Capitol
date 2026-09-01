@@ -14,6 +14,7 @@ import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
 import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;
 import com.createcivilization.capitol.common.item.SubClaimWand;
 import com.createcivilization.capitol.server.invites.InviteHandler;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +25,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ServerPayloadHandler {
 
@@ -78,6 +84,45 @@ public class ServerPayloadHandler {
 		int claimed = 0;
 		boolean skippedAdjacent = false;
 		long[] packed = request.packedChunkPositions();
+
+		// Multi-chunk claims (like a JourneyMap rectangle) count as one connected group:
+		// a chunk is claimable if it touches our territory, or another chunk in the
+		// selection that does. Teams with no claims yet can claim anywhere to get started.
+		Set<Long> batchChunks = new HashSet<>();
+		for (long packedPos : packed) {
+			batchChunks.add(packedPos);
+		}
+
+		Set<Long> claimable = new HashSet<>();
+		Deque<Long> frontier = new ArrayDeque<>();
+		if (team.getCurrentClaims() <= 0) {
+			claimable.addAll(batchChunks);
+		} else {
+			for (long packedPos : batchChunks) {
+				ChunkPos chunkPos = new ChunkPos(packedPos);
+				for (Direction dir : Direction.Plane.HORIZONTAL) {
+					ChunkPos neighbor = new ChunkPos(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
+					Team owner = database.getChunkOwner(neighbor, player.level());
+					if (owner != null && owner.getId().equals(team.getId())) {
+						claimable.add(packedPos);
+						frontier.add(packedPos);
+						break;
+					}
+				}
+			}
+			while (!frontier.isEmpty()) {
+				long packedPos = frontier.poll();
+				ChunkPos chunkPos = new ChunkPos(packedPos);
+				for (Direction dir : Direction.Plane.HORIZONTAL) {
+					long neighborPacked = ChunkPos.asLong(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
+					if (batchChunks.contains(neighborPacked) && !claimable.contains(neighborPacked)) {
+						claimable.add(neighborPacked);
+						frontier.add(neighborPacked);
+					}
+				}
+			}
+		}
+
 		for (long packedPos : packed) {
 			if (claimed >= remaining) break;
 
@@ -87,7 +132,7 @@ public class ServerPayloadHandler {
 			Team existingOwner = database.getChunkOwner(chunkPos, player.level());
 			if (existingOwner != null) continue;
 
-			if (!database.isChunkAdjacentToOwnClaim(team, chunkPos, player.level())) {
+			if (!claimable.contains(packedPos)) {
 				skippedAdjacent = true;
 				continue;
 			}

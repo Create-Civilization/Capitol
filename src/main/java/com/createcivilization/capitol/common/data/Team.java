@@ -46,7 +46,7 @@ public class Team {
 		this.description = ByteBufCodecs.STRING_UTF8.decode(buffer);
 		this.color = new Color(ByteBufCodecs.INT.decode(buffer), true);
 		this.createdAt = ByteBufCodecs.VAR_LONG.decode(buffer);
-		// Not sent over the wire; capitol position is resolved server-side via the database
+		// Not on the wire, capitol pos is pulled from the db instead
 		this.capitolPos = null;
 	}
 

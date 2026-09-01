@@ -3,11 +3,7 @@ package com.createcivilization.capitol.client.gui.screen;
 import com.createcivilization.capitol.common.CapitolClientHooks;
 import net.minecraft.client.Minecraft;
 
-/**
- * Client-only hook assignment for {@link CapitolBookMenu}. {@link #register()}
- * is invoked from the dist-guarded client block in {@code Capitol}, so this
- * class is only ever loaded on the client distribution.
- */
+// Swaps in the real capitol book opener. Only ever loaded on the client.
 public final class CapitolBookMenuClient {
 
 	public static void register() {

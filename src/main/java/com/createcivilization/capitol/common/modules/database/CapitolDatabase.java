@@ -671,14 +671,7 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
-	/**
-	 * Stores the position and dimension of a team's Capitol Block.
-	 * Pass {@code null} as {@code pos} to clear it when the block is broken.
-	 *
-	 * @param team      the team whose capitol position is being set
-	 * @param pos       the block position of the capitol, or {@code null} to clear
-	 * @param dimension the dimension resource location string, e.g. "minecraft:overworld"
-	 */
+	// Saves where the capitol block is. Pass null to clear it, like when the block gets broken.
 	public void setCapitolPos(Team team, @Nullable BlockPos pos, @Nullable String dimension) {
 		String sql = "UPDATE teams SET capitol_x = ?, capitol_y = ?, capitol_z = ?, capitol_dimension = ? WHERE id = ?";
 		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -701,14 +694,7 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
-	/**
-	 * Returns the team whose Capitol Block is at the given position in the given dimension,
-	 * or {@code null} if no team has a capitol there.
-	 *
-	 * @param pos       the block position to look up
-	 * @param dimension the dimension resource location string, e.g. "minecraft:overworld"
-	 * @return the owning {@link Team}, or {@code null}
-	 */
+	// Finds the team with a capitol block at this position, or null if there isn't one.
 	@Nullable
 	public Team getTeamByCapitolPos(BlockPos pos, String dimension) {
 		String sql = "SELECT * FROM teams WHERE capitol_x = ? AND capitol_y = ? AND capitol_z = ? AND capitol_dimension = ?";
@@ -754,16 +740,8 @@ public class CapitolDatabase extends Database {
 		updateCurrentClaims(team, 1);
 	}
 
-	/**
-	 * Returns {@code true} if the chunk may be claimed by the team — i.e. it touches
-	 * a chunk the team already claims. A team with no claims at all may claim a first
-	 * chunk anywhere to seed its territory.
-	 *
-	 * @param team     the team that wants to claim
-	 * @param chunkPos the chunk being claimed
-	 * @param level    the dimension/level the chunk is in
-	 * @return {@code true} if the claim is allowed
-	 */
+	// Can this team claim here? Only if the chunk touches one they already own.
+	// Teams with no claims can claim anywhere, so they have a starting point.
 	public boolean isChunkAdjacentToOwnClaim(Team team, ChunkPos chunkPos, Level level) {
 		if (team.getCurrentClaims() <= 0) return true;
 		for (Direction dir : Direction.Plane.HORIZONTAL) {

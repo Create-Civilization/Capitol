@@ -3,13 +3,8 @@ package com.createcivilization.capitol.common;
 import com.createcivilization.capitol.common.data.Team;
 import net.minecraft.core.BlockPos;
 
-/**
- * Cross-distribution hook for opening client-only screens from common code.
- * <p>
- * Client-only code assigns {@link #openCapitolBook} at mod load. On a dedicated
- * server the no-op default is kept, so this class (and everything that
- * references it from common code) never touches client-only classes.
- */
+// Lets common code open client-only screens without pulling client classes onto the server.
+// Client code swaps in the real opener at startup; dedicated servers never touch it.
 public final class CapitolClientHooks {
 
 	@FunctionalInterface
