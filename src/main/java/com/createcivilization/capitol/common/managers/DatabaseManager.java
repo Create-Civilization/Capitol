@@ -58,7 +58,11 @@ public class DatabaseManager {
 					"color INT NOT NULL," +
 					"description TEXT," +
 					"team_permissions INT NOT NULL," +
-					"created_at LONG NOT NULL)"
+					"created_at LONG NOT NULL," +
+					"capitol_x INTEGER," +
+					"capitol_y INTEGER," +
+					"capitol_z INTEGER," +
+					"capitol_dimension TEXT)"
 			);
 
 			stmt.execute(
@@ -119,8 +123,17 @@ public class DatabaseManager {
 		}
 	}
 
-	//Will be used for DB migrations ect
-	private static void runMigrations(int current) throws SQLException {}
+	private static void runMigrations(int current) throws SQLException {
+		if (current < 1) {
+			try (Statement stmt = connection.createStatement()) {
+				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_x INTEGER");
+				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_y INTEGER");
+				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_z INTEGER");
+				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_dimension TEXT");
+			}
+			setSchemaVersion(1);
+		}
+	}
 
 	private static int getSchemaVersion() throws SQLException {
 		try (ResultSet rs = connection.createStatement().executeQuery("PRAGMA user_version")) {

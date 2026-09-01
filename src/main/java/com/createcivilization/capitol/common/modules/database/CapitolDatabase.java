@@ -4,6 +4,9 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.compat.sable.data.ClaimedSubLevel;
 import com.createcivilization.capitol.common.data.*;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -34,11 +37,11 @@ public class CapitolDatabase extends Database {
 	 * Call after {@link DatabaseManager#init} on world load.
 	 */
 	public void warmCache() {
-		clearCache();
-		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT chunks.dimension, chunks.chunk_x, chunks.chunk_z, " +
-				"teams.id, teams.name, teams.color, teams.tag, teams.current_claims, " +
-				"teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+		clearCache();			try (PreparedStatement ps = getConnection().prepareStatement(
+				"SELECT chunks.dimension, chunks.chunk_x, chunks.chunk_z, " +
+					"teams.id, teams.name, teams.color, teams.tag, teams.current_claims, " +
+					"teams.max_claims, teams.team_permissions, teams.description, teams.created_at, " +
+					"teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM chunks JOIN teams ON teams.id = chunks.team_id")) {
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {
@@ -263,7 +266,7 @@ public class CapitolDatabase extends Database {
 			if (cached != null) return cached.orElse(null);
 		}
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at, teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM chunks " +
 				"JOIN teams ON teams.id = chunks.team_id " +
 				"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?")) {
@@ -385,7 +388,7 @@ public class CapitolDatabase extends Database {
 	 */
 	public Team getPlayerTeam(UUID playerUUID) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at, teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM team_members " +
 				"JOIN teams ON teams.id = team_members.team_id " +
 				"WHERE team_members.player_uuid = ?")) {
@@ -669,6 +672,62 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
+	 * Stores the position and dimension of a team's Capitol Block.
+	 * Pass {@code null} as {@code pos} to clear it when the block is broken.
+	 *
+	 * @param team      the team whose capitol position is being set
+	 * @param pos       the block position of the capitol, or {@code null} to clear
+	 * @param dimension the dimension resource location string, e.g. "minecraft:overworld"
+	 */
+	public void setCapitolPos(Team team, @Nullable BlockPos pos, @Nullable String dimension) {
+		String sql = "UPDATE teams SET capitol_x = ?, capitol_y = ?, capitol_z = ?, capitol_dimension = ? WHERE id = ?";
+		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+			if (pos != null && dimension != null) {
+				ps.setInt(1, pos.getX());
+				ps.setInt(2, pos.getY());
+				ps.setInt(3, pos.getZ());
+				ps.setString(4, dimension);
+			} else {
+				ps.setNull(1, java.sql.Types.INTEGER);
+				ps.setNull(2, java.sql.Types.INTEGER);
+				ps.setNull(3, java.sql.Types.INTEGER);
+				ps.setNull(4, java.sql.Types.VARCHAR);
+			}
+			ps.setString(5, team.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error setting capitol position for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Returns the team whose Capitol Block is at the given position in the given dimension,
+	 * or {@code null} if no team has a capitol there.
+	 *
+	 * @param pos       the block position to look up
+	 * @param dimension the dimension resource location string, e.g. "minecraft:overworld"
+	 * @return the owning {@link Team}, or {@code null}
+	 */
+	@Nullable
+	public Team getTeamByCapitolPos(BlockPos pos, String dimension) {
+		String sql = "SELECT * FROM teams WHERE capitol_x = ? AND capitol_y = ? AND capitol_z = ? AND capitol_dimension = ?";
+		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+			ps.setInt(1, pos.getX());
+			ps.setInt(2, pos.getY());
+			ps.setInt(3, pos.getZ());
+			ps.setString(4, dimension);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return Team.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error looking up team by capitol position", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * Claims a chunk for a team by inserting it into the {@code chunks} table
 	 * and incrementing the team's {@code current_claims} counter.
 	 *
@@ -693,6 +752,26 @@ public class CapitolDatabase extends Database {
 			throw new RuntimeException(e);
 		}
 		updateCurrentClaims(team, 1);
+	}
+
+	/**
+	 * Returns {@code true} if the chunk may be claimed by the team — i.e. it touches
+	 * a chunk the team already claims. A team with no claims at all may claim a first
+	 * chunk anywhere to seed its territory.
+	 *
+	 * @param team     the team that wants to claim
+	 * @param chunkPos the chunk being claimed
+	 * @param level    the dimension/level the chunk is in
+	 * @return {@code true} if the claim is allowed
+	 */
+	public boolean isChunkAdjacentToOwnClaim(Team team, ChunkPos chunkPos, Level level) {
+		if (team.getCurrentClaims() <= 0) return true;
+		for (Direction dir : Direction.Plane.HORIZONTAL) {
+			ChunkPos neighbor = new ChunkPos(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
+			Team owner = getChunkOwner(neighbor, level);
+			if (owner != null && owner.getId().equals(team.getId())) return true;
+		}
+		return false;
 	}
 
 	/**
@@ -982,7 +1061,7 @@ public class CapitolDatabase extends Database {
 		Optional<Team> cached = subLevelOwnerCache.get(id);
 		if (cached != null) return cached.orElse(null);
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at, teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM sub_levels " +
 				"JOIN teams ON teams.id = sub_levels.team_id " +
 				"WHERE sub_levels.id = ?")) {

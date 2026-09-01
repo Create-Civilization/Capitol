@@ -68,6 +68,11 @@ public class AutoClaimEvents {
 				return;
 			}
 
+			if (!database.isChunkAdjacentToOwnClaim(team, chunkPos, player.level())) {
+				player.displayClientMessage(Component.translatable("commands.capitol.claim.not_adjacent").withStyle(ChatFormatting.RED), false);
+				return;
+			}
+
 			database.claimChunk(team, chunkPos, player.level());
 			S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
 			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);

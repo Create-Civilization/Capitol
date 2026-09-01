@@ -11,7 +11,9 @@ import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
+import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;
 import com.createcivilization.capitol.common.item.SubClaimWand;
+import com.createcivilization.capitol.server.invites.InviteHandler;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -74,6 +76,7 @@ public class ServerPayloadHandler {
 		}
 
 		int claimed = 0;
+		boolean skippedAdjacent = false;
 		long[] packed = request.packedChunkPositions();
 		for (long packedPos : packed) {
 			if (claimed >= remaining) break;
@@ -84,6 +87,11 @@ public class ServerPayloadHandler {
 			Team existingOwner = database.getChunkOwner(chunkPos, player.level());
 			if (existingOwner != null) continue;
 
+			if (!database.isChunkAdjacentToOwnClaim(team, chunkPos, player.level())) {
+				skippedAdjacent = true;
+				continue;
+			}
+
 			database.claimChunk(team, chunkPos, player.level());
 			S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
 			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
@@ -91,6 +99,9 @@ public class ServerPayloadHandler {
 		}
 
 		player.displayClientMessage(Component.literal("Claimed " + claimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
+		if (claimed == 0 && skippedAdjacent) {
+			player.displayClientMessage(Component.translatable("commands.capitol.claim.not_adjacent").withStyle(ChatFormatting.RED), false);
+		}
 	}
 
 	public static void handleUnclaimChunk(final C2SUnclaimChunk request, final IPayloadContext context) {
@@ -125,6 +136,38 @@ public class ServerPayloadHandler {
 		}
 
 		player.displayClientMessage(Component.literal("Unclaimed " + unclaimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
+	}
+
+	public static void handleInvitePlayer(final C2SInvitePlayer request, final IPayloadContext context) {
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.player();
+
+		Team team = database.getPlayerTeam(player);
+		if (team == null) {
+			player.displayClientMessage(Component.translatable("commands.capitol.not_in_team_error").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (!Permission.INVITE_MEMBERS.hasPermission(database.getPlayerPermission(player, team))) {
+			player.displayClientMessage(Component.translatable("commands.capitol.team.invite.no_permission").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		ServerPlayer playerToInvite = player.getServer() == null ? null : player.getServer().getPlayerList().getPlayerByName(request.playerName());
+		if (playerToInvite == null) {
+			player.displayClientMessage(Component.translatable("commands.capitol.team.invite.invalid_player").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (database.getPlayerTeam(playerToInvite) != null) {
+			player.displayClientMessage(Component.translatable("commands.capitol.team.invite.target_in_team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		InviteHandler.addInvite(playerToInvite, team);
+		player.displayClientMessage(Component.translatable("commands.capitol.team.invite.success",
+			Component.literal(playerToInvite.getName().getString()).withStyle(ChatFormatting.WHITE))
+			.withStyle(ChatFormatting.GRAY), false);
 	}
 
 	public static void handleDamageWand(C2SDamageWand packet, IPayloadContext context) {

@@ -1,6 +1,7 @@
 package com.createcivilization.capitol.common.data;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import java.awt.Color;
@@ -20,6 +21,7 @@ public class Team {
 	private final long teamPermissions;
 	private final String description;
 	private final long createdAt;
+	private final BlockPos capitolPos;
 
 	private Team(Builder builder) {
 		this.id = Objects.requireNonNull(builder.id, "Must Have Team ID");
@@ -31,6 +33,7 @@ public class Team {
 		this.currentClaims = builder.currentClaims;
 		this.description = builder.description;
 		this.createdAt = builder.createdAt;
+		this.capitolPos = builder.capitolPos;
 	}
 
 	public Team(ByteBuf buffer) {
@@ -43,9 +46,17 @@ public class Team {
 		this.description = ByteBufCodecs.STRING_UTF8.decode(buffer);
 		this.color = new Color(ByteBufCodecs.INT.decode(buffer), true);
 		this.createdAt = ByteBufCodecs.VAR_LONG.decode(buffer);
+		// Not sent over the wire; capitol position is resolved server-side via the database
+		this.capitolPos = null;
 	}
 
 	public static Team fromResultSet(ResultSet rs) throws SQLException {
+		int cx = rs.getInt("capitol_x");
+		int cy = rs.getInt("capitol_y");
+		int cz = rs.getInt("capitol_z");
+		String cdim = rs.getString("capitol_dimension");
+		BlockPos capitolPos = rs.wasNull() || cdim == null ? null : new BlockPos(cx, cy, cz);
+
 		return builder()
 			.id(UUID.fromString(rs.getString("id")))
 			.name(rs.getString("name"))
@@ -56,6 +67,7 @@ public class Team {
 			.description(rs.getString("description"))
 			.color(new Color(rs.getInt("color"), true))
 			.createdAt(rs.getLong("created_at"))
+			.capitolPos(capitolPos)
 			.build();
 	}
 
@@ -84,6 +96,7 @@ public class Team {
 	public long getTeamPermissions() {return teamPermissions; }
 	public String getDescription() {return description; }
 	public long getCreatedAt() { return createdAt; }
+	public BlockPos getCapitolPos() { return capitolPos; }
 
 	public static class Builder {
 		private UUID id;
@@ -95,6 +108,7 @@ public class Team {
 		private int maxClaims;
 		private long teamPermissions;
 		private long createdAt;
+		private BlockPos capitolPos;
 		private Builder() {}
 
 		public Builder id(UUID id) {
@@ -139,6 +153,11 @@ public class Team {
 
 		public Builder createdAt(long createdAt) {
 			this.createdAt = createdAt;
+			return this;
+		}
+
+		public Builder capitolPos(BlockPos capitolPos) {
+			this.capitolPos = capitolPos;
 			return this;
 		}
 

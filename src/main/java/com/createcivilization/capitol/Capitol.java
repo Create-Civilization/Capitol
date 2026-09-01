@@ -26,6 +26,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import net.neoforged.api.distmarker.Dist;
+import com.createcivilization.capitol.client.gui.screen.CapitolBookMenuClient;
 import com.createcivilization.capitol.client.renderer.BorderRenderer;
 import com.createcivilization.capitol.client.renderer.BorderWallRenderer;
 import net.neoforged.neoforge.common.NeoForge;
@@ -61,6 +62,7 @@ public class Capitol {
 		if (FMLEnvironment.dist == Dist.CLIENT) {
 			NeoForge.EVENT_BUS.register(BorderRenderer.class);
 			NeoForge.EVENT_BUS.register(BorderWallRenderer.class);
+			CapitolBookMenuClient.register();
 		}
 
 		CapitolCommands.init(NeoForge.EVENT_BUS);

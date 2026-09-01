@@ -2,9 +2,11 @@ package com.createcivilization.capitol.client.networking;
 
 import com.createcivilization.capitol.client.events.ChunkEvents;
 import com.createcivilization.capitol.client.journeymap.ClientJMClaims;
+import com.createcivilization.capitol.common.CapitolClientHooks;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -25,5 +27,9 @@ public class ClientPayloadHandler {
 		ClientJMClaims.instance().remove(chunkPos);
 		ClientJMClaims.instance().flush();
 		ChunkEvents.onClaimInfoUpdated(chunkPos);
+	}
+
+	public static void openCapitolScreenHandler(final S2COpenCapitolScreen payload, final IPayloadContext context) {
+		CapitolClientHooks.openCapitolBook.open(payload.team(), payload.capitolPos());
 	}
 }
