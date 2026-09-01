@@ -1,10 +1,14 @@
 package com.createcivilization.capitol.common.item;
 
 import com.createcivilization.capitol.Capitol;
+import com.createcivilization.capitol.common.block.CapitolBlocks;
+
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CapitolItems {
@@ -17,6 +21,13 @@ public class CapitolItems {
 		() -> new SubClaimWand(new Item.Properties()
     	.durability(20)
     	.stacksTo(1)
+		)
+	);
+
+	public static final DeferredHolder<Item, BlockItem> CAPITOL_BLOCK = ITEMS.register(
+		"capitol_block", 
+		() -> new BlockItem(CapitolBlocks.CAPITOL_BLOCK.get(), new Item.Properties()
+		.stacksTo(1)
 		)
 	);
 
