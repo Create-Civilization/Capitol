@@ -140,6 +140,7 @@ public class ServerPayloadHandler {
         return;
     }
 
+    // getRGB() returns ARGB; mask off the alpha channel so TextColor.fromRgb gets a plain 24-bit RGB value
     int rgb = team.getColor().getRGB() & 0xFFFFFF;
 
     Component message = Component.empty()
