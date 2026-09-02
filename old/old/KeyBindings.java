@@ -17,56 +17,24 @@ public class KeyBindings {
 	private KeyBindings() {}
 
 	private static final String CATEGORY = "key.categories." + Capitol.MOD_ID;
+	private static final InputConstants.Key UNBOUND = InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1);
 
-	public static final KeyMapping openMenu = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".menu",
-		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(InputConstants.KEY_UNKNOWN,-1),
-		CATEGORY
-	);
+	private static KeyMapping binding(String translationKey) {
+		return new KeyMapping(
+			translationKey,
+			KeyConflictContext.IN_GAME,
+			UNBOUND,
+			CATEGORY
+		);
+	}
 
-	public static final KeyMapping claimChunk = new KeyMapping(
-        "key.capitol.claim_chunk",
-        KeyConflictContext.IN_GAME,
-        InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
-        CATEGORY
-    );
-
-    public static final KeyMapping unclaimChunk = new KeyMapping(
-        "key.capitol.unclaim_chunk",
-        KeyConflictContext.IN_GAME,
-        InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
-        CATEGORY
-    );
-
-    public static final KeyMapping toggleClaimBorders = new KeyMapping(
-        "key.capitol.toggle_claim_borders",
-        KeyConflictContext.IN_GAME,
-        InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
-        CATEGORY
-    );
-
-
-	public static final KeyMapping viewChunks = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".view_chunks",
-		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
-		CATEGORY
-	);
-
-	public static final KeyMapping toggleTeamChat = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".toggle_team_chat",
-		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
-		CATEGORY
-	);
-
-	public static final KeyMapping claim_chunk = new KeyMapping(
-		"key." + Capitol.MOD_ID + ".claim_chunk",
-		KeyConflictContext.IN_GAME,
-		InputConstants.getKey(InputConstants.KEY_UNKNOWN, -1),
-		CATEGORY
-	);
+	public static final KeyMapping openMenu = binding("key." + Capitol.MOD_ID + ".menu");
+	public static final KeyMapping claimChunk = binding("key.capitol.claim_chunk");
+	public static final KeyMapping unclaimChunk = binding("key.capitol.unclaim_chunk");
+	public static final KeyMapping toggleClaimBorders = binding("key.capitol.toggle_claim_borders");
+	public static final KeyMapping viewChunks = binding("key." + Capitol.MOD_ID + ".view_chunks");
+	public static final KeyMapping toggleTeamChat = binding("key." + Capitol.MOD_ID + ".toggle_team_chat");
+	public static final KeyMapping claim_chunk = binding("key." + Capitol.MOD_ID + ".claim_chunk");
 
 	@SubscribeEvent
 	public static void register(RegisterKeyMappingsEvent event) {

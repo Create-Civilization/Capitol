@@ -13,35 +13,21 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 public class CapitolKeyBindings {
 
     private static final String CATEGORY = "key.categories.capitol";
+    private static final InputConstants.Key UNBOUND = InputConstants.UNKNOWN;
 
-    public static final KeyMapping toggleTeamChat = new KeyMapping(
-        "key.capitol.toggle_team_chat",
-        KeyConflictContext.IN_GAME,
-        InputConstants.UNKNOWN,
-        CATEGORY
-    );
+    private static KeyMapping binding(String translationKey) {
+        return new KeyMapping(
+            translationKey,
+            KeyConflictContext.IN_GAME,
+            UNBOUND,
+            CATEGORY
+        );
+    }
 
-        public static final KeyMapping claimChunk = new KeyMapping(
-        "key.capitol.claim_chunk",
-        KeyConflictContext.IN_GAME,
-        InputConstants.UNKNOWN,
-        CATEGORY
-    );
-
-    public static final KeyMapping unclaimChunk = new KeyMapping(
-        "key.capitol.unclaim_chunk",
-        KeyConflictContext.IN_GAME,
-        InputConstants.UNKNOWN,
-        CATEGORY
-    );
-
-    public static final KeyMapping toggleClaimBorders = new KeyMapping(
-        "key.capitol.toggle_claim_borders",
-        KeyConflictContext.IN_GAME,
-        InputConstants.UNKNOWN,
-        CATEGORY
-    );
-
+    public static final KeyMapping toggleTeamChat = binding("key.capitol.toggle_team_chat");
+    public static final KeyMapping claimChunk = binding("key.capitol.claim_chunk");
+    public static final KeyMapping unclaimChunk = binding("key.capitol.unclaim_chunk");
+    public static final KeyMapping toggleClaimBorders = binding("key.capitol.toggle_claim_borders");
 
     @SubscribeEvent
     public static void register(RegisterKeyMappingsEvent event) {
@@ -49,6 +35,5 @@ public class CapitolKeyBindings {
         event.register(claimChunk);
         event.register(unclaimChunk);
         event.register(toggleClaimBorders);
-
     }
 }
