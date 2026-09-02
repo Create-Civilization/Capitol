@@ -3,6 +3,7 @@ package com.createcivilization.capitol.server.networking;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.SubClaim;
+import com.createcivilization.capitol.common.data.SubClaimProtection;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
@@ -163,7 +164,10 @@ public class ServerPayloadHandler {
 				packet.name(),
 				packet.dimension(),
 				packet.minX(), packet.minY(), packet.minZ(),
-				packet.maxX(), packet.maxY(), packet.maxZ()
+				packet.maxX(), packet.maxY(), packet.maxZ(),
+				player.getUUID(),
+				Permission.of(Permission.values()),
+				SubClaimProtection.configDefaults()
 			);
 
 			database.addSubClaim(subClaim);

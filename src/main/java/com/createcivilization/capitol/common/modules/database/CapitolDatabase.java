@@ -125,7 +125,15 @@ public class CapitolDatabase extends Database {
 			ps.setString(1, team.getId().toString());
 			ps.setString(2, roleName);
 			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) return TeamRole.fromResultSet(rs);
+			if (rs.next()) {
+				TeamRole role = TeamRole.fromResultSet(rs);
+				// owner role always keeps the full current permission set; fix a stale snapshot
+				if (role.isOwner() && role.permissions() != TeamRole.ownerPermissions()) {
+						updateRolePermissions(team, roleName, TeamRole.ownerPermissions());
+						return new TeamRole(role.id(), role.teamId(), role.name(), TeamRole.ownerPermissions());
+					}
+					return role;
+				}
 				return null;
 			}
 		} catch (SQLException e) {
@@ -581,18 +589,23 @@ public class CapitolDatabase extends Database {
 			if (cached != null) return cached;
 		}
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT team_roles.permissions FROM team_members " +
-				"JOIN team_roles ON team_roles.id = team_members.role_id " +
-				"WHERE team_members.team_id = ? AND team_members.player_uuid = ?")) {
+				"SELECT team_roles.name, team_roles.permissions FROM team_members " +
+					"JOIN team_roles ON team_roles.id = team_members.role_id " +
+					"WHERE team_members.team_id = ? AND team_members.player_uuid = ?")) {
 			ps.setString(1, team.getId().toString());
 			ps.setString(2, playerUUID.toString());
 			try (ResultSet rs = ps.executeQuery()) {
 				long perms;
 				if (rs.next()) {
-					perms = rs.getLong("permissions");
+					if (TeamRole.OWNER_ROLE_NAME.equals(rs.getString("name"))) {
+						// owner always gets the full current permission set, so new perms apply to old teams too
+						perms = TeamRole.ownerPermissions();
+					} else {
+						perms = rs.getLong("permissions");
+					}
 				} else {
-					TeamRole role = getRoleByName(team, "default");
-					perms = role.permissions();
+					TeamRole role = getRoleByName(team, TeamRole.DEFAULT_ROLE_NAME);
+					perms = role != null ? role.permissions() : 0;
 				}
 				playerPermCache.computeIfAbsent(team.getId(), k -> new HashMap<>())
 					.put(playerUUID, perms);
@@ -1003,7 +1016,7 @@ public class CapitolDatabase extends Database {
 	//Inserts a new sub-claim into the {@code sub_claims} table.
 	public void addSubClaim(SubClaim subClaim) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"INSERT INTO sub_claims (id, team_id, name, dimension, min_x, min_y, min_z, max_x, max_y, max_z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+			"INSERT INTO sub_claims (id, team_id, name, dimension, min_x, min_y, min_z, max_x, max_y, max_z, owner_uuid, permissions, protections) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			ps.setString(1, subClaim.id().toString());
 			ps.setString(2, subClaim.teamId().toString());
 			ps.setString(3, subClaim.name());
@@ -1014,6 +1027,9 @@ public class CapitolDatabase extends Database {
 			ps.setInt(8, subClaim.maxX());
 			ps.setInt(9, subClaim.maxY());
 			ps.setInt(10, subClaim.maxZ());
+			ps.setString(11, subClaim.ownerUuid() != null ? subClaim.ownerUuid().toString() : "");
+			ps.setLong(12, subClaim.permissions());
+			ps.setLong(13, subClaim.protections());
 			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while inserting sub-claim into database.", e);
@@ -1085,5 +1101,116 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error while getting sub-claim at position from database.", e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	// one sub-claim by id, or null
+	public SubClaim getSubClaim(UUID id) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM sub_claims WHERE id = ?")) {
+			ps.setString(1, id.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return SubClaim.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting sub-claim from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// all sub-claims owned by a player
+	public List<SubClaim> getSubClaimsOwnedBy(UUID playerUuid) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM sub_claims WHERE owner_uuid = ?")) {
+			ps.setString(1, playerUuid.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				List<SubClaim> subClaims = new ArrayList<>();
+				while (rs.next()) subClaims.add(SubClaim.fromResultSet(rs));
+				return subClaims;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting sub-claims owned by player from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// overwrite the sub-claim's member permission bitfield
+	public void setSubClaimPermissions(UUID subClaimId, long permissions) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE sub_claims SET permissions = ? WHERE id = ?")) {
+			ps.setLong(1, permissions);
+			ps.setString(2, subClaimId.toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while setting sub-claim permissions in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// flip a permission bit; returns the new state
+	public boolean toggleSubClaimPermission(UUID subClaimId, Permission permission) {
+		boolean newState;
+		try (PreparedStatement select = getConnection().prepareStatement(
+			"SELECT permissions FROM sub_claims WHERE id = ?")) {
+			select.setString(1, subClaimId.toString());
+			try (ResultSet rs = select.executeQuery()) {
+				if (!rs.next()) return false;
+				long bits = rs.getLong("permissions");
+				bits = permission.toggle(bits);
+				newState = permission.hasPermission(bits);
+
+				try (PreparedStatement update = getConnection().prepareStatement(
+					"UPDATE sub_claims SET permissions = ? WHERE id = ?")) {
+					update.setLong(1, bits);
+					update.setString(2, subClaimId.toString());
+					update.execute();
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while toggling sub-claim permission", e);
+			throw new RuntimeException(e);
+		}
+		return newState;
+	}
+
+	// does this player own the sub-claim?
+	public boolean isSubClaimOwner(UUID subClaimId, UUID playerUuid) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT 1 FROM sub_claims WHERE id = ? AND owner_uuid = ?")) {
+			ps.setString(1, subClaimId.toString());
+			ps.setString(2, playerUuid.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while checking sub-claim ownership in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// flip a protection bit; returns the new state
+	public boolean toggleSubClaimProtection(UUID subClaimId, SubClaimProtection protection) {
+		boolean newState;
+		try (PreparedStatement select = getConnection().prepareStatement(
+			"SELECT protections FROM sub_claims WHERE id = ?")) {
+			select.setString(1, subClaimId.toString());
+			try (ResultSet rs = select.executeQuery()) {
+				if (!rs.next()) return false;
+				long bits = rs.getLong("protections");
+				bits = protection.toggle(bits);
+				newState = protection.hasProtection(bits);
+
+				try (PreparedStatement update = getConnection().prepareStatement(
+					"UPDATE sub_claims SET protections = ? WHERE id = ?")) {
+					update.setLong(1, bits);
+					update.setString(2, subClaimId.toString());
+					update.execute();
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while toggling sub-claim protection", e);
+			throw new RuntimeException(e);
+		}
+		return newState;
 	}
 }
