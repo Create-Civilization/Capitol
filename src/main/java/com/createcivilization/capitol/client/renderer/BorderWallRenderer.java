@@ -19,25 +19,22 @@ import java.util.Map;
 
 public class BorderWallRenderer {
 
-	 public static float REVEAL_RADIUS = 8.0f;
-	 public static float INNER_RADIUS = 1.5f;
-	 public static float MAX_ALPHA = 0.35f;
-	 private static final float Z_FIGHT_OFFSET = -0.002f;
-	 private static int lastKnownChangeCount = -1;
-	 private static List<Map.Entry<ChunkPos, Team>> cachedEntries = new ArrayList<>();
+	public static boolean showBorders = true;
+	public static float REVEAL_RADIUS = 8.0f;
+	public static float INNER_RADIUS = 1.5f;
+	public static float MAX_ALPHA = 0.35f;
+	private static final float Z_FIGHT_OFFSET = -0.002f;
 
-	 @SubscribeEvent
-	 public static void onRenderLevel(RenderLevelStageEvent event) {
-	 	 if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return;
-	 	 Minecraft mc = Minecraft.getInstance();
-	 	 if (mc.level == null) return;
-	 	 if (ClientClaimCache.getChangeCount() != lastKnownChangeCount) {
-	 	 	 cachedEntries = new ArrayList<>(ClientClaimCache.get().entrySet());
-	 	 	 lastKnownChangeCount = ClientClaimCache.getChangeCount();
-	 	 }
-	 	 if (cachedEntries.isEmpty()) return;
+	@SubscribeEvent
+	public static void onRenderLevel(RenderLevelStageEvent event) {
+		if (!showBorders) return;
+		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return;
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.level == null) return;
+		var claims = ClientClaimCache.get();
+		if (claims.isEmpty()) return;
 
-	 	 Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();
+		Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();
 		PoseStack poseStack = event.getPoseStack();
 		poseStack.pushPose();
 		poseStack.translate(-camera.x, -camera.y, -camera.z);

@@ -3,15 +3,20 @@ package com.createcivilization.capitol.server.networking;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
+import com.createcivilization.capitol.common.data.TeamMember;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.C2SBulkChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkAction;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -131,5 +136,39 @@ public class ServerPayloadHandler {
 		}
 
 		player.displayClientMessage(Component.literal("Unclaimed " + unclaimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
+	}
+
+	public static void handleTeamChat(final C2STeamChat request, final IPayloadContext context) {
+    CapitolDatabase database = DatabaseManager.database;
+    Player player = context.player();
+
+    Team team = database.getPlayerTeam(player);
+    if (team == null) {
+        player.displayClientMessage(
+            Component.literal("You are not in a team").withStyle(ChatFormatting.RED),
+            false
+        );
+        return;
+    }
+
+    // getRGB() returns ARGB; mask off the alpha channel so TextColor.fromRgb gets a plain 24-bit RGB value
+    int rgb = team.getColor().getRGB() & 0xFFFFFF;
+
+    Component message = Component.empty()
+        .append(Component.literal("[" + team.getName() + "] ")
+            .withStyle(s -> s.withColor(TextColor.fromRgb(rgb))))
+        .append(Component.literal("<" + player.getName().getString() + "> ")
+            .withStyle(ChatFormatting.WHITE))
+        .append(Component.literal(request.message())
+            .withStyle(ChatFormatting.WHITE));
+
+    for (TeamMember member : database.getTeamMembers(team)) {
+        ServerPlayer online = context.player().getServer()
+            .getPlayerList()
+            .getPlayer(member.playerUUID());
+        if (online != null) {
+            online.sendSystemMessage(message);
+        }
+    }
 	}
 }
