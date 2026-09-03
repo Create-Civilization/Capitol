@@ -6,6 +6,7 @@ import com.createcivilization.capitol.common.data.SubClaimProtection;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimRemove;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -14,6 +15,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 import java.util.UUID;
@@ -146,6 +148,7 @@ public class SubclaimCommand {
 		}
 
 		database.removeSubClaim(subClaim.id());
+		PacketDistributor.sendToAllPlayers(new S2CSubClaimRemove(subClaim.id()));
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.subclaim.deleted",
 			Component.literal(subClaim.name()).withStyle(ChatFormatting.WHITE))

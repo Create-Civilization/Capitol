@@ -7,25 +7,28 @@ import com.createcivilization.capitol.common.data.SubClaimProtection;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamMember;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
-import com.createcivilization.capitol.common.modules.database.CapitolDatabase;	import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
-	import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
-	import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
-	import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
-	import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
-	import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
-	import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
-	import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
-	import com.createcivilization.capitol.common.item.SubClaimWand;
-	import net.minecraft.server.level.ServerPlayer;
-	import net.minecraft.server.level.ServerLevel;
-	import net.minecraft.world.item.ItemStack;
-	import net.minecraft.ChatFormatting;
-	import net.minecraft.network.chat.Component;
-	import net.minecraft.network.chat.TextColor;
-	import net.minecraft.world.entity.player.Player;
-	import net.minecraft.world.level.ChunkPos;
-	import net.neoforged.neoforge.network.PacketDistributor;
-	import net.neoforged.neoforge.network.handling.IPayloadContext;
+import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
+import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
+import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
+import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
+import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
+import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
+import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
+import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.item.SubClaimWand;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimData;
+import net.minecraft.core.BlockPos;
 
 import java.util.UUID;
 
@@ -172,6 +175,17 @@ public class ServerPayloadHandler {
 			);
 
 			database.addSubClaim(subClaim);
+
+			// broadcast to players near the sub-claim
+			int centreX = (subClaim.minX() + subClaim.maxX()) / 2;
+			int centreZ = (subClaim.minZ() + subClaim.maxZ()) / 2;
+			ChunkPos centreChunk = new ChunkPos(new BlockPos(centreX, 0, centreZ));
+			S2CSubClaimData subClaimPacket = new S2CSubClaimData(
+				subClaim.id(), subClaim.dimension(),
+				subClaim.minX(), subClaim.minY(), subClaim.minZ(),
+				subClaim.maxX(), subClaim.maxY(), subClaim.maxZ()
+			);
+			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), centreChunk, subClaimPacket);
 
 			player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.created", packet.name()), false);
 		});

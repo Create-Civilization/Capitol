@@ -12,6 +12,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -85,6 +86,9 @@ public class SubClaimNamingScreen extends Screen {
 		}
 
 		Capitol.LOGGER.info("Sub-claim '{}' confirmed: {} -> {}", name, this.firstPos, this.secondPos);
+
+		// read the Ctrl+scroll side adjustments before clearSelection wipes them
+		CompoundTag tag = SubClaimWand.readTag(this.wandStack);
 		SubClaimWand.clearSelection(this.wandStack);
 
 		Minecraft mc = Minecraft.getInstance();
@@ -97,6 +101,31 @@ public class SubClaimNamingScreen extends Screen {
 		int maxX = Math.max(firstPos.getX(), secondPos.getX());
 		int maxY = Math.max(firstPos.getY(), secondPos.getY());
 		int maxZ = Math.max(firstPos.getZ(), secondPos.getZ());
+
+		// apply the scroll offsets, same math as the renderer
+		minX -= tag.getInt(SubClaimWand.OFF_NEG_X);
+		maxX += tag.getInt(SubClaimWand.OFF_POS_X);
+		minY -= tag.getInt(SubClaimWand.OFF_NEG_Y);
+		maxY += tag.getInt(SubClaimWand.OFF_POS_Y);
+		minZ -= tag.getInt(SubClaimWand.OFF_NEG_Z);
+		maxZ += tag.getInt(SubClaimWand.OFF_POS_Z);
+
+		// keep every side at least 1 block, centered like the renderer
+		if (maxX <= minX) {
+			int centre = (minX + maxX) / 2;
+			minX = centre;
+			maxX = centre + 1;
+		}
+		if (maxY <= minY) {
+			int centre = (minY + maxY) / 2;
+			minY = centre;
+			maxY = centre + 1;
+		}
+		if (maxZ <= minZ) {
+			int centre = (minZ + maxZ) / 2;
+			minZ = centre;
+			maxZ = centre + 1;
+		}
 
 		PacketDistributor.sendToServer(new C2SCreateSubClaim(
 			name, dimension,

@@ -1134,6 +1134,21 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	// all sub-claims on the server
+	public List<SubClaim> getAllSubClaims() {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM sub_claims")) {
+			try (ResultSet rs = ps.executeQuery()) {
+				List<SubClaim> result = new ArrayList<>();
+				while (rs.next()) result.add(SubClaim.fromResultSet(rs));
+				return result;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting all sub claims", e);
+			throw new RuntimeException(e);
+		}
+	}
+
 	// overwrite the sub-claim's member permission bitfield
 	public void setSubClaimPermissions(UUID subClaimId, long permissions) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
