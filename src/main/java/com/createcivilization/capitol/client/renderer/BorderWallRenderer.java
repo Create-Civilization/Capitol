@@ -14,6 +14,8 @@ import org.joml.Matrix4f;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class BorderWallRenderer {
 
@@ -50,7 +52,7 @@ public class BorderWallRenderer {
 		float playerY = (float) camera.y;
 		float playerZ = (float) camera.z;
 
-		for (var entry : new ArrayList<>(claims.entrySet())) {
+		for (var entry : cachedEntries) {
 			ChunkPos chunkPos = entry.getKey();
 			Team team = entry.getValue();
 			Color color = team.getColor();

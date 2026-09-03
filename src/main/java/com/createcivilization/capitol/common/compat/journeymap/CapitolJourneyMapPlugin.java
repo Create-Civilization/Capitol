@@ -6,8 +6,7 @@ import com.createcivilization.capitol.client.journeymap.ClientJMClaims;
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
 import com.createcivilization.capitol.common.compat.journeymap.util.PolygonHelper;
 import com.createcivilization.capitol.common.config.CapitolConfig;
-import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
-import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
+import com.createcivilization.capitol.common.networking.packets.C2SChunkAction;
 import journeymap.api.v2.client.JourneyMapPlugin;
 import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.IClientPlugin;
@@ -220,13 +219,13 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.claim_chunk").getString(), (pos) -> {
 			long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
-			PacketDistributor.sendToServer(new C2SClaimChunk(packed));
+			PacketDistributor.sendToServer(new C2SChunkAction(packed, true));
 			clearSelection();
 		});
 
 		menu.addMenuItem(Component.translatable("gui.journeymap.capitol.unclaim_chunk").getString(), (pos) -> {
 			long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
-			PacketDistributor.sendToServer(new C2SUnclaimChunk(packed));
+			PacketDistributor.sendToServer(new C2SChunkAction(packed, false));
 			clearSelection();
 		});
 	}
@@ -374,7 +373,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private void claimSelected() {
 		if (selected.isEmpty()) return;
 		long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
-		PacketDistributor.sendToServer(new C2SClaimChunk(packed));
+		PacketDistributor.sendToServer(new C2SChunkAction(packed, true));
 		clearSelection();
 		updateClaimModeUiState();
 	}
@@ -383,7 +382,7 @@ public class CapitolJourneyMapPlugin implements IClientPlugin {
 	private void unclaimSelected() {
 		if (selected.isEmpty()) return;
 		long[] packed = selected.stream().mapToLong(ChunkPos::toLong).toArray();
-		PacketDistributor.sendToServer(new C2SUnclaimChunk(packed));
+		PacketDistributor.sendToServer(new C2SChunkAction(packed, false));
 		clearSelection();
 		updateClaimModeUiState();
 	}

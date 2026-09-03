@@ -4,7 +4,7 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.client.TeamChatState;
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
 import com.createcivilization.capitol.common.data.Team;
-import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
+import com.createcivilization.capitol.common.networking.packets.C2SBulkChunkRequest;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -18,12 +18,15 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.Set;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @EventBusSubscriber(modid = Capitol.MOD_ID, value = Dist.CLIENT)
 public class ChunkEvents {
 	private static final int RGB_24_BIT_MASK = 0xFFFFFF;
+	private static final Set<Long> pendingChunkRequests = ConcurrentHashMap.newKeySet();
 	private static ChunkPos lastPlayerChunk = null;
 	private static ChunkPos pendingChunkAnnouncement = null;
 	private static boolean hasLastTerritory = false;
@@ -37,12 +40,13 @@ public class ChunkEvents {
 		if (!event.getLevel().isClientSide()) return;
 		if(ClientClaimCache.hasClaim(event.getChunk().getPos())) return;
 		ChunkPos chunkPos = event.getChunk().getPos();
-		C2SChunkRequest packet = new C2SChunkRequest(chunkPos.toLong());
-		PacketDistributor.sendToServer(packet);
+		pendingChunkRequests.add(chunkPos.toLong());
 	}
 
 	@SubscribeEvent
 	private static void onClientTick(ClientTickEvent.Post event) {
+		flushPendingChunkRequests();
+
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
 
@@ -58,7 +62,15 @@ public class ChunkEvents {
 		}
 
 		pendingChunkAnnouncement = current;
-		PacketDistributor.sendToServer(new C2SChunkRequest(current.toLong()));
+		PacketDistributor.sendToServer(new C2SBulkChunkRequest(new long[]{current.toLong()}));
+	}
+
+	private static void flushPendingChunkRequests() {
+		if (pendingChunkRequests.isEmpty()) return;
+		long[] packedChunkPositions = pendingChunkRequests.stream().mapToLong(Long::longValue).toArray();
+		pendingChunkRequests.clear();
+		if (packedChunkPositions.length == 0) return;
+		PacketDistributor.sendToServer(new C2SBulkChunkRequest(packedChunkPositions));
 	}
 
 	public static void onClaimInfoUpdated(ChunkPos chunkPos) {
@@ -120,6 +132,7 @@ public class ChunkEvents {
 	@SubscribeEvent
 	private static void onClientDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
 		ClientClaimCache.clearClaims();
+		pendingChunkRequests.clear();
 		lastPlayerChunk = null;
 		pendingChunkAnnouncement = null;
 		hasLastTerritory = false;

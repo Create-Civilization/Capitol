@@ -18,6 +18,8 @@ import org.joml.Matrix4f;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class BorderRenderer {
 
@@ -49,7 +51,7 @@ public class BorderRenderer {
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
 		BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		for (var entry : new ArrayList<>(claims.entrySet())) {
+		for (var entry : cachedEntries) {
 			ChunkPos chunkPos = entry.getKey();
 			if (!mc.level.getChunkSource().hasChunk(chunkPos.x, chunkPos.z)) continue;
 			Team team = entry.getValue();
