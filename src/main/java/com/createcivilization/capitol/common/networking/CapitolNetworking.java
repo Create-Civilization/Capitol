@@ -7,7 +7,12 @@ import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimData;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimRemove;
+import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
 import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
+
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -41,6 +46,22 @@ public class CapitolNetworking {
 			)
 		);
 
+		registrar.playToClient(
+			S2CSubClaimData.TYPE,
+			S2CSubClaimData.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ClientPayloadHandler::subClaimDataHandler
+			)
+		);
+
+		registrar.playToClient(
+			S2CSubClaimRemove.TYPE,
+			S2CSubClaimRemove.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ClientPayloadHandler::subClaimRemoveHandler
+			)
+		);
+
 		registrar.playToServer(
 			C2SChunkRequest.TYPE,
 			C2SChunkRequest.STREAM_CODEC,
@@ -62,6 +83,22 @@ public class CapitolNetworking {
 			C2SUnclaimChunk.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ServerPayloadHandler::handleUnclaimChunk
+			)
+		);
+
+    registrar.playToServer(
+			C2SDamageWand.TYPE, 
+			C2SDamageWand.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleDamageWand
+    		)
+		);
+
+		registrar.playToServer(
+			C2SCreateSubClaim.TYPE,
+			C2SCreateSubClaim.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleCreateSubClaim
 			)
 		);
 

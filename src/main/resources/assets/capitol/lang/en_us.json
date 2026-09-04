@@ -21,6 +21,14 @@
 
 	"hud.capitol.territory.wilderness": "Wilderness",
 
+	"item.capitol.sub_claim_wand": "Sub-Claim Wand",
+	"itemGroup.capitol": "Capitol",
+
+	"screen.capitol.sub_claim_naming.title":       "Name Your Sub-Claim",
+	"screen.capitol.sub_claim_naming.placeholder": "Enter a name...",
+	"screen.capitol.sub_claim_naming.cancel":      "Cancel",
+	"screen.capitol.sub_claim_naming.confirm":     "Confirm",
+
 	"commands.capitol.not_in_team_error": "You are not in any team",
 	"commands.capitol.no_player_found": "There is no player called %s",
 	"commands.capitol.player_not_in_team": "%s is not a member of %s",
@@ -100,6 +108,20 @@
 	"commands.capitol.claim.success": "Chunk claimed!",
 	"commands.capitol.claim.sub_level.already_claimed": "This sub-level is already claimed by %s",
 	"commands.capitol.claim.sub_level.success": "Sub-level claimed!",
+	"commands.capitol.sub_claim.created": "Sub-claim '%s' created successfully.",
+	"commands.capitol.sub_claim.name_exists": "You already have a sub-claim named '%s'.",
+	"commands.capitol.sub_claim.name_too_long": "Sub-claim names must be %s characters or fewer.",
+	"commands.capitol.sub_claim.outside_claim": "Sub-claims must be entirely inside your team's claimed chunks.",
+	"commands.capitol.sub_claim.overlaps": "Sub-claim overlaps an existing sub-claim.",
+	"commands.capitol.sub_claim.removed_on_unclaim": "Removed %s sub-claim(s) that extended into the unclaimed chunk.",
+
+	"commands.capitol.subclaim.list.empty": "You have no subclaims.",
+	"commands.capitol.subclaim.list.entry": "- %s (ID: %s)",
+	"commands.capitol.subclaim.not_found": "No subclaim found with that ID.",
+	"commands.capitol.subclaim.not_owner": "You do not own that subclaim.",
+	"commands.capitol.subclaim.permission.toggled": "Permission %s for subclaim '%s': %s → %s",
+	"commands.capitol.subclaim.protection.toggled": "Protection %s for subclaim '%s' is now %s",
+	"commands.capitol.subclaim.deleted": "Subclaim '%s' deleted.",
 	"commands.capitol.claim.info.unclaimed": "This chunk is not claimed",
 	"commands.capitol.claim.info.owner": "Claimed by %s",
 	"commands.capitol.claim.sub_level.info.unclaimed": "This sub-level is not claimed",

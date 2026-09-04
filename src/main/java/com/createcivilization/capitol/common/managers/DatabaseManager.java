@@ -42,6 +42,10 @@ public class DatabaseManager {
 			Capitol.LOGGER.error("No SQLite driver found.", e);
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Failed to initialize capitol database", e);
+			// don't leave a broken connection open
+			try {
+				if (connection != null) connection.close();
+			} catch (SQLException ignored) {}
 		}
 
 	}
@@ -102,6 +106,24 @@ public class DatabaseManager {
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS sub_claims (" +
+					"id TEXT PRIMARY KEY NOT NULL," +
+					"team_id TEXT NOT NULL," +
+					"name TEXT NOT NULL," +
+					"dimension TEXT NOT NULL," +
+					"min_x INTEGER NOT NULL," +
+					"min_y INTEGER NOT NULL," +
+					"min_z INTEGER NOT NULL," +
+					"max_x INTEGER NOT NULL," +
+					"max_y INTEGER NOT NULL," +
+					"max_z INTEGER NOT NULL," +
+					"owner_uuid TEXT NOT NULL," +
+					"permissions INTEGER NOT NULL DEFAULT 0," +
+					"protections INTEGER NOT NULL DEFAULT 0," +
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+			);
+
 			if(SableCompat.LOADED){
 				stmt.execute(
 					"CREATE TABLE IF NOT EXISTS sub_levels (" +
@@ -120,7 +142,73 @@ public class DatabaseManager {
 	}
 
 	//Will be used for DB migrations ect
-	private static void runMigrations(int current) throws SQLException {}
+	private static void runMigrations(int current) throws SQLException {
+		if (current < 1) {
+			try (Statement stmt = connection.createStatement()) {
+				stmt.execute(
+					"CREATE TABLE IF NOT EXISTS sub_claims (" +
+						"id TEXT PRIMARY KEY NOT NULL," +
+						"team_id TEXT NOT NULL," +
+						"name TEXT NOT NULL," +
+						"dimension TEXT NOT NULL," +
+						"min_x INTEGER NOT NULL," +
+						"min_y INTEGER NOT NULL," +
+						"min_z INTEGER NOT NULL," +
+						"max_x INTEGER NOT NULL," +
+						"max_y INTEGER NOT NULL," +
+						"max_z INTEGER NOT NULL," +
+						"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+				);
+			}
+			setSchemaVersion(1);
+		}
+		if (current < 2) {
+			try (Statement stmt = connection.createStatement()) {
+				// old saves can be at v1 but never got the table
+				stmt.execute(
+					"CREATE TABLE IF NOT EXISTS sub_claims (" +
+						"id TEXT PRIMARY KEY NOT NULL," +
+						"team_id TEXT NOT NULL," +
+						"name TEXT NOT NULL," +
+						"dimension TEXT NOT NULL," +
+						"min_x INTEGER NOT NULL," +
+						"min_y INTEGER NOT NULL," +
+						"min_z INTEGER NOT NULL," +
+						"max_x INTEGER NOT NULL," +
+						"max_y INTEGER NOT NULL," +
+						"max_z INTEGER NOT NULL," +
+						"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+				);
+				// old sub-claims get an empty owner and default bitfields
+				stmt.execute("ALTER TABLE sub_claims ADD COLUMN owner_uuid TEXT NOT NULL DEFAULT ''");
+				stmt.execute("ALTER TABLE sub_claims ADD COLUMN permissions INTEGER NOT NULL DEFAULT 0");
+			}
+			setSchemaVersion(2);
+		}
+		if (current < 3) {
+			try (Statement stmt = connection.createStatement()) {
+				// same guard, in case the table is missing at v2
+				stmt.execute(
+					"CREATE TABLE IF NOT EXISTS sub_claims (" +
+						"id TEXT PRIMARY KEY NOT NULL," +
+						"team_id TEXT NOT NULL," +
+						"name TEXT NOT NULL," +
+						"dimension TEXT NOT NULL," +
+						"min_x INTEGER NOT NULL," +
+						"min_y INTEGER NOT NULL," +
+						"min_z INTEGER NOT NULL," +
+						"max_x INTEGER NOT NULL," +
+						"max_y INTEGER NOT NULL," +
+						"max_z INTEGER NOT NULL," +
+						"owner_uuid TEXT NOT NULL," +
+						"permissions INTEGER NOT NULL DEFAULT 0," +
+						"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+				);
+				stmt.execute("ALTER TABLE sub_claims ADD COLUMN protections INTEGER NOT NULL DEFAULT 0");
+			}
+			setSchemaVersion(3);
+		}
+	}
 
 	private static int getSchemaVersion() throws SQLException {
 		try (ResultSet rs = connection.createStatement().executeQuery("PRAGMA user_version")) {

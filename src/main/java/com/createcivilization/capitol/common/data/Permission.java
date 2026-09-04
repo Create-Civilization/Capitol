@@ -48,7 +48,10 @@ public enum Permission {
 
 	// --- Portal / Teleportation ---
 	USE_NETHER_PORTALS(1L << 25),
-	CHORUS_FRUIT_TELEPORT(1L << 26);
+	CHORUS_FRUIT_TELEPORT(1L << 26),
+
+	// --- Sub-Claims ---
+	CLAIM_SUB_CLAIMS(1L << 27);
 
 	private final long flag;
 

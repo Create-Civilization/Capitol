@@ -3,6 +3,7 @@ package com.createcivilization.capitol.client.events;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.client.TeamChatState;
 import com.createcivilization.capitol.client.networking.ClientClaimCache;
+import com.createcivilization.capitol.client.networking.ClientSubClaimCache;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import net.minecraft.ChatFormatting;
@@ -120,6 +121,7 @@ public class ChunkEvents {
 	@SubscribeEvent
 	private static void onClientDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
 		ClientClaimCache.clearClaims();
+		ClientSubClaimCache.clear();
 		lastPlayerChunk = null;
 		pendingChunkAnnouncement = null;
 		hasLastTerritory = false;

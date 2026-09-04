@@ -2,6 +2,8 @@ package com.createcivilization.capitol.server.networking;
 
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Permission;
+import com.createcivilization.capitol.common.data.SubClaim;
+import com.createcivilization.capitol.common.data.SubClaimProtection;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamMember;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
@@ -9,9 +11,14 @@ import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.C2SClaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
+import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
+import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimData;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimRemove;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
-import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.item.SubClaimWand;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +29,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimData;
+import net.minecraft.core.BlockPos;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ServerPayloadHandler {
 
@@ -109,6 +123,8 @@ public class ServerPayloadHandler {
 		}
 
 		int unclaimed = 0;
+		// de-duplicated across chunks: one sub-claim can touch several unclaimed chunks
+		Map<UUID, SubClaim> removedSubClaims = new LinkedHashMap<>();
 		long[] packed = request.packedChunkPositions();
 		for (long packedPos : packed) {
 			ChunkPos chunkPos = new ChunkPos(packedPos);
@@ -118,13 +134,131 @@ public class ServerPayloadHandler {
 			if (existingOwner == null) continue;
 			if (!existingOwner.getId().equals(team.getId())) continue;
 
-			database.unclaimChunk(team, chunkPos, player.level());
+			for (SubClaim subClaim : database.unclaimChunk(team, chunkPos, player.level())) {
+				removedSubClaims.putIfAbsent(subClaim.id(), subClaim);
+			}
 			S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
 			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), chunkPos, packet);
 			unclaimed++;
 		}
 
 		player.displayClientMessage(Component.literal("Unclaimed " + unclaimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
+
+		for (SubClaim subClaim : removedSubClaims.values()) {
+			PacketDistributor.sendToAllPlayers(new S2CSubClaimRemove(subClaim.id()));
+		}
+		if (!removedSubClaims.isEmpty()) {
+			player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.removed_on_unclaim", removedSubClaims.size()).withStyle(ChatFormatting.RED), false);
+		}
+	}
+
+	public static void handleDamageWand(C2SDamageWand packet, IPayloadContext context) {
+    context.enqueueWork(() -> {
+        ServerPlayer player = (ServerPlayer) context.player();
+        ItemStack held = player.getMainHandItem();
+        if (held.getItem() instanceof SubClaimWand) {
+            held.hurtAndBreak(1, (ServerLevel) player.level(),
+                player, item -> {});
+        }
+    });
+	}
+
+	public static void handleCreateSubClaim(final C2SCreateSubClaim packet, final IPayloadContext context) {
+		context.enqueueWork(() -> {
+			ServerPlayer player = (ServerPlayer) context.player();
+			CapitolDatabase database = DatabaseManager.database;
+
+			Team team = database.getPlayerTeam(player);
+			if (team == null) return;
+
+			if (!Permission.CLAIM_SUB_CLAIMS.hasPermission(database.getPlayerPermission(player, team))) {
+				player.displayClientMessage(Component.literal("You do not have permission to create sub-claims").withStyle(ChatFormatting.RED), false);
+				return;
+			}
+
+			if (packet.name().isBlank()) return;
+
+			// the client's naming screen caps input at 32 chars; enforce it server-side too
+			if (packet.name().length() > 32) {
+				player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.name_too_long", 32).withStyle(ChatFormatting.RED), false);
+				return;
+			}
+
+			// Normalise corners server-side so min is always <= max
+			int minX = Math.min(packet.minX(), packet.maxX());
+			int minY = Math.min(packet.minY(), packet.maxY());
+			int minZ = Math.min(packet.minZ(), packet.maxZ());
+			int maxX = Math.max(packet.minX(), packet.maxX());
+			int maxY = Math.max(packet.minY(), packet.maxY());
+			int maxZ = Math.max(packet.minZ(), packet.maxZ());
+
+			String dimension = packet.dimension();
+			if (!dimension.equals(player.level().dimension().location().toString())) {
+				player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.outside_claim").withStyle(ChatFormatting.RED), false);
+				return;
+			}
+
+			// a player cannot have two sub-claims with the same name
+			for (SubClaim owned : database.getSubClaimsOwnedBy(player.getUUID())) {
+				if (owned.name().equalsIgnoreCase(packet.name())) {
+					player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.name_exists", packet.name()).withStyle(ChatFormatting.RED), false);
+					return;
+				}
+			}
+
+			// every chunk the sub-claim touches must be claimed by the player's team
+			int minChunkX = Math.floorDiv(minX, 16);
+			int maxChunkX = Math.floorDiv(maxX, 16);
+			int minChunkZ = Math.floorDiv(minZ, 16);
+			int maxChunkZ = Math.floorDiv(maxZ, 16);
+			for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+				for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+					Team chunkOwner = database.getChunkOwner(new ChunkPos(chunkX, chunkZ), player.level());
+					if (chunkOwner == null || !chunkOwner.getId().equals(team.getId())) {
+						player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.outside_claim").withStyle(ChatFormatting.RED), false);
+						return;
+					}
+				}
+			}
+
+			// no sub-claim on the server may overlap this one
+			for (SubClaim existing : database.getAllSubClaims()) {
+				if (!existing.dimension().equals(dimension)) continue;
+				if (existing.minX() <= maxX && existing.maxX() >= minX
+					&& existing.minY() <= maxY && existing.maxY() >= minY
+					&& existing.minZ() <= maxZ && existing.maxZ() >= minZ) {
+					player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.overlaps").withStyle(ChatFormatting.RED), false);
+					return;
+				}
+			}
+
+			SubClaim subClaim = new SubClaim(
+				UUID.randomUUID(),
+				team.getId(),
+				packet.name(),
+				dimension,
+				minX, minY, minZ,
+				maxX, maxY, maxZ,
+				player.getUUID(),
+				Permission.of(Permission.values()),
+				SubClaimProtection.configDefaults()
+			);
+
+			database.addSubClaim(subClaim);
+
+			// broadcast to players near the sub-claim
+			int centreX = (subClaim.minX() + subClaim.maxX()) / 2;
+			int centreZ = (subClaim.minZ() + subClaim.maxZ()) / 2;
+			ChunkPos centreChunk = new ChunkPos(new BlockPos(centreX, 0, centreZ));
+			S2CSubClaimData subClaimPacket = new S2CSubClaimData(
+				subClaim.id(), subClaim.dimension(),
+				subClaim.minX(), subClaim.minY(), subClaim.minZ(),
+				subClaim.maxX(), subClaim.maxY(), subClaim.maxZ()
+			);
+			PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) player.level(), centreChunk, subClaimPacket);
+
+			player.displayClientMessage(Component.translatable("commands.capitol.sub_claim.created", packet.name()), false);
+		});
 	}
 
 	public static void handleTeamChat(final C2STeamChat request, final IPayloadContext context) {
