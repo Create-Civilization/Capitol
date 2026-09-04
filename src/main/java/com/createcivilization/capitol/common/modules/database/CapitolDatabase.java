@@ -462,6 +462,72 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error while removing player from team in database.", e);
 			throw new RuntimeException(e);
 		}
+		transferSubClaimsOnLeave(playerUUID, team);
+	}
+
+	/**
+	 * When a player leaves or is kicked, any sub-claims they own inside the team are
+	 * transferred to the team's leader (the player holding the owner role) so they
+	 * don't become orphaned. If a transferred sub-claim would collide with a name
+	 * the leader already owns, it is renamed to {@code name(n)} where n increments
+	 * until the name is free. Runs after the player is removed from {@code team_members}.
+	 */
+	private void transferSubClaimsOnLeave(UUID departingPlayer, Team team) {
+		UUID leaderId = null;
+		for (TeamMember member : getTeamMembers(team)) {
+			if (TeamRole.OWNER_ROLE_NAME.equals(member.roleName())) {
+				leaderId = member.playerUUID();
+				break;
+			}
+		}
+		if (leaderId == null || leaderId.equals(departingPlayer)) return;
+
+		// names the leader already owns, plus names assigned during this transfer
+		Set<String> takenNames = new HashSet<>();
+		for (SubClaim subClaim : getSubClaimsOwnedBy(leaderId)) {
+			takenNames.add(subClaim.name());
+		}
+
+		for (SubClaim subClaim : getSubClaimsOwnedBy(departingPlayer)) {
+			if (!subClaim.teamId().equals(team.getId())) continue;
+			String newName = subClaim.name();
+			if (!takenNames.add(newName)) {
+				// name taken: append (1), (2), ... until one is free
+				int n = 1;
+				do {
+					newName = subClaim.name() + "(" + n + ")";
+					n++;
+				} while (!takenNames.add(newName));
+			}
+			updateSubClaimName(subClaim.id(), newName);
+			try (PreparedStatement ps = getConnection().prepareStatement(
+				"UPDATE sub_claims SET owner_uuid = ? WHERE id = ?")) {
+				ps.setString(1, leaderId.toString());
+				ps.setString(2, subClaim.id().toString());
+				ps.execute();
+			} catch (SQLException e) {
+				Capitol.LOGGER.error("Error while transferring sub-claim to team leader in database.", e);
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	/**
+	 * Renames a sub-claim.
+	 *
+	 * @param subClaimId the sub-claim's UUID
+	 * @param newName    the new name
+	 */
+	public void updateSubClaimName(UUID subClaimId, String newName) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE sub_claims SET name = ? WHERE id = ?")) {
+			ps.setString(1, newName);
+			ps.setString(2, subClaimId.toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while updating sub-claim name in database.", e);
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -711,12 +777,14 @@ public class CapitolDatabase extends Database {
 	/**
 	 * Unclaims a chunk by removing it from the {@code chunks} table
 	 * and decrementing the owning team's {@code current_claims} counter.
+	 * Any sub-claim that extends into the chunk is deleted as well.
 	 *
 	 * @param team     the team that owns the chunk
 	 * @param chunkPos the chunk position to unclaim
 	 * @param level    the dimension/level the chunk is in
+	 * @return the sub-claims that were removed because they intersected the chunk
 	 */
-	public void unclaimChunk(Team team, ChunkPos chunkPos, Level level) {
+	public List<SubClaim> unclaimChunk(Team team, ChunkPos chunkPos, Level level) {
 		String dim = level.dimension().location().toString();
 		try (PreparedStatement ps = getConnection().prepareStatement(
 			"DELETE FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
@@ -730,7 +798,9 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error while deleting chunk from database.", e);
 			throw new RuntimeException(e);
 		}
+		List<SubClaim> removed = deleteSubClaimsIntersectingChunk(dim, chunkPos.x, chunkPos.z);
 		updateCurrentClaims(team, -1);
+		return removed;
 	}
 
 	/**
@@ -766,6 +836,16 @@ public class CapitolDatabase extends Database {
 			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while deleting all chunks for team from database.", e);
+			throw new RuntimeException(e);
+		}
+		// sub-claims can only exist inside the team's own claims, so unclaiming
+		// every chunk removes every sub-claim the team had
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM sub_claims WHERE team_id = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while deleting all sub-claims for team from database.", e);
 			throw new RuntimeException(e);
 		}
 		UUID teamId = team.getId();
@@ -1051,6 +1131,51 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error while deleting sub-claim from database.", e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Deletes every sub-claim that extends in any way into the given chunk
+	 * (a chunk covers a full 16×16 column of blocks, so only x/z matter).
+	 *
+	 * @param dimension the dimension the chunk is in
+	 * @param chunkX    the chunk's x coordinate
+	 * @param chunkZ    the chunk's z coordinate
+	 * @return the deleted sub-claims
+	 */
+	public List<SubClaim> deleteSubClaimsIntersectingChunk(String dimension, int chunkX, int chunkZ) {
+		int minBlockX = chunkX * 16;
+		int minBlockZ = chunkZ * 16;
+		int maxBlockX = minBlockX + 15;
+		int maxBlockZ = minBlockZ + 15;
+		String sql = "SELECT * FROM sub_claims WHERE dimension = ? AND max_x >= ? AND min_x <= ? AND max_z >= ? AND min_z <= ?";
+		List<SubClaim> removed = new ArrayList<>();
+		try (PreparedStatement select = getConnection().prepareStatement(sql)) {
+			select.setString(1, dimension);
+			select.setInt(2, minBlockX);
+			select.setInt(3, maxBlockX);
+			select.setInt(4, minBlockZ);
+			select.setInt(5, maxBlockZ);
+			try (ResultSet rs = select.executeQuery()) {
+				while (rs.next()) removed.add(SubClaim.fromResultSet(rs));
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while finding sub-claims intersecting chunk from database.", e);
+			throw new RuntimeException(e);
+		}
+		if (removed.isEmpty()) return removed;
+		try (PreparedStatement delete = getConnection().prepareStatement(
+			"DELETE FROM sub_claims WHERE dimension = ? AND max_x >= ? AND min_x <= ? AND max_z >= ? AND min_z <= ?")) {
+			delete.setString(1, dimension);
+			delete.setInt(2, minBlockX);
+			delete.setInt(3, maxBlockX);
+			delete.setInt(4, minBlockZ);
+			delete.setInt(5, maxBlockZ);
+			delete.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while deleting sub-claims intersecting chunk from database.", e);
+			throw new RuntimeException(e);
+		}
+		return removed;
 	}
 
 	/**

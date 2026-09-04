@@ -109,6 +109,11 @@
 	"commands.capitol.claim.sub_level.already_claimed": "This sub-level is already claimed by %s",
 	"commands.capitol.claim.sub_level.success": "Sub-level claimed!",
 	"commands.capitol.sub_claim.created": "Sub-claim '%s' created successfully.",
+	"commands.capitol.sub_claim.name_exists": "You already have a sub-claim named '%s'.",
+	"commands.capitol.sub_claim.name_too_long": "Sub-claim names must be %s characters or fewer.",
+	"commands.capitol.sub_claim.outside_claim": "Sub-claims must be entirely inside your team's claimed chunks.",
+	"commands.capitol.sub_claim.overlaps": "Sub-claim overlaps an existing sub-claim.",
+	"commands.capitol.sub_claim.removed_on_unclaim": "Removed %s sub-claim(s) that extended into the unclaimed chunk.",
 
 	"commands.capitol.subclaim.list.empty": "You have no subclaims.",
 	"commands.capitol.subclaim.list.entry": "- %s (ID: %s)",
