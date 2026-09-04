@@ -12,7 +12,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -87,45 +86,24 @@ public class SubClaimNamingScreen extends Screen {
 
 		Capitol.LOGGER.info("Sub-claim '{}' confirmed: {} -> {}", name, this.firstPos, this.secondPos);
 
-		// read the Ctrl+scroll side adjustments before clearSelection wipes them
-		CompoundTag tag = SubClaimWand.readTag(this.wandStack);
+		// the box (plus any Ctrl+scroll tweaks) already lives on the wand;
+		// read it before clearSelection wipes it
+		SubClaimWand.BoxCoords box = SubClaimWand.getBoxCoords(this.wandStack);
 		SubClaimWand.clearSelection(this.wandStack);
 
 		Minecraft mc = Minecraft.getInstance();
 		String dimension = mc.player.level().dimension().location().toString();
 
-		// Normalise corners so min is always less than max
-		int minX = Math.min(firstPos.getX(), secondPos.getX());
-		int minY = Math.min(firstPos.getY(), secondPos.getY());
-		int minZ = Math.min(firstPos.getZ(), secondPos.getZ());
-		int maxX = Math.max(firstPos.getX(), secondPos.getX());
-		int maxY = Math.max(firstPos.getY(), secondPos.getY());
-		int maxZ = Math.max(firstPos.getZ(), secondPos.getZ());
-
-		// apply the scroll offsets, same math as the renderer
-		minX -= tag.getInt(SubClaimWand.OFF_NEG_X);
-		maxX += tag.getInt(SubClaimWand.OFF_POS_X);
-		minY -= tag.getInt(SubClaimWand.OFF_NEG_Y);
-		maxY += tag.getInt(SubClaimWand.OFF_POS_Y);
-		minZ -= tag.getInt(SubClaimWand.OFF_NEG_Z);
-		maxZ += tag.getInt(SubClaimWand.OFF_POS_Z);
-
-		// keep every side at least 1 block, centered like the renderer
-		if (maxX <= minX) {
-			int centre = (minX + maxX) / 2;
-			minX = centre;
-			maxX = centre + 1;
-		}
-		if (maxY <= minY) {
-			int centre = (minY + maxY) / 2;
-			minY = centre;
-			maxY = centre + 1;
-		}
-		if (maxZ <= minZ) {
-			int centre = (minZ + maxZ) / 2;
-			minZ = centre;
-			maxZ = centre + 1;
-		}
+		// just in case: never let a side drop below 1 block (scroll already handles this)
+		int minX = box.minX();
+		int minY = box.minY();
+		int minZ = box.minZ();
+		int maxX = box.maxX();
+		int maxY = box.maxY();
+		int maxZ = box.maxZ();
+		if (maxX <= minX) { int centre = (minX + maxX) / 2; minX = centre; maxX = centre + 1; }
+		if (maxY <= minY) { int centre = (minY + maxY) / 2; minY = centre; maxY = centre + 1; }
+		if (maxZ <= minZ) { int centre = (minZ + maxZ) / 2; minZ = centre; maxZ = centre + 1; }
 
 		PacketDistributor.sendToServer(new C2SCreateSubClaim(
 			name, dimension,
@@ -161,6 +139,14 @@ public class SubClaimNamingScreen extends Screen {
 			return true;
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	// cancelling (button or ESC) kills the whole selection — otherwise the wand stays
+	// in phase 2 and the next right-click just reopens this screen forever
+	@Override
+	public void onClose() {
+		SubClaimWand.clearSelection(this.wandStack);
+		super.onClose();
 	}
 
 	@Override
