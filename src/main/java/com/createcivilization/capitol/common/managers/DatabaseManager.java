@@ -96,6 +96,18 @@ public class DatabaseManager {
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS capitol_blocks (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+					"team_id TEXT NOT NULL," +
+					"dimension TEXT NOT NULL," +
+					"x INTEGER NOT NULL," +
+					"y INTEGER NOT NULL," +
+					"z INTEGER NOT NULL," +
+					"is_capital INTEGER NOT NULL DEFAULT 0," +
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+			);
+
 
 			stmt.execute(
 				"CREATE TABLE IF NOT EXISTS player_permissions (" +
@@ -125,14 +137,64 @@ public class DatabaseManager {
 
 	private static void runMigrations(int current) throws SQLException {
 		if (current < 1) {
-			try (Statement stmt = connection.createStatement()) {
-				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_x INTEGER");
-				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_y INTEGER");
-				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_z INTEGER");
-				stmt.execute("ALTER TABLE teams ADD COLUMN capitol_dimension TEXT");
+			// Databases from before capitol position tracking lack these columns.
+			// Fresh databases get them from createTables() instead, so only migrate
+			// when an old teams table actually exists.
+			if (tableExists("teams") && !columnExists("teams", "capitol_x")) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute("ALTER TABLE teams ADD COLUMN capitol_x INTEGER");
+					stmt.execute("ALTER TABLE teams ADD COLUMN capitol_y INTEGER");
+					stmt.execute("ALTER TABLE teams ADD COLUMN capitol_z INTEGER");
+					stmt.execute("ALTER TABLE teams ADD COLUMN capitol_dimension TEXT");
+				}
 			}
 			setSchemaVersion(1);
 		}
+		if (current < 2) {
+			try (Statement stmt = connection.createStatement()) {
+				stmt.execute(
+					"CREATE TABLE IF NOT EXISTS capitol_blocks (" +
+						"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+						"team_id TEXT NOT NULL," +
+						"dimension TEXT NOT NULL," +
+						"x INTEGER NOT NULL," +
+						"y INTEGER NOT NULL," +
+						"z INTEGER NOT NULL," +
+						"is_capital INTEGER NOT NULL DEFAULT 0," +
+						"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+				);
+				// Any capitol block that predates this migration becomes the team's Capital.
+				if (tableExists("teams") && columnExists("teams", "capitol_x")) {
+					stmt.execute(
+						"INSERT INTO capitol_blocks (team_id, dimension, x, y, z, is_capital) " +
+							"SELECT id, capitol_dimension, capitol_x, capitol_y, capitol_z, 1 FROM teams " +
+							"WHERE capitol_x IS NOT NULL AND capitol_dimension IS NOT NULL"
+					);
+				}
+			}
+			setSchemaVersion(2);
+		}
+	}
+
+	private static boolean tableExists(String table) throws SQLException {
+		try (PreparedStatement ps = connection.prepareStatement(
+			"SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")) {
+			ps.setString(1, table);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		}
+	}
+
+	private static boolean columnExists(String table, String column) throws SQLException {
+		try (PreparedStatement ps = connection.prepareStatement("PRAGMA table_info(" + table + ")")) {
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					if (column.equals(rs.getString("name"))) return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static int getSchemaVersion() throws SQLException {

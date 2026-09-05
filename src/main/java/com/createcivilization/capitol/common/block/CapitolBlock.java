@@ -77,15 +77,10 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
             return;
         }
 
-        if (team.getCapitolPos() != null) {
-            player.sendSystemMessage(
-                Component.literal("Your team already has a Capitol Block placed.")
-                    .withStyle(ChatFormatting.RED)
-            );
-            level.removeBlock(pos, false);
-            player.addItem(new ItemStack(CapitolBlocks.CAPITOL_BLOCK.get()));
-            return;
-        }
+        // The first Capitol Block a team places — or the first one placed after every
+        // Capitol Block was destroyed — automatically becomes the team's Capital.
+        // A team can only ever have one Capital at a time.
+        boolean isCapital = !DatabaseManager.database.teamHasCapital(team);
 
         // Claim the surrounding chunks
         ChunkPos centerChunk = new ChunkPos(pos);
@@ -110,17 +105,25 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
             }
         }
 
-        // Store the capitol block position on the team
-        DatabaseManager.database.setCapitolPos(
+        // Record the placed capitol block (and designate it as the Capital if the team has none)
+        DatabaseManager.database.addCapitolBlock(
             team,
             pos,
-            level.dimension().location().toString()
+            level.dimension().location().toString(),
+            isCapital
         );
 
-        player.sendSystemMessage(
-            Component.literal("Capitol Block placed! Claimed " + claimed + " chunks around it.")
-                .withStyle(ChatFormatting.GREEN)
-        );
+        if (isCapital) {
+            player.sendSystemMessage(
+                Component.literal("Capitol Block placed! This block is now your team's Capital. Claimed " + claimed + " chunks around it.")
+                    .withStyle(ChatFormatting.GREEN)
+            );
+        } else {
+            player.sendSystemMessage(
+                Component.literal("Capitol Block placed! Claimed " + claimed + " chunks around it.")
+                    .withStyle(ChatFormatting.GREEN)
+            );
+        }
     }
 
     @Override
@@ -174,7 +177,7 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
             }
         }
 
-        // Clear the stored capitol position from the team
-        DatabaseManager.database.setCapitolPos(team, null, null);
+        // Remove the block's record (this also clears the Capital designation if the block was the Capital)
+        DatabaseManager.database.removeCapitolBlock(team, pos, level.dimension().location().toString());
     }
 }

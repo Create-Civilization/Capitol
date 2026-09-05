@@ -92,6 +92,7 @@ public class CapitolNetworking {
 				ServerPayloadHandler::handleInvitePlayer
 			)
 		);
+    		registrar.playToServer(
     		C2STeamChat.TYPE,
     		C2STeamChat.STREAM_CODEC,
     		new MainThreadPayloadHandler<>(

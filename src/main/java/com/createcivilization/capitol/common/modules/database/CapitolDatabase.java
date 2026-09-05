@@ -671,7 +671,11 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
-	// Saves where the capitol block is. Pass null to clear it, like when the block gets broken.
+	/**
+	 * Saves the team's designated Capital position (mirrored in the teams table for
+	 * easy reads via {@link Team#getCapitolPos()}). Pass null to clear it, like when
+	 * the Capital block gets broken.
+	 */
 	public void setCapitolPos(Team team, @Nullable BlockPos pos, @Nullable String dimension) {
 		String sql = "UPDATE teams SET capitol_x = ?, capitol_y = ?, capitol_z = ?, capitol_dimension = ? WHERE id = ?";
 		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -697,18 +701,108 @@ public class CapitolDatabase extends Database {
 	// Finds the team with a capitol block at this position, or null if there isn't one.
 	@Nullable
 	public Team getTeamByCapitolPos(BlockPos pos, String dimension) {
-		String sql = "SELECT * FROM teams WHERE capitol_x = ? AND capitol_y = ? AND capitol_z = ? AND capitol_dimension = ?";
+		String sql = "SELECT teams.* FROM capitol_blocks " +
+			"JOIN teams ON teams.id = capitol_blocks.team_id " +
+			"WHERE capitol_blocks.dimension = ? AND capitol_blocks.x = ? AND capitol_blocks.y = ? AND capitol_blocks.z = ?";
 		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-			ps.setInt(1, pos.getX());
-			ps.setInt(2, pos.getY());
-			ps.setInt(3, pos.getZ());
-			ps.setString(4, dimension);
+			ps.setString(1, dimension);
+			ps.setInt(2, pos.getX());
+			ps.setInt(3, pos.getY());
+			ps.setInt(4, pos.getZ());
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) return Team.fromResultSet(rs);
 				return null;
 			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error looking up team by capitol position", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Records a placed capitol block for a team. When {@code isCapital} is true the
+	 * block becomes the team's designated Capital, clearing any previous Capital
+	 * designation first so a team can only ever have one Capital.
+	 */
+	public void addCapitolBlock(Team team, BlockPos pos, String dimension, boolean isCapital) {
+		if (isCapital) {
+			try (PreparedStatement ps = getConnection().prepareStatement(
+				"UPDATE capitol_blocks SET is_capital = 0 WHERE team_id = ? AND is_capital = 1")) {
+				ps.setString(1, team.getId().toString());
+				ps.execute();
+			} catch (SQLException e) {
+				Capitol.LOGGER.error("Error clearing previous capital for team " + team.getId(), e);
+				throw new RuntimeException(e);
+			}
+		}
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT INTO capitol_blocks (team_id, dimension, x, y, z, is_capital) VALUES (?, ?, ?, ?, ?, ?)")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			ps.setInt(3, pos.getX());
+			ps.setInt(4, pos.getY());
+			ps.setInt(5, pos.getZ());
+			ps.setInt(6, isCapital ? 1 : 0);
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error adding capitol block for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+		if (isCapital) {
+			setCapitolPos(team, pos, dimension);
+		}
+	}
+
+	/**
+	 * Removes a destroyed capitol block's record. If it was the team's Capital,
+	 * the Capital designation is cleared so the next placed capitol block becomes
+	 * the new Capital.
+	 */
+	public void removeCapitolBlock(Team team, BlockPos pos, String dimension) {
+		boolean wasCapital = false;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT is_capital FROM capitol_blocks WHERE team_id = ? AND dimension = ? AND x = ? AND y = ? AND z = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			ps.setInt(3, pos.getX());
+			ps.setInt(4, pos.getY());
+			ps.setInt(5, pos.getZ());
+			try (ResultSet rs = ps.executeQuery()) {
+				wasCapital = rs.next() && rs.getInt("is_capital") == 1;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error reading capitol block for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM capitol_blocks WHERE team_id = ? AND dimension = ? AND x = ? AND y = ? AND z = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			ps.setInt(3, pos.getX());
+			ps.setInt(4, pos.getY());
+			ps.setInt(5, pos.getZ());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error removing capitol block for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+		if (wasCapital) {
+			setCapitolPos(team, null, null);
+		}
+	}
+
+	/**
+	 * Returns true if the team currently has a designated Capital capitol block.
+	 */
+	public boolean teamHasCapital(Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT 1 FROM capitol_blocks WHERE team_id = ? AND is_capital = 1")) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error checking for team capital " + team.getId(), e);
 			throw new RuntimeException(e);
 		}
 	}
