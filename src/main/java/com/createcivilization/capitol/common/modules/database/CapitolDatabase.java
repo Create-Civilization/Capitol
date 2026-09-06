@@ -817,6 +817,24 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	// all of a team's capitol blocks in a dimension
+	public List<CapitolBlockData> getTeamCapitolBlocks(Team team, String dimension) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT id, team_id, dimension, x, y, z, is_capital, tier FROM capitol_blocks " +
+				"WHERE team_id = ? AND dimension = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			try (ResultSet rs = ps.executeQuery()) {
+				List<CapitolBlockData> blocks = new ArrayList<>();
+				while (rs.next()) blocks.add(CapitolBlockData.fromResultSet(rs));
+				return blocks;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error getting capitol blocks for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+	}
+
 	// gets a capitol block record by position, or null if there isn't one
 	@Nullable
 	public CapitolBlockData getCapitolBlock(BlockPos pos, String dimension) {
@@ -954,10 +972,23 @@ public class CapitolDatabase extends Database {
 		updateCurrentClaims(team, 1);
 	}
 
-	// Can this team claim here? Only if the chunk touches one they already own.
-	// Teams with no claims can claim anywhere, so they have a starting point.
+	// is the chunk inside one of the team's capitol block claim areas?
+	public boolean isChunkInCapitolBlockRadius(Team team, ChunkPos chunkPos, Level level) {
+		String dim = level.dimension().location().toString();
+		for (CapitolBlockData block : getTeamCapitolBlocks(team, dim)) {
+			ChunkPos blockChunk = new ChunkPos(block.pos());
+			int radius = block.claimRadius();
+			if (Math.abs(blockChunk.x - chunkPos.x) <= radius && Math.abs(blockChunk.z - chunkPos.z) <= radius) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// can this team claim here? chunk has to touch one they already own,
+	// or (with no claims yet) sit inside a capitol block's claim area
 	public boolean isChunkAdjacentToOwnClaim(Team team, ChunkPos chunkPos, Level level) {
-		if (team.getCurrentClaims() <= 0) return true;
+		if (team.getCurrentClaims() <= 0) return isChunkInCapitolBlockRadius(team, chunkPos, level);
 		for (Direction dir : Direction.Plane.HORIZONTAL) {
 			ChunkPos neighbor = new ChunkPos(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
 			Team owner = getChunkOwner(neighbor, level);

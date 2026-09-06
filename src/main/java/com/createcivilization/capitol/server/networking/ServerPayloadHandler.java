@@ -94,7 +94,8 @@ public class ServerPayloadHandler {
 
 		// Multi-chunk claims (like a JourneyMap rectangle) count as one connected group:
 		// a chunk is claimable if it touches our territory, or another chunk in the
-		// selection that does. Teams with no claims yet can claim anywhere to get started.
+		// selection that does. Teams with no claims yet have to start inside a
+		// capitol block's claim area.
 		Set<Long> batchChunks = new HashSet<>();
 		for (long packedPos : packed) {
 			batchChunks.add(packedPos);
@@ -102,30 +103,34 @@ public class ServerPayloadHandler {
 
 		Set<Long> claimable = new HashSet<>();
 		Deque<Long> frontier = new ArrayDeque<>();
-		if (team.getCurrentClaims() <= 0) {
-			claimable.addAll(batchChunks);
-		} else {
-			for (long packedPos : batchChunks) {
-				ChunkPos chunkPos = new ChunkPos(packedPos);
+		for (long packedPos : batchChunks) {
+			ChunkPos chunkPos = new ChunkPos(packedPos);
+			boolean adjacent;
+			if (team.getCurrentClaims() <= 0) {
+				adjacent = database.isChunkInCapitolBlockRadius(team, chunkPos, player.level());
+			} else {
+				adjacent = false;
 				for (Direction dir : Direction.Plane.HORIZONTAL) {
 					ChunkPos neighbor = new ChunkPos(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
 					Team owner = database.getChunkOwner(neighbor, player.level());
 					if (owner != null && owner.getId().equals(team.getId())) {
-						claimable.add(packedPos);
-						frontier.add(packedPos);
+						adjacent = true;
 						break;
 					}
 				}
 			}
-			while (!frontier.isEmpty()) {
-				long packedPos = frontier.poll();
-				ChunkPos chunkPos = new ChunkPos(packedPos);
-				for (Direction dir : Direction.Plane.HORIZONTAL) {
-					long neighborPacked = ChunkPos.asLong(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
-					if (batchChunks.contains(neighborPacked) && !claimable.contains(neighborPacked)) {
-						claimable.add(neighborPacked);
-						frontier.add(neighborPacked);
-					}
+			if (!adjacent) continue;
+			claimable.add(packedPos);
+			frontier.add(packedPos);
+		}
+		while (!frontier.isEmpty()) {
+			long packedPos = frontier.poll();
+			ChunkPos chunkPos = new ChunkPos(packedPos);
+			for (Direction dir : Direction.Plane.HORIZONTAL) {
+				long neighborPacked = ChunkPos.asLong(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
+				if (batchChunks.contains(neighborPacked) && !claimable.contains(neighborPacked)) {
+					claimable.add(neighborPacked);
+					frontier.add(neighborPacked);
 				}
 			}
 		}
@@ -152,7 +157,11 @@ public class ServerPayloadHandler {
 
 		player.displayClientMessage(Component.literal("Claimed " + claimed + " chunk(s)").withStyle(ChatFormatting.GREEN), false);
 		if (claimed == 0 && skippedAdjacent) {
-			player.displayClientMessage(Component.translatable("commands.capitol.claim.not_adjacent").withStyle(ChatFormatting.RED), false);
+			if (database.getTeamCapitolBlocks(team, player.level().dimension().location().toString()).isEmpty()) {
+				player.displayClientMessage(Component.literal("Your team needs a Capitol Block before you can claim chunks").withStyle(ChatFormatting.RED), false);
+			} else {
+				player.displayClientMessage(Component.translatable("commands.capitol.claim.not_adjacent").withStyle(ChatFormatting.RED), false);
+			}
 		}
 	}
 

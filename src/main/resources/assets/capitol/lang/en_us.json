@@ -1,6 +1,8 @@
 {
 	"block.capitol.capitol_block": "Capitol Block",
 	"item.capitol.capitol_block": "Capitol Block",
+	"block.capitol.outpost_block": "Outpost Block",
+	"item.capitol.outpost_block": "Outpost Block",
 
 	"container.capitol.capitol_block": "Capitol",
 

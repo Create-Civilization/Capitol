@@ -38,13 +38,6 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    // chunks outward from the Capital to grab when it's first placed
-    // 3 = 7x7 (its own chunk + 3 out each direction)
-    private static final int CLAIM_RADIUS = 3;
-
-    // chunks outward an extra block takes over the team's existing claims. 2 = 5x5.
-    private static final int TRANSFER_RADIUS = 2;
-
     public CapitolBlock(Properties properties) {
         super(properties);
     }
@@ -126,8 +119,8 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
             ChunkPos centerChunk = new ChunkPos(pos);
             int claimed = 0;
 
-            for (int dx = -CLAIM_RADIUS; dx <= CLAIM_RADIUS; dx++) {
-                for (int dz = -CLAIM_RADIUS; dz <= CLAIM_RADIUS; dz++) {
+            for (int dx = -CapitolBlockData.CAPITAL_CLAIM_RADIUS; dx <= CapitolBlockData.CAPITAL_CLAIM_RADIUS; dx++) {
+                for (int dz = -CapitolBlockData.CAPITAL_CLAIM_RADIUS; dz <= CapitolBlockData.CAPITAL_CLAIM_RADIUS; dz++) {
                     ChunkPos chunkPos = new ChunkPos(
                         centerChunk.x + dx,
                         centerChunk.z + dz
@@ -153,7 +146,7 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
             // extra blocks don't claim new stuff, they just take over
             // the team's already-claimed chunks in a 5x5 around them
             int transferred = DatabaseManager.database.transferClaimedChunksToCapitolBlock(
-                team, level, pos, capitolBlockId, TRANSFER_RADIUS
+                team, level, pos, capitolBlockId, CapitolBlockData.ADDITIONAL_CLAIM_RADIUS
             );
             player.sendSystemMessage(
                 Component.literal("Capitol Block placed! This block is now a Village, controlling " + transferred + " claimed chunk(s).")

@@ -19,4 +19,12 @@ public class CapitolBlocks {
                 .strength(5.0f, 6.0f)
                 .requiresCorrectToolForDrops()
         ));
+
+    public static final DeferredBlock<OutpostBlock> OUTPOST_BLOCK =
+        BLOCKS.register("outpost_block", () -> new OutpostBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.WOOD)
+                .strength(5.0f, 6.0f)
+                .requiresCorrectToolForDrops()
+        ));
 }

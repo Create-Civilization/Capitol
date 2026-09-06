@@ -31,6 +31,13 @@ public class CapitolItems {
 		)
 	);
 
+	public static final DeferredHolder<Item, BlockItem> OUTPOST_BLOCK = ITEMS.register(
+		"outpost_block",
+		() -> new BlockItem(CapitolBlocks.OUTPOST_BLOCK.get(), new Item.Properties()
+		.stacksTo(1)
+		)
+	);
+
 	public static void register(IEventBus eventBus) {
 		ITEMS.register(eventBus);
 	}
