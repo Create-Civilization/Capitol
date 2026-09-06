@@ -5,9 +5,9 @@ import com.createcivilization.capitol.common.data.CapitolTier;
 import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
-import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
-import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
+import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolNamingScreen;
+import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -112,47 +112,9 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
             tier = CapitolTier.VILLAGE;
         }
 
-        long capitolBlockId = DatabaseManager.database.addCapitolBlock(team, pos, dimension, isCapital, tier);
-
-        if (isCapital) {
-            // the Capital grabs everything around it on placement
-            ChunkPos centerChunk = new ChunkPos(pos);
-            int claimed = 0;
-
-            for (int dx = -CapitolBlockData.CAPITAL_CLAIM_RADIUS; dx <= CapitolBlockData.CAPITAL_CLAIM_RADIUS; dx++) {
-                for (int dz = -CapitolBlockData.CAPITAL_CLAIM_RADIUS; dz <= CapitolBlockData.CAPITAL_CLAIM_RADIUS; dz++) {
-                    ChunkPos chunkPos = new ChunkPos(
-                        centerChunk.x + dx,
-                        centerChunk.z + dz
-                    );
-
-                    // Skip if already claimed by anyone
-                    if (DatabaseManager.database.getChunkOwner(chunkPos, level) != null) {
-                        continue;
-                    }
-
-                    DatabaseManager.database.claimChunk(team, chunkPos, level, capitolBlockId);
-                    S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
-                    PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, chunkPos, packet);
-                    claimed++;
-                }
-            }
-
-            player.sendSystemMessage(
-                Component.literal("Capitol Block placed! This block is now your team's Capital. Claimed " + claimed + " chunks around it.")
-                    .withStyle(ChatFormatting.GREEN)
-            );
-        } else {
-            // extra blocks don't claim new stuff, they just take over
-            // the team's already-claimed chunks in a 5x5 around them
-            int transferred = DatabaseManager.database.transferClaimedChunksToCapitolBlock(
-                team, level, pos, capitolBlockId, CapitolBlockData.ADDITIONAL_CLAIM_RADIUS
-            );
-            player.sendSystemMessage(
-                Component.literal("Capitol Block placed! This block is now a Village, controlling " + transferred + " claimed chunk(s).")
-                    .withStyle(ChatFormatting.GREEN)
-            );
-        }
+        // the block isnt registered yet - the player names it first
+        // (names are globally unique, so the naming screen handles registration)
+        PacketDistributor.sendToPlayer(player, new S2COpenCapitolNamingScreen(pos, team.getId(), isCapital, tier));
     }
 
     @Override
@@ -167,15 +129,9 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
         Team team = DatabaseManager.database.getTeam(data.teamId());
         if (team == null) return InteractionResult.PASS;
 
-        boolean canUpgrade = !data.capital()
-            && data.tier() != null
-            && data.tier().upgraded() != null
-            && Permission.MANAGE_CAPITOL_BLOCKS.hasPermission(
-                DatabaseManager.database.getPlayerPermission(player, team));
-
         PacketDistributor.sendToPlayer(
             (ServerPlayer) player,
-            new S2COpenCapitolScreen(team, pos, data.capital(), data.tier(), canUpgrade)
+            ServerPayloadHandler.openCapitolScreenFor(team, data, player)
         );
         return InteractionResult.CONSUME;
     }

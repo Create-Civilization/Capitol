@@ -7,9 +7,14 @@ import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
-import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;	import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
-	import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
-	import com.createcivilization.capitol.common.networking.packets.C2SUpgradeCapitolBlock;
+import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;
+import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
+import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolNamingScreen;
+import com.createcivilization.capitol.common.networking.packets.C2SNameCapitolBlock;
+import com.createcivilization.capitol.common.networking.packets.C2SCancelCapitolBlockNaming;
+import com.createcivilization.capitol.common.networking.packets.C2SSetCapitolBlockMayor;
+import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.networking.packets.C2SUpgradeCapitolBlock;
 import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 
 import net.neoforged.bus.api.IEventBus;
@@ -20,15 +25,14 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class CapitolNetworking {
 
-
 	public static void init(IEventBus bus) {
 		bus.addListener(CapitolNetworking::register);
 	}
 
-
 	@SubscribeEvent
 	public static void register(final RegisterPayloadHandlersEvent event) {
-		final PayloadRegistrar registrar = event.registrar("2");
+		final PayloadRegistrar registrar = event.registrar("3");
+
 		registrar.playToClient(
 			S2CChunkData.TYPE,
 			S2CChunkData.STREAM_CODEC,
@@ -50,6 +54,14 @@ public class CapitolNetworking {
 			S2COpenCapitolScreen.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ClientPayloadHandler::openCapitolScreenHandler
+			)
+		);
+
+		registrar.playToClient(
+			S2COpenCapitolNamingScreen.TYPE,
+			S2COpenCapitolNamingScreen.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ClientPayloadHandler::openCapitolNamingScreenHandler
 			)
 		);
 
@@ -78,11 +90,11 @@ public class CapitolNetworking {
 		);
 
 		registrar.playToServer(
-			C2SDamageWand.TYPE, 
+			C2SDamageWand.TYPE,
 			C2SDamageWand.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ServerPayloadHandler::handleDamageWand
-    		)
+			)
 		);
 
 		registrar.playToServer(
@@ -92,21 +104,46 @@ public class CapitolNetworking {
 				ServerPayloadHandler::handleInvitePlayer
 			)
 		);
-    		registrar.playToServer(
-    		C2STeamChat.TYPE,
-    		C2STeamChat.STREAM_CODEC,
-    		new MainThreadPayloadHandler<>(
-    			ServerPayloadHandler::handleTeamChat
-    		)
-    	);
 
-    		registrar.playToServer(
-    		C2SUpgradeCapitolBlock.TYPE,
-    		C2SUpgradeCapitolBlock.STREAM_CODEC,
-    		new MainThreadPayloadHandler<>(
-    			ServerPayloadHandler::handleUpgradeCapitolBlock
-    		)
-    	);
+		registrar.playToServer(
+			C2STeamChat.TYPE,
+			C2STeamChat.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleTeamChat
+			)
+		);
+
+		registrar.playToServer(
+			C2SUpgradeCapitolBlock.TYPE,
+			C2SUpgradeCapitolBlock.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleUpgradeCapitolBlock
+			)
+		);
+
+		registrar.playToServer(
+			C2SNameCapitolBlock.TYPE,
+			C2SNameCapitolBlock.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleNameCapitolBlock
+			)
+		);
+
+		registrar.playToServer(
+			C2SCancelCapitolBlockNaming.TYPE,
+			C2SCancelCapitolBlockNaming.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleCancelCapitolBlockNaming
+			)
+		);
+
+		registrar.playToServer(
+			C2SSetCapitolBlockMayor.TYPE,
+			C2SSetCapitolBlockMayor.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleSetCapitolBlockMayor
+			)
+		);
 	}
 
 }

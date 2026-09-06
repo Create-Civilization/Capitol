@@ -109,6 +109,8 @@ public class DatabaseManager {
 					"z INTEGER NOT NULL," +
 					"is_capital INTEGER NOT NULL DEFAULT 0," +
 					"tier TEXT," +  // VILLAGE/TOWN/CITY; null for the Capital
+					"name TEXT NOT NULL UNIQUE," +  // globally unique, set when the block is named
+					"mayor_uuid TEXT," +  // who runs this block, defaults to the team leader
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
@@ -195,6 +197,20 @@ public class DatabaseManager {
 				backfillCapitolBlockChunks();
 			}
 			setSchemaVersion(3);
+		}
+		if (current < 4) {
+			// blocks get a globally-unique name (set at placement) + a mayor
+			if (tableExists("capitol_blocks") && !columnExists("capitol_blocks", "name")) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute("ALTER TABLE capitol_blocks ADD COLUMN name TEXT");
+					stmt.execute("ALTER TABLE capitol_blocks ADD COLUMN mayor_uuid TEXT");
+					// old blocks get a placeholder name so the unique constraint has something to hold
+					stmt.execute("UPDATE capitol_blocks SET name = CASE WHEN is_capital = 1 THEN 'Capital ' || id ELSE 'Village ' || id END WHERE name IS NULL");
+					// sqlite can't add UNIQUE to an existing column, so use a unique index instead
+					stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_capitol_blocks_name ON capitol_blocks(name)");
+				}
+			}
+			setSchemaVersion(4);
 		}
 	}
 

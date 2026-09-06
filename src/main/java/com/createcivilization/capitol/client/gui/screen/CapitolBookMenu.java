@@ -6,8 +6,8 @@ import com.createcivilization.capitol.client.gui.interactables.TextInputInteract
 import com.createcivilization.capitol.client.gui.pages.CapitolBlockPage;
 import com.createcivilization.capitol.client.gui.pages.DisplayTeamPage;
 import com.createcivilization.capitol.client.gui.pages.InvitePlayerPage;
-import com.createcivilization.capitol.common.data.CapitolTier;
 import com.createcivilization.capitol.common.data.Team;
+import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
@@ -28,23 +28,23 @@ public class CapitolBookMenu extends BookScreen {
 	Tabs.Tab currentTab;
 	List<PageHandler> pageHandlers;
 
-	public CapitolBookMenu(Team team, BlockPos capitolPos, boolean isCapital, CapitolTier tier, boolean canUpgrade) {
+	public CapitolBookMenu(S2COpenCapitolScreen payload) {
 		super(Component.translatable("screen.capitol.capitol_block.title"));
 		this.pageHandlers = List.of(
 			new AttackHandler(),
 			new DefenseHandler(),
 			new SupportHandler(),
-			new InfoHandler(team, capitolPos),
-			new SettingsHandler(capitolPos, isCapital, tier, canUpgrade)
+			new InfoHandler(payload.team(), payload.capitolPos()),
+			new SettingsHandler(payload)
 		);
-		this.tabs = new Tabs(isCapital);
+		this.tabs = new Tabs(payload.isCapital());
 		addInteractable(tabs);
 		pageHandlers.forEach(pageHandler -> {
 			pageHandler.hide();
 			addInteractable(pageHandler);
 		});
 		// attack/defense tabs are hidden outside the Capital, so don't try to start on one
-		this.startingTab = !isCapital && lastTab < 2 ? 2 : lastTab;
+		this.startingTab = !payload.isCapital() && lastTab < 2 ? 2 : lastTab;
 		this.currentPage = lastPage;
 	}
 
@@ -195,8 +195,8 @@ public class CapitolBookMenu extends BookScreen {
 	}
 
 	private static class SettingsHandler extends PageHandler {
-		public SettingsHandler(BlockPos capitolPos, boolean isCapital, CapitolTier tier, boolean canUpgrade) {
-			super(List.of(new CapitolBlockPage(capitolPos, isCapital, tier, canUpgrade)));
+		public SettingsHandler(S2COpenCapitolScreen payload) {
+			super(List.of(new CapitolBlockPage(payload)));
 		}
 	}
 

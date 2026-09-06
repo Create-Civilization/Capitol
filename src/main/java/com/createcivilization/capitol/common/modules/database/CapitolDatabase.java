@@ -721,8 +721,10 @@ public class CapitolDatabase extends Database {
 
 	// records a placed block and returns its row id. isCapital makes it the team's
 	// Capital (clearing any old one first). extra blocks start at the given tier;
-	// the Capital has no tier so pass null.
-	public long addCapitolBlock(Team team, BlockPos pos, String dimension, boolean isCapital, @Nullable CapitolTier tier) {
+	// the Capital has no tier so pass null. name is globally unique, mayor defaults
+	// to the team leader.
+	public long addCapitolBlock(Team team, BlockPos pos, String dimension, boolean isCapital, @Nullable CapitolTier tier,
+								String name, @Nullable UUID mayorUuid) {
 		if (isCapital) {
 			try (PreparedStatement ps = getConnection().prepareStatement(
 				"UPDATE capitol_blocks SET is_capital = 0 WHERE team_id = ? AND is_capital = 1")) {
@@ -734,7 +736,7 @@ public class CapitolDatabase extends Database {
 			}
 		}
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"INSERT INTO capitol_blocks (team_id, dimension, x, y, z, is_capital, tier) VALUES (?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO capitol_blocks (team_id, dimension, x, y, z, is_capital, tier, name, mayor_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, team.getId().toString());
 			ps.setString(2, dimension);
@@ -746,6 +748,12 @@ public class CapitolDatabase extends Database {
 				ps.setNull(7, java.sql.Types.VARCHAR);
 			} else {
 				ps.setString(7, tier.name());
+			}
+			ps.setString(8, name);
+			if (mayorUuid == null) {
+				ps.setNull(9, java.sql.Types.VARCHAR);
+			} else {
+				ps.setString(9, mayorUuid.toString());
 			}
 			ps.executeUpdate();
 			try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -761,6 +769,46 @@ public class CapitolDatabase extends Database {
 			Capitol.LOGGER.error("Error adding capitol block for team " + team.getId(), e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	// is this name already used by another capitol block (any team)?
+	public boolean capitolBlockNameExists(String name) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT 1 FROM capitol_blocks WHERE name = ?")) {
+			ps.setString(1, name);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error checking capitol block name", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// sets who runs a block (mayor). pass null to clear.
+	public void setCapitolBlockMayor(long capitolBlockId, @Nullable UUID mayorUuid) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE capitol_blocks SET mayor_uuid = ? WHERE id = ?")) {
+			if (mayorUuid == null) {
+				ps.setNull(1, java.sql.Types.VARCHAR);
+			} else {
+				ps.setString(1, mayorUuid.toString());
+			}
+			ps.setLong(2, capitolBlockId);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error setting mayor for capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// the player that owns the team (the owner role)
+	@Nullable
+	public UUID getTeamLeader(Team team) {
+		for (TeamMember member : getTeamMembers(team)) {
+			if (member.roleName().equals(TeamRole.OWNER_ROLE_NAME)) return member.playerUUID();
+		}
+		return null;
 	}
 
 	/**
@@ -820,7 +868,7 @@ public class CapitolDatabase extends Database {
 	// all of a team's capitol blocks in a dimension
 	public List<CapitolBlockData> getTeamCapitolBlocks(Team team, String dimension) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT id, team_id, dimension, x, y, z, is_capital, tier FROM capitol_blocks " +
+			"SELECT id, team_id, dimension, x, y, z, is_capital, tier, name, mayor_uuid FROM capitol_blocks " +
 				"WHERE team_id = ? AND dimension = ?")) {
 			ps.setString(1, team.getId().toString());
 			ps.setString(2, dimension);
@@ -838,7 +886,7 @@ public class CapitolDatabase extends Database {
 	// gets a capitol block record by position, or null if there isn't one
 	@Nullable
 	public CapitolBlockData getCapitolBlock(BlockPos pos, String dimension) {
-		String sql = "SELECT id, team_id, dimension, x, y, z, is_capital, tier FROM capitol_blocks " +
+		String sql = "SELECT id, team_id, dimension, x, y, z, is_capital, tier, name, mayor_uuid FROM capitol_blocks " +
 			"WHERE dimension = ? AND x = ? AND y = ? AND z = ?";
 		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
 			ps.setString(1, dimension);
@@ -869,24 +917,25 @@ public class CapitolDatabase extends Database {
 	}
 
 	// re-points every chunk the team owns in a square radius (in chunks) at this
-	// block. leaves unclaimed chunks alone. returns how many got moved.
-	public int transferClaimedChunksToCapitolBlock(Team team, Level level, BlockPos pos, long capitolBlockId, int chunkRadius) {
+	// block. leaves unclaimed chunks alone. returns the chunks that got moved.
+	public List<ChunkPos> transferClaimedChunksToCapitolBlock(Team team, Level level, BlockPos pos, long capitolBlockId, int chunkRadius) {
 		String dim = level.dimension().location().toString();
 		ChunkPos center = new ChunkPos(pos);
-		int transferred = 0;
+		List<ChunkPos> transferred = new ArrayList<>();
 		try (PreparedStatement ps = getConnection().prepareStatement(
 			"UPDATE chunks SET capitol_block_id = ? " +
 				"WHERE dimension = ? AND chunk_x = ? AND chunk_z = ? AND team_id = ? " +
 				"AND (capitol_block_id IS NULL OR capitol_block_id <> ?)")) {
 			for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
 				for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
+					ChunkPos chunkPos = new ChunkPos(center.x + dx, center.z + dz);
 					ps.setLong(1, capitolBlockId);
 					ps.setString(2, dim);
-					ps.setInt(3, center.x + dx);
-					ps.setInt(4, center.z + dz);
+					ps.setInt(3, chunkPos.x);
+					ps.setInt(4, chunkPos.z);
 					ps.setString(5, team.getId().toString());
 					ps.setLong(6, capitolBlockId);
-					transferred += ps.executeUpdate();
+					if (ps.executeUpdate() > 0) transferred.add(chunkPos);
 				}
 			}
 		} catch (SQLException e) {
@@ -894,6 +943,28 @@ public class CapitolDatabase extends Database {
 			throw new RuntimeException(e);
 		}
 		return transferred;
+	}
+
+	// which capitol block a chunk falls under, or null for a plain claim
+	@Nullable
+	public Long getCapitolBlockIdForChunk(ChunkPos chunkPos, Level level) {
+		String dim = level.dimension().location().toString();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT capitol_block_id FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
+			ps.setString(1, dim);
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					long id = rs.getLong("capitol_block_id");
+					return rs.wasNull() ? null : id;
+				}
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error looking up capitol block id for chunk", e);
+			throw new RuntimeException(e);
+		}
 	}
 
 	// unclaims everything this block owns and drops the team's claim count.

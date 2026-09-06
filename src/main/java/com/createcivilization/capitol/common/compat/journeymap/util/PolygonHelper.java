@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,8 +28,10 @@ public class PolygonHelper {
 	public static List<PolygonOverlay> buildClaimOverlays(String modId, ResourceKey<Level> dimension) {
 		Map<UUID, TeamClaims> byTeam = new HashMap<>();
 		Map<ChunkPos, Team> source = ClientJMClaims.instance().snapshot();
+		Map<ChunkPos, Long> blockIds = ClientJMClaims.instance().blockIdSnapshot();
 		if (source.isEmpty()) {
 			source = new HashMap<>(ClientClaimCache.claims);
+			blockIds = new HashMap<>(ClientClaimCache.capitolBlockIds);
 		}
 		for (Map.Entry<ChunkPos, Team> entry : new ArrayList<>(source.entrySet())) {
 			Team team = entry.getValue();
@@ -64,7 +67,59 @@ public class PolygonHelper {
 				overlays.add(new PolygonOverlay(modId, dimension, props, outer, holes.isEmpty() ? null : holes));
 			}
 		}
+
+		overlays.addAll(buildBlockDividers(modId, dimension, source, blockIds));
 		return overlays;
+	}
+
+	// faint lines between chunks that fall under different capitol blocks, so you
+	// can tell which block presides over which chunk within a team's claims
+	private static List<PolygonOverlay> buildBlockDividers(String modId, ResourceKey<Level> dimension,
+														  Map<ChunkPos, Team> source, Map<ChunkPos, Long> blockIds) {
+		List<PolygonOverlay> overlays = new ArrayList<>();
+		ShapeProperties props = new ShapeProperties()
+			.setFillColor(0xFFFFFF)
+			.setFillOpacity(0.3f)
+			.setStrokeColor(0xFFFFFF)
+			.setStrokeOpacity(0f)
+			.setStrokeWidth(0f);
+
+		for (Map.Entry<ChunkPos, Team> entry : source.entrySet()) {
+			ChunkPos c = entry.getKey();
+			Team team = entry.getValue();
+
+			// only check north + west so each shared edge is drawn once
+			ChunkPos north = new ChunkPos(c.x, c.z - 1);
+			if (differentBlock(source, blockIds, team, c, north)) {
+				overlays.add(edgeOverlay(modId, dimension, props,
+					c.getMinBlockX(), c.getMinBlockZ(), c.getMaxBlockX() + 1, c.getMinBlockZ() + 1));
+			}
+			ChunkPos west = new ChunkPos(c.x - 1, c.z);
+			if (differentBlock(source, blockIds, team, c, west)) {
+				overlays.add(edgeOverlay(modId, dimension, props,
+					c.getMinBlockX(), c.getMinBlockZ(), c.getMinBlockX() + 1, c.getMaxBlockZ() + 1));
+			}
+		}
+		return overlays;
+	}
+
+	// same team, but the chunk on the other side belongs to a different capitol block
+	private static boolean differentBlock(Map<ChunkPos, Team> source, Map<ChunkPos, Long> blockIds,
+										  Team team, ChunkPos chunk, ChunkPos neighbor) {
+		Team neighborTeam = source.get(neighbor);
+		if (neighborTeam == null || !neighborTeam.getId().equals(team.getId())) return false;
+		return !Objects.equals(blockIds.get(chunk), blockIds.get(neighbor));
+	}
+
+	private static PolygonOverlay edgeOverlay(String modId, ResourceKey<Level> dimension, ShapeProperties props,
+											  int x1, int z1, int x2, int z2) {
+		MapPolygon poly = new MapPolygon(List.of(
+			new BlockPos(x1, 0, z1),
+			new BlockPos(x2, 0, z1),
+			new BlockPos(x2, 0, z2),
+			new BlockPos(x1, 0, z2)
+		));
+		return new PolygonOverlay(modId, dimension, props, poly);
 	}
 
 	private static List<Set<ChunkPos>> connectedComponents(Set<ChunkPos> chunks) {

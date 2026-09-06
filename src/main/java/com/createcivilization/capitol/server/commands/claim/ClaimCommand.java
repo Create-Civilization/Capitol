@@ -84,7 +84,7 @@ public class ClaimCommand {
 		}
 
 		database.claimChunk(team, chunkPos, player.level());
-		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
+		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team, java.util.Optional.empty());
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.success").withStyle(ChatFormatting.GREEN), true);

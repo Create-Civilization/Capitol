@@ -35,6 +35,8 @@ public final class ClientJMClaims {
 	private Path claimsFile;
 	// key is chunkpos packed as long, value is the team owning it
 	private final Map<Long, Team> claims = new ConcurrentHashMap<>();
+	// key is chunkpos packed as long, value is the capitol block id it falls under
+	private final Map<Long, Long> capitolBlockIds = new ConcurrentHashMap<>();
 	// lazy load so we dont hit disk unless we actually need it
 	private boolean loaded;
 	// if dirty is true we write the json back out
@@ -64,6 +66,7 @@ public final class ClientJMClaims {
 		loaded = false;
 		if (hadExistingFile) {
 			claims.clear();
+			capitolBlockIds.clear();
 			dirty = false;
 		} else if (dirty) {
 			flush();
@@ -79,23 +82,41 @@ public final class ClientJMClaims {
 		return out;
 	}
 
+	public synchronized Map<ChunkPos, Long> blockIdSnapshot() {
+		ensureLoaded();
+		Map<ChunkPos, Long> out = new HashMap<>(capitolBlockIds.size());
+		for (Map.Entry<Long, Long> e : capitolBlockIds.entrySet()) {
+			out.put(new ChunkPos(e.getKey()), e.getValue());
+		}
+		return out;
+	}
+
 	public synchronized int signature() {
 		ensureLoaded();
-		return claims.entrySet().hashCode();
+		return claims.entrySet().hashCode() + capitolBlockIds.entrySet().hashCode();
 	}
 
 	public synchronized void upsert(ChunkPos pos, Team team) {
+		upsert(pos, team, null);
+	}
+
+	public synchronized void upsert(ChunkPos pos, Team team, Long capitolBlockId) {
 		Objects.requireNonNull(pos, "pos");
 		Objects.requireNonNull(team, "team");
 		ensureLoaded();
 		claims.put(pos.toLong(), team);
+		if (capitolBlockId == null) {
+			capitolBlockIds.remove(pos.toLong());
+		} else {
+			capitolBlockIds.put(pos.toLong(), capitolBlockId);
+		}
 		dirty = true;
 	}
 
 	public synchronized void remove(ChunkPos pos) {
 		if (pos == null) return;
 		ensureLoaded();
-		if (claims.remove(pos.toLong()) != null) {
+		if (claims.remove(pos.toLong()) != null || capitolBlockIds.remove(pos.toLong()) != null) {
 			dirty = true;
 		}
 	}
@@ -140,6 +161,11 @@ public final class ClientJMClaims {
 				Team team = teamFromJson(teamObj);
 				if (team == null) continue;
 				claims.put(chunk, team);
+				// older claims files dont have this field, then we just have no divider
+				JsonElement blockEl = obj.get("capitolBlockId");
+				if (blockEl != null && !blockEl.isJsonNull()) {
+					capitolBlockIds.put(chunk, blockEl.getAsLong());
+				}
 			}
 		} catch (Exception e) {
 			Capitol.LOGGER.error("Failed to read JourneyMap claims file {}", claimsFile, e);
@@ -150,13 +176,17 @@ public final class ClientJMClaims {
 		if (claimsFile == null) return;
 
 		JsonObject root = new JsonObject();
-		root.addProperty("version", 1);
+		root.addProperty("version", 2);
 		root.addProperty("updatedAt", Instant.now().toString());
 		JsonArray arr = new JsonArray();
 		for (Map.Entry<Long, Team> e : claims.entrySet()) {
 			JsonObject obj = new JsonObject();
 			obj.addProperty("chunk", e.getKey());
 			obj.add("team", teamToJson(e.getValue()));
+			Long blockId = capitolBlockIds.get(e.getKey());
+			if (blockId != null) {
+				obj.addProperty("capitolBlockId", blockId);
+			}
 			arr.add(obj);
 		}
 		root.add("claims", arr);
