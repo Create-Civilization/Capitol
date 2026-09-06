@@ -1,5 +1,8 @@
 package com.createcivilization.capitol.common.block;
 
+import com.createcivilization.capitol.common.data.CapitolBlockData;
+import com.createcivilization.capitol.common.data.CapitolTier;
+import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
@@ -29,13 +32,18 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class CapitolBlock extends HorizontalDirectionalBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    // How many chunks outward from the capitol block to claim
-    // 3 means a 7x7 area (the chunk it's in, plus 3 outward in each direction)
+    // chunks outward from the Capital to grab when it's first placed
+    // 3 = 7x7 (its own chunk + 3 out each direction)
     private static final int CLAIM_RADIUS = 3;
+
+    // chunks outward an extra block takes over the team's existing claims. 2 = 5x5.
+    private static final int TRANSFER_RADIUS = 2;
 
     public CapitolBlock(Properties properties) {
         super(properties);
@@ -77,50 +85,78 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
             return;
         }
 
-        // The first Capitol Block a team places — or the first one placed after every
-        // Capitol Block was destroyed — automatically becomes the team's Capital.
-        // A team can only ever have one Capital at a time.
+        String dimension = level.dimension().location().toString();
+
+        // first block a team places (or the first after all of them got destroyed)
+        // becomes the Capital. one per team.
         boolean isCapital = !DatabaseManager.database.teamHasCapital(team);
 
-        // Claim the surrounding chunks
-        ChunkPos centerChunk = new ChunkPos(pos);
-        int claimed = 0;
-
-        for (int dx = -CLAIM_RADIUS; dx <= CLAIM_RADIUS; dx++) {
-            for (int dz = -CLAIM_RADIUS; dz <= CLAIM_RADIUS; dz++) {
-                ChunkPos chunkPos = new ChunkPos(
-                    centerChunk.x + dx,
-                    centerChunk.z + dz
+        CapitolTier tier = null;
+        if (!isCapital) {
+            // extra blocks need permission to place...
+            if (!Permission.MANAGE_CAPITOL_BLOCKS.hasPermission(
+                DatabaseManager.database.getPlayerPermission(player, team))) {
+                player.sendSystemMessage(
+                    Component.literal("You do not have permission to place additional Capitol Blocks.")
+                        .withStyle(ChatFormatting.RED)
                 );
-
-                // Skip if already claimed by anyone
-                if (DatabaseManager.database.getChunkOwner(chunkPos, level) != null) {
-                    continue;
-                }
-
-                DatabaseManager.database.claimChunk(team, chunkPos, level);
-                S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
-                PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, chunkPos, packet);
-                claimed++;
+                level.removeBlock(pos, false);
+                player.addItem(new ItemStack(CapitolBlocks.CAPITOL_BLOCK.get()));
+                return;
             }
+            // ...and have to go inside the team's own claims.
+            Team chunkOwner = DatabaseManager.database.getChunkOwner(new ChunkPos(pos), level);
+            if (chunkOwner == null || !chunkOwner.getId().equals(team.getId())) {
+                player.sendSystemMessage(
+                    Component.literal("Additional Capitol Blocks must be placed inside your team's claimed chunks.")
+                        .withStyle(ChatFormatting.RED)
+                );
+                level.removeBlock(pos, false);
+                player.addItem(new ItemStack(CapitolBlocks.CAPITOL_BLOCK.get()));
+                return;
+            }
+            // extra blocks start as a Village, upgradeable later
+            tier = CapitolTier.VILLAGE;
         }
 
-        // Record the placed capitol block (and designate it as the Capital if the team has none)
-        DatabaseManager.database.addCapitolBlock(
-            team,
-            pos,
-            level.dimension().location().toString(),
-            isCapital
-        );
+        long capitolBlockId = DatabaseManager.database.addCapitolBlock(team, pos, dimension, isCapital, tier);
 
         if (isCapital) {
+            // the Capital grabs everything around it on placement
+            ChunkPos centerChunk = new ChunkPos(pos);
+            int claimed = 0;
+
+            for (int dx = -CLAIM_RADIUS; dx <= CLAIM_RADIUS; dx++) {
+                for (int dz = -CLAIM_RADIUS; dz <= CLAIM_RADIUS; dz++) {
+                    ChunkPos chunkPos = new ChunkPos(
+                        centerChunk.x + dx,
+                        centerChunk.z + dz
+                    );
+
+                    // Skip if already claimed by anyone
+                    if (DatabaseManager.database.getChunkOwner(chunkPos, level) != null) {
+                        continue;
+                    }
+
+                    DatabaseManager.database.claimChunk(team, chunkPos, level, capitolBlockId);
+                    S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
+                    PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, chunkPos, packet);
+                    claimed++;
+                }
+            }
+
             player.sendSystemMessage(
                 Component.literal("Capitol Block placed! This block is now your team's Capital. Claimed " + claimed + " chunks around it.")
                     .withStyle(ChatFormatting.GREEN)
             );
         } else {
+            // extra blocks don't claim new stuff, they just take over
+            // the team's already-claimed chunks in a 5x5 around them
+            int transferred = DatabaseManager.database.transferClaimedChunksToCapitolBlock(
+                team, level, pos, capitolBlockId, TRANSFER_RADIUS
+            );
             player.sendSystemMessage(
-                Component.literal("Capitol Block placed! Claimed " + claimed + " chunks around it.")
+                Component.literal("Capitol Block placed! This block is now a Village, controlling " + transferred + " claimed chunk(s).")
                     .withStyle(ChatFormatting.GREEN)
             );
         }
@@ -131,15 +167,22 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
                                                Player player, BlockHitResult hitResult) {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
 
-        Team team = DatabaseManager.database.getTeamByCapitolPos(
-            pos,
-            level.dimension().location().toString()
-        );
+        String dimension = level.dimension().location().toString();
+        CapitolBlockData data = DatabaseManager.database.getCapitolBlock(pos, dimension);
+        if (data == null) return InteractionResult.PASS;
+
+        Team team = DatabaseManager.database.getTeam(data.teamId());
         if (team == null) return InteractionResult.PASS;
+
+        boolean canUpgrade = !data.capital()
+            && data.tier() != null
+            && data.tier().upgraded() != null
+            && Permission.MANAGE_CAPITOL_BLOCKS.hasPermission(
+                DatabaseManager.database.getPlayerPermission(player, team));
 
         PacketDistributor.sendToPlayer(
             (ServerPlayer) player,
-            new S2COpenCapitolScreen(team, pos)
+            new S2COpenCapitolScreen(team, pos, data.capital(), data.tier(), canUpgrade)
         );
         return InteractionResult.CONSUME;
     }
@@ -150,34 +193,31 @@ public class CapitolBlock extends HorizontalDirectionalBlock {
         // Only run on the server, and only if the block is actually being removed
         // (not just changing state)
         if (!level.isClientSide() && !state.is(newState.getBlock())) {
-            unclaimRadius(level, pos);
+            unclaimCapitolBlock(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    private void unclaimRadius(Level level, BlockPos pos) {
-        ChunkPos centerChunk = new ChunkPos(pos);
+    private void unclaimCapitolBlock(Level level, BlockPos pos) {
+        String dimension = level.dimension().location().toString();
 
-        // Find what team owns the chunk the capitol block was in
-        Team team = DatabaseManager.database.getTeamByCapitolPos(
-            pos,
-            level.dimension().location().toString()
-        );
+        CapitolBlockData data = DatabaseManager.database.getCapitolBlock(pos, dimension);
+        if (data == null) return;
+
+        Team team = DatabaseManager.database.getTeam(data.teamId());
         if (team == null) return;
 
-        for (int dx = -CLAIM_RADIUS; dx <= CLAIM_RADIUS; dx++) {
-            for (int dz = -CLAIM_RADIUS; dz <= CLAIM_RADIUS; dz++) {
-                ChunkPos chunkPos = new ChunkPos(
-                    centerChunk.x + dx,
-                    centerChunk.z + dz
-                );
-                DatabaseManager.database.unclaimChunk(team, chunkPos, level);
-                S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
-                PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, chunkPos, packet);
-            }
+        // only this block's chunks get unclaimed; ones the team claimed
+        // on their own (or belong to other blocks) stay
+        List<ChunkPos> removed = DatabaseManager.database.unclaimCapitolBlockChunks(
+            team, data.id(), dimension
+        );
+        for (ChunkPos chunkPos : removed) {
+            S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, chunkPos, packet);
         }
 
         // Remove the block's record (this also clears the Capital designation if the block was the Capital)
-        DatabaseManager.database.removeCapitolBlock(team, pos, level.dimension().location().toString());
+        DatabaseManager.database.removeCapitolBlock(team, pos, dimension);
     }
 }

@@ -30,6 +30,12 @@ public class ClientPayloadHandler {
 	}
 
 	public static void openCapitolScreenHandler(final S2COpenCapitolScreen payload, final IPayloadContext context) {
-		CapitolClientHooks.openCapitolBook.open(payload.team(), payload.capitolPos());
+		CapitolClientHooks.openCapitolBook.open(
+			payload.team(),
+			payload.capitolPos(),
+			payload.isCapital(),
+			payload.tier(),
+			payload.canUpgrade()
+		);
 	}
 }

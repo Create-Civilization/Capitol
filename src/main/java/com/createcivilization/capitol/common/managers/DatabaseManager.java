@@ -6,6 +6,8 @@ import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 
 import java.nio.file.Path;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseManager {
 
@@ -92,6 +94,7 @@ public class DatabaseManager {
 					"chunk_z INTEGER NOT NULL," +
 					"team_id TEXT NOT NULL," +
 					"force_loaded BOOLEAN NOT NULL," +
+					"capitol_block_id INTEGER," +  // the capitol block this chunk falls under, if any
 					"PRIMARY KEY (dimension, chunk_x, chunk_z)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
@@ -105,6 +108,7 @@ public class DatabaseManager {
 					"y INTEGER NOT NULL," +
 					"z INTEGER NOT NULL," +
 					"is_capital INTEGER NOT NULL DEFAULT 0," +
+					"tier TEXT," +  // VILLAGE/TOWN/CITY; null for the Capital
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
@@ -174,7 +178,67 @@ public class DatabaseManager {
 			}
 			setSchemaVersion(2);
 		}
+		if (current < 3) {
+			// capitol blocks get a settlement tier; the Capital doesn't have one
+			if (tableExists("capitol_blocks") && !columnExists("capitol_blocks", "tier")) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute("ALTER TABLE capitol_blocks ADD COLUMN tier TEXT");
+					// old extra blocks start as Villages
+					stmt.execute("UPDATE capitol_blocks SET tier = 'VILLAGE' WHERE is_capital = 0 AND tier IS NULL");
+				}
+			}
+			// chunks now remember which capitol block they belong to
+			if (tableExists("chunks") && !columnExists("chunks", "capitol_block_id")) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute("ALTER TABLE chunks ADD COLUMN capitol_block_id INTEGER");
+				}
+				backfillCapitolBlockChunks();
+			}
+			setSchemaVersion(3);
+		}
 	}
+
+	// old dbs don't have chunk attribution, so we work it out from how the
+	// chunks were claimed back then (7x7 around each block on placement)
+	private static void backfillCapitolBlockChunks() throws SQLException {
+		if (!tableExists("capitol_blocks") || !tableExists("chunks")) return;
+		try (Statement stmt = connection.createStatement();
+			 ResultSet rs = stmt.executeQuery(
+				 "SELECT id, team_id, dimension, x, z FROM capitol_blocks ORDER BY id")) {
+			List<CapitolBlockRow> blocks = new ArrayList<>();
+			while (rs.next()) {
+				// block pos -> chunk pos of the chunk it sits in
+				blocks.add(new CapitolBlockRow(
+					rs.getLong("id"),
+					rs.getString("team_id"),
+					rs.getString("dimension"),
+					rs.getInt("x") >> 4,
+					rs.getInt("z") >> 4
+				));
+			}
+			for (CapitolBlockRow block : blocks) {
+				// chunks were claimed in a 7x7 (radius 3) around the block when placed
+				try (PreparedStatement update = connection.prepareStatement(
+					"UPDATE chunks SET capitol_block_id = ? " +
+						"WHERE dimension = ? AND chunk_x = ? AND chunk_z = ? AND team_id = ? " +
+						"AND capitol_block_id IS NULL")) {
+					for (int dx = -3; dx <= 3; dx++) {
+						for (int dz = -3; dz <= 3; dz++) {
+							update.setLong(1, block.id);
+							update.setString(2, block.dimension);
+							update.setInt(3, block.chunkX + dx);
+							update.setInt(4, block.chunkZ + dz);
+							update.setString(5, block.teamId);
+							update.executeUpdate();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private record CapitolBlockRow(long id, String teamId, String dimension, int chunkX, int chunkZ) {}
+
 
 	private static boolean tableExists(String table) throws SQLException {
 		try (PreparedStatement ps = connection.prepareStatement(

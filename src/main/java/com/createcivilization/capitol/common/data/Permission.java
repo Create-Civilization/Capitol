@@ -10,6 +10,7 @@ public enum Permission {
 	MANAGE_ROLES(1L << 5),  // create/edit/delete roles
 	ASSIGN_ROLES(1L << 6),  // change a member's role
 	MANAGE_TEAM(1L << 7),  // rename team, disband, etc.
+	MANAGE_CAPITOL_BLOCKS(1L << 27),  // place + upgrade extra (non-Capital) capitol blocks
 
 	// --- Block Protection ---
 	BREAK_BLOCKS(1L << 8),

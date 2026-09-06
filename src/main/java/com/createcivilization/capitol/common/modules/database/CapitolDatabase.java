@@ -719,12 +719,10 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
-	/**
-	 * Records a placed capitol block for a team. When {@code isCapital} is true the
-	 * block becomes the team's designated Capital, clearing any previous Capital
-	 * designation first so a team can only ever have one Capital.
-	 */
-	public void addCapitolBlock(Team team, BlockPos pos, String dimension, boolean isCapital) {
+	// records a placed block and returns its row id. isCapital makes it the team's
+	// Capital (clearing any old one first). extra blocks start at the given tier;
+	// the Capital has no tier so pass null.
+	public long addCapitolBlock(Team team, BlockPos pos, String dimension, boolean isCapital, @Nullable CapitolTier tier) {
 		if (isCapital) {
 			try (PreparedStatement ps = getConnection().prepareStatement(
 				"UPDATE capitol_blocks SET is_capital = 0 WHERE team_id = ? AND is_capital = 1")) {
@@ -736,20 +734,32 @@ public class CapitolDatabase extends Database {
 			}
 		}
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"INSERT INTO capitol_blocks (team_id, dimension, x, y, z, is_capital) VALUES (?, ?, ?, ?, ?, ?)")) {
+			"INSERT INTO capitol_blocks (team_id, dimension, x, y, z, is_capital, tier) VALUES (?, ?, ?, ?, ?, ?, ?)",
+			Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, team.getId().toString());
 			ps.setString(2, dimension);
 			ps.setInt(3, pos.getX());
 			ps.setInt(4, pos.getY());
 			ps.setInt(5, pos.getZ());
 			ps.setInt(6, isCapital ? 1 : 0);
-			ps.execute();
+			if (tier == null) {
+				ps.setNull(7, java.sql.Types.VARCHAR);
+			} else {
+				ps.setString(7, tier.name());
+			}
+			ps.executeUpdate();
+			try (ResultSet keys = ps.getGeneratedKeys()) {
+				if (!keys.next()) {
+					throw new RuntimeException("Failed to retrieve generated id for capitol block");
+				}
+				if (isCapital) {
+					setCapitolPos(team, pos, dimension);
+				}
+				return keys.getLong(1);
+			}
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error adding capitol block for team " + team.getId(), e);
 			throw new RuntimeException(e);
-		}
-		if (isCapital) {
-			setCapitolPos(team, pos, dimension);
 		}
 	}
 
@@ -807,6 +817,106 @@ public class CapitolDatabase extends Database {
 		}
 	}
 
+	// gets a capitol block record by position, or null if there isn't one
+	@Nullable
+	public CapitolBlockData getCapitolBlock(BlockPos pos, String dimension) {
+		String sql = "SELECT id, team_id, dimension, x, y, z, is_capital, tier FROM capitol_blocks " +
+			"WHERE dimension = ? AND x = ? AND y = ? AND z = ?";
+		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+			ps.setString(1, dimension);
+			ps.setInt(2, pos.getX());
+			ps.setInt(3, pos.getY());
+			ps.setInt(4, pos.getZ());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return CapitolBlockData.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error looking up capitol block by position", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// bumps a block up to the given (higher) tier
+	public void setCapitolBlockTier(long capitolBlockId, CapitolTier tier) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE capitol_blocks SET tier = ? WHERE id = ?")) {
+			ps.setString(1, tier.name());
+			ps.setLong(2, capitolBlockId);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error upgrading capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// re-points every chunk the team owns in a square radius (in chunks) at this
+	// block. leaves unclaimed chunks alone. returns how many got moved.
+	public int transferClaimedChunksToCapitolBlock(Team team, Level level, BlockPos pos, long capitolBlockId, int chunkRadius) {
+		String dim = level.dimension().location().toString();
+		ChunkPos center = new ChunkPos(pos);
+		int transferred = 0;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE chunks SET capitol_block_id = ? " +
+				"WHERE dimension = ? AND chunk_x = ? AND chunk_z = ? AND team_id = ? " +
+				"AND (capitol_block_id IS NULL OR capitol_block_id <> ?)")) {
+			for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
+				for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
+					ps.setLong(1, capitolBlockId);
+					ps.setString(2, dim);
+					ps.setInt(3, center.x + dx);
+					ps.setInt(4, center.z + dz);
+					ps.setString(5, team.getId().toString());
+					ps.setLong(6, capitolBlockId);
+					transferred += ps.executeUpdate();
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error transferring chunks to capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+		return transferred;
+	}
+
+	// unclaims everything this block owns and drops the team's claim count.
+	// returns the removed chunk positions so callers can push border updates.
+	public List<ChunkPos> unclaimCapitolBlockChunks(Team team, long capitolBlockId, String dimension) {
+		List<ChunkPos> removed = new ArrayList<>();
+		try (PreparedStatement select = getConnection().prepareStatement(
+			"SELECT chunk_x, chunk_z FROM chunks WHERE capitol_block_id = ? AND dimension = ?")) {
+			select.setLong(1, capitolBlockId);
+			select.setString(2, dimension);
+			try (ResultSet rs = select.executeQuery()) {
+				while (rs.next()) {
+					removed.add(new ChunkPos(rs.getInt("chunk_x"), rs.getInt("chunk_z")));
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error reading chunks of capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+		if (removed.isEmpty()) return removed;
+
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM chunks WHERE capitol_block_id = ? AND dimension = ?")) {
+			ps.setLong(1, capitolBlockId);
+			ps.setString(2, dimension);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error unclaiming chunks of capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+
+		Map<Long, Optional<Team>> dimCache = chunkOwnerCache.get(dimension);
+		if (dimCache != null) {
+			for (ChunkPos pos : removed) {
+				dimCache.put(pos.toLong(), Optional.empty());
+			}
+		}
+		updateCurrentClaims(team, -removed.size());
+		return removed;
+	}
+
 	/**
 	 * Claims a chunk for a team by inserting it into the {@code chunks} table
 	 * and incrementing the team's {@code current_claims} counter.
@@ -816,14 +926,24 @@ public class CapitolDatabase extends Database {
 	 * @param level    the dimension/level the chunk is in
 	 */
 	public void claimChunk(Team team, ChunkPos chunkPos, Level level) {
+		claimChunk(team, chunkPos, level, null);
+	}
+
+	// same as above, but ties the chunk to a capitol block (null = plain claim)
+	public void claimChunk(Team team, ChunkPos chunkPos, Level level, @Nullable Long capitolBlockId) {
 		String dim = level.dimension().location().toString();
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id, force_loaded) VALUES (?, ?, ?, ?, ?)")) {
+			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id, force_loaded, capitol_block_id) VALUES (?, ?, ?, ?, ?, ?)")) {
 			ps.setString(1, dim);
 			ps.setInt(2, chunkPos.x);
 			ps.setInt(3, chunkPos.z);
 			ps.setString(4, team.getId().toString());
 			ps.setBoolean(5, false);
+			if (capitolBlockId == null) {
+				ps.setNull(6, java.sql.Types.INTEGER);
+			} else {
+				ps.setLong(6, capitolBlockId);
+			}
 			ps.execute();
 			chunkOwnerCache.computeIfAbsent(dim, k -> new HashMap<>())
 				.put(chunkPos.toLong(), Optional.of(team));

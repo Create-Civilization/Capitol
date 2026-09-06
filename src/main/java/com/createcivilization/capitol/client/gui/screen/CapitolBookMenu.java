@@ -3,8 +3,10 @@ package com.createcivilization.capitol.client.gui.screen;
 import com.createcivilization.capitol.client.gui.base.*;
 import com.createcivilization.capitol.client.gui.interactables.ButtonInteractable;
 import com.createcivilization.capitol.client.gui.interactables.TextInputInteractable;
+import com.createcivilization.capitol.client.gui.pages.CapitolBlockPage;
 import com.createcivilization.capitol.client.gui.pages.DisplayTeamPage;
 import com.createcivilization.capitol.client.gui.pages.InvitePlayerPage;
+import com.createcivilization.capitol.common.data.CapitolTier;
 import com.createcivilization.capitol.common.data.Team;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,26 +23,28 @@ public class CapitolBookMenu extends BookScreen {
 	private static int lastPage = 0;
 
 	public int currentPage;
-	Tabs tabs = new Tabs();
+	Tabs tabs;
 	int startingTab;
 	Tabs.Tab currentTab;
 	List<PageHandler> pageHandlers;
 
-	public CapitolBookMenu(Team team, BlockPos capitolPos) {
+	public CapitolBookMenu(Team team, BlockPos capitolPos, boolean isCapital, CapitolTier tier, boolean canUpgrade) {
 		super(Component.translatable("screen.capitol.capitol_block.title"));
 		this.pageHandlers = List.of(
 			new AttackHandler(),
 			new DefenseHandler(),
 			new SupportHandler(),
 			new InfoHandler(team, capitolPos),
-			new SettingsHandler()
+			new SettingsHandler(capitolPos, isCapital, tier, canUpgrade)
 		);
+		this.tabs = new Tabs(isCapital);
 		addInteractable(tabs);
 		pageHandlers.forEach(pageHandler -> {
 			pageHandler.hide();
 			addInteractable(pageHandler);
 		});
-		this.startingTab = lastTab;
+		// attack/defense tabs are hidden outside the Capital, so don't try to start on one
+		this.startingTab = !isCapital && lastTab < 2 ? 2 : lastTab;
 		this.currentPage = lastPage;
 	}
 
@@ -60,12 +64,17 @@ public class CapitolBookMenu extends BookScreen {
 
 		int x, y;
 
-		private Tabs() {
+		private Tabs(boolean isCapital) {
 			this.setInteractableList(
 				IntStream.range(0, 5).boxed().map(
 					integer -> (Interactable) new Tab(296 + (integer * 23), (integer * 23), 0, integer)
 				).toList()
 			);
+			// the red (attack) and blue (defense) bookmarks are Capital-only
+			if (!isCapital) {
+				getInteractableList().get(0).hide();
+				getInteractableList().get(1).hide();
+			}
 		}
 
 		@Override
@@ -186,8 +195,8 @@ public class CapitolBookMenu extends BookScreen {
 	}
 
 	private static class SettingsHandler extends PageHandler {
-		public SettingsHandler() {
-			super(List.of());
+		public SettingsHandler(BlockPos capitolPos, boolean isCapital, CapitolTier tier, boolean canUpgrade) {
+			super(List.of(new CapitolBlockPage(capitolPos, isCapital, tier, canUpgrade)));
 		}
 	}
 

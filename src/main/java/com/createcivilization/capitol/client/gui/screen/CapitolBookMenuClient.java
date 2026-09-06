@@ -7,8 +7,8 @@ import net.minecraft.client.Minecraft;
 public final class CapitolBookMenuClient {
 
 	public static void register() {
-		CapitolClientHooks.openCapitolBook = (team, capitolPos) ->
-			Minecraft.getInstance().setScreen(new CapitolBookMenu(team, capitolPos));
+		CapitolClientHooks.openCapitolBook = (team, capitolPos, isCapital, tier, canUpgrade) ->
+			Minecraft.getInstance().setScreen(new CapitolBookMenu(team, capitolPos, isCapital, tier, canUpgrade));
 	}
 
 	private CapitolBookMenuClient() {}

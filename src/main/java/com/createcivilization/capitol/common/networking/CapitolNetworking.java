@@ -7,9 +7,9 @@ import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
-import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;
-import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
-import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;	import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
+	import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+	import com.createcivilization.capitol.common.networking.packets.C2SUpgradeCapitolBlock;
 import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 
 import net.neoforged.bus.api.IEventBus;
@@ -97,6 +97,14 @@ public class CapitolNetworking {
     		C2STeamChat.STREAM_CODEC,
     		new MainThreadPayloadHandler<>(
     			ServerPayloadHandler::handleTeamChat
+    		)
+    	);
+
+    		registrar.playToServer(
+    		C2SUpgradeCapitolBlock.TYPE,
+    		C2SUpgradeCapitolBlock.STREAM_CODEC,
+    		new MainThreadPayloadHandler<>(
+    			ServerPayloadHandler::handleUpgradeCapitolBlock
     		)
     	);
 	}

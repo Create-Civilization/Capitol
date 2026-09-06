@@ -11,9 +11,12 @@ import com.createcivilization.capitol.common.networking.packets.C2SUnclaimChunk;
 import com.createcivilization.capitol.common.networking.packets.C2SChunkRequest;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
-import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
-import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;
-import com.createcivilization.capitol.common.item.SubClaimWand;
+import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;	import com.createcivilization.capitol.common.networking.packets.C2SInvitePlayer;
+	import com.createcivilization.capitol.common.networking.packets.C2SUpgradeCapitolBlock;
+	import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
+	import com.createcivilization.capitol.common.data.CapitolBlockData;
+	import com.createcivilization.capitol.common.data.CapitolTier;
+	import com.createcivilization.capitol.common.item.SubClaimWand;
 import com.createcivilization.capitol.server.invites.InviteHandler;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -229,6 +232,52 @@ public class ServerPayloadHandler {
         }
     });
 }
+	public static void handleUpgradeCapitolBlock(final C2SUpgradeCapitolBlock request, final IPayloadContext context) {
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.player();
+
+		Team team = database.getPlayerTeam(player);
+		if (team == null) {
+			player.displayClientMessage(Component.literal("You are not in a team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (!Permission.MANAGE_CAPITOL_BLOCKS.hasPermission(database.getPlayerPermission(player, team))) {
+			player.displayClientMessage(Component.literal("You do not have permission to upgrade Capitol Blocks").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		String dimension = player.level().dimension().location().toString();
+		CapitolBlockData data = database.getCapitolBlock(request.pos(), dimension);
+		if (data == null) {
+			player.displayClientMessage(Component.literal("There is no Capitol Block at that position").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+		if (!data.teamId().equals(team.getId())) {
+			player.displayClientMessage(Component.literal("That Capitol Block does not belong to your team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+		if (data.capital()) {
+			player.displayClientMessage(Component.literal("The Capital cannot be upgraded").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		CapitolTier next = data.tier() == null ? null : data.tier().upgraded();
+		if (next == null) {
+			player.displayClientMessage(Component.literal("This Capitol Block is already at its maximum tier").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		database.setCapitolBlockTier(data.id(), next);
+		player.displayClientMessage(
+			Component.literal("Capitol Block upgraded to " + next + "! Max claims: " + next.maxClaims() + ". Upkeep: " + next.upkeep() + ".")
+				.withStyle(ChatFormatting.GREEN), false);
+
+		// reopen the book so the new tier shows
+		PacketDistributor.sendToPlayer((ServerPlayer) player,
+			new S2COpenCapitolScreen(team, request.pos(), false, next, next.upgraded() != null));
+	}
+
 	public static void handleTeamChat(final C2STeamChat request, final IPayloadContext context) {
     CapitolDatabase database = DatabaseManager.database;
     Player player = context.player();

@@ -16,6 +16,14 @@ public class CapitolConfig {
 	public static final ModConfigSpec.BooleanValue SUBLEVEL_CLAIM_OVERLAP;
 	public static final ModConfigSpec.DoubleValue AUTO_CLAIM_COOLDOWN;
 
+	// Capitol block tiers
+	public static final ModConfigSpec.IntValue CAPITOL_VILLAGE_MAX_CLAIMS;
+	public static final ModConfigSpec.IntValue CAPITOL_TOWN_MAX_CLAIMS;
+	public static final ModConfigSpec.IntValue CAPITOL_CITY_MAX_CLAIMS;
+	public static final ModConfigSpec.IntValue CAPITOL_VILLAGE_UPKEEP;
+	public static final ModConfigSpec.IntValue CAPITOL_TOWN_UPKEEP;
+	public static final ModConfigSpec.IntValue CAPITOL_CITY_UPKEEP;
+
 	// Forceloading
 	public static final ModConfigSpec.BooleanValue FORCELOAD_ENABLED;
 	public static final ModConfigSpec.IntValue FORCELOAD_MAX_PER_TEAM;
@@ -84,6 +92,37 @@ public class CapitolConfig {
 			.comment("How long a player must wait before being able to claim the next chunk while autoclaiming.",
 				"Given in seconds.")
 				.defineInRange("autoClaimCooldown", 1.0, 0, Integer.MAX_VALUE);
+
+		builder.pop();
+
+		builder.comment(
+			"Capitol block tiers (Village -> Town -> City).",
+			"Max claims + upkeep per tier. Not enforced yet - per-block claims/upkeep payment are future work."
+		).push("capitolBlockTiers");
+
+		CAPITOL_VILLAGE_MAX_CLAIMS = builder
+			.comment("Max claims a Village capitol block controls.")
+			.defineInRange("villageMaxClaims", 100, 1, Integer.MAX_VALUE);
+
+		CAPITOL_TOWN_MAX_CLAIMS = builder
+			.comment("Max claims a Town capitol block controls.")
+			.defineInRange("townMaxClaims", 300, 1, Integer.MAX_VALUE);
+
+		CAPITOL_CITY_MAX_CLAIMS = builder
+			.comment("Max claims a City capitol block controls.")
+			.defineInRange("cityMaxClaims", 600, 1, Integer.MAX_VALUE);
+
+		CAPITOL_VILLAGE_UPKEEP = builder
+			.comment("Upkeep for a Village capitol block (not charged yet).")
+			.defineInRange("villageUpkeep", 5, 0, Integer.MAX_VALUE);
+
+		CAPITOL_TOWN_UPKEEP = builder
+			.comment("Upkeep for a Town capitol block (not charged yet).")
+			.defineInRange("townUpkeep", 15, 0, Integer.MAX_VALUE);
+
+		CAPITOL_CITY_UPKEEP = builder
+			.comment("Upkeep for a City capitol block (not charged yet).")
+			.defineInRange("cityUpkeep", 40, 0, Integer.MAX_VALUE);
 
 		builder.pop();
 
