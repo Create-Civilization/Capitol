@@ -25,7 +25,14 @@ import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolNamingScreen;
 import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
+import com.createcivilization.capitol.common.networking.packets.S2CSyncWars;
+import com.createcivilization.capitol.common.networking.packets.C2SDeclareWar;
+import com.createcivilization.capitol.common.networking.packets.C2SEndWar;
+import com.createcivilization.capitol.common.data.War;
+import com.createcivilization.capitol.common.events.WarEvent;
+import com.createcivilization.capitol.server.events.WarTakeoverEvents;
 import com.createcivilization.capitol.server.invites.InviteHandler;
+import net.neoforged.neoforge.common.NeoForge;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -465,6 +472,91 @@ public class ServerPayloadHandler {
 		}
 	}
 
+	public static void handleDeclareWar(final C2SDeclareWar request, final IPayloadContext context) {
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.player();
+
+		Team declaring = database.getPlayerTeam(player);
+		if (declaring == null) {
+			player.displayClientMessage(Component.literal("You are not in any team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (!Permission.DECLARE_WAR.hasPermission(database.getPlayerPermission(player, declaring))) {
+			player.displayClientMessage(Component.literal("You do not have permission to declare war").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		Team receiving = database.getTeamByName(request.receivingTeamName());
+		if (receiving == null) {
+			player.displayClientMessage(Component.literal("There is no team called \"" + request.receivingTeamName() + "\"").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (receiving.getId().equals(declaring.getId())) {
+			player.displayClientMessage(Component.literal("You cannot declare war on your own team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (database.warExists(declaring.getId(), receiving.getId())) {
+			player.displayClientMessage(Component.literal("Your team is already at war with \"" + receiving.getName() + "\"").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (!database.addWar(declaring, receiving)) return;
+
+		War war = database.getWar(declaring.getId(), receiving.getId());
+		if (war != null) NeoForge.EVENT_BUS.post(new WarEvent.WarCreatedEvent(war));
+		broadcastWars();
+
+		player.displayClientMessage(
+			Component.literal("Successfully declared war on \"" + receiving.getName() + "\"").withStyle(ChatFormatting.GREEN),
+			true
+		);
+	}
+
+	public static void handleEndWar(final C2SEndWar request, final IPayloadContext context) {
+		CapitolDatabase database = DatabaseManager.database;
+		Player player = context.player();
+
+		Team declaring = database.getPlayerTeam(player);
+		if (declaring == null) {
+			player.displayClientMessage(Component.literal("You are not in any team").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (!declaring.getId().equals(request.declaringTeamId())) {
+			player.displayClientMessage(Component.literal("Only the declaring team can end this war").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		if (!Permission.DECLARE_WAR.hasPermission(database.getPlayerPermission(player, declaring))) {
+			player.displayClientMessage(Component.literal("You do not have permission to end wars").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		War war = database.getWar(request.declaringTeamId(), request.receivingTeamId());
+		if (war == null) {
+			player.displayClientMessage(Component.literal("That war no longer exists").withStyle(ChatFormatting.RED), false);
+			return;
+		}
+
+		database.removeWar(request.declaringTeamId(), request.receivingTeamId());
+		WarTakeoverEvents.clearWarState(war);
+
+		broadcastWars();
+
+		player.displayClientMessage(
+			Component.literal("War successfully ended").withStyle(ChatFormatting.GREEN),
+			true
+		);
+	}
+
+	// re-sends the full war list to every connected player
+	public static void broadcastWars() {
+		PacketDistributor.sendToAllPlayers(new S2CSyncWars(DatabaseManager.database.getAllWars()));
+	}
+
 	// builds the book-open packet with everything the book page needs
 	public static S2COpenCapitolScreen openCapitolScreenFor(Team team, CapitolBlockData data, Player player) {
 		CapitolDatabase database = DatabaseManager.database;
@@ -490,7 +582,8 @@ public class ServerPayloadHandler {
 			data.name(),
 			data.mayorUuid() == null ? null : playerName(player, data.mayorUuid()),
 			members,
-			canAssignMayor
+			canAssignMayor,
+			perms
 		);
 	}
 

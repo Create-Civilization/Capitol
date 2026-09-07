@@ -8,6 +8,7 @@ import com.createcivilization.capitol.common.networking.packets.S2CChunkData;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
 import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolNamingScreen;
 import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
+import com.createcivilization.capitol.common.networking.packets.S2CSyncWars;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -37,5 +38,9 @@ public class ClientPayloadHandler {
 
 	public static void openCapitolNamingScreenHandler(final S2COpenCapitolNamingScreen payload, final IPayloadContext context) {
 		CapitolClientHooks.openCapitolNaming.open(payload);
+	}
+
+	public static void syncWarsHandler(final S2CSyncWars payload, final IPayloadContext context) {
+		ClientWarCache.setWars(payload.wars());
 	}
 }

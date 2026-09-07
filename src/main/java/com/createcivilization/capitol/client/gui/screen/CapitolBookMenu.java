@@ -6,7 +6,12 @@ import com.createcivilization.capitol.client.gui.interactables.TextInputInteract
 import com.createcivilization.capitol.client.gui.pages.CapitolBlockPage;
 import com.createcivilization.capitol.client.gui.pages.DisplayTeamPage;
 import com.createcivilization.capitol.client.gui.pages.InvitePlayerPage;
+import com.createcivilization.capitol.client.gui.pages.war.DeclareWarPage;
+import com.createcivilization.capitol.client.gui.pages.war.WarDisplayPage;
+import com.createcivilization.capitol.client.networking.ClientWarCache;
+import com.createcivilization.capitol.common.data.Permission;
 import com.createcivilization.capitol.common.data.Team;
+import com.createcivilization.capitol.common.data.War;
 import com.createcivilization.capitol.common.networking.packets.S2COpenCapitolScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -14,6 +19,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -31,7 +37,7 @@ public class CapitolBookMenu extends BookScreen {
 	public CapitolBookMenu(S2COpenCapitolScreen payload) {
 		super(Component.translatable("screen.capitol.capitol_block.title"));
 		this.pageHandlers = List.of(
-			new AttackHandler(),
+			new AttackHandler(payload),
 			new DefenseHandler(),
 			new SupportHandler(),
 			new InfoHandler(payload.team(), payload.capitolPos()),
@@ -169,8 +175,21 @@ public class CapitolBookMenu extends BookScreen {
 	}
 
 	private static class AttackHandler extends PageHandler {
-		public AttackHandler() {
-			super(List.of());
+		public AttackHandler(S2COpenCapitolScreen payload) {
+			super(buildPages(payload));
+		}
+
+		private static List<Interactable> buildPages(S2COpenCapitolScreen payload) {
+			List<Page> pageList = new ArrayList<>();
+
+			Team playerTeam = payload.team();
+			if (Permission.DECLARE_WAR.hasPermission(payload.playerPermissions())) pageList.add(new DeclareWarPage(playerTeam));
+
+			for (War war : ClientWarCache.getWarsForTeam(playerTeam.getId())) {
+				pageList.add(new WarDisplayPage(war, playerTeam));
+			}
+
+			return (List<Interactable>) (Object) pageList;
 		}
 	}
 

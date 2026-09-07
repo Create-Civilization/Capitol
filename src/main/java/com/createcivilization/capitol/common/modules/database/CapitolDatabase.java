@@ -371,6 +371,43 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
+	 * Returns the names of every team on the server.
+	 */
+	public List<String> getAllTeamNames() {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT name FROM teams")) {
+			try (ResultSet rs = ps.executeQuery()) {
+				List<String> names = new ArrayList<>();
+				while (rs.next()) names.add(rs.getString(1));
+				return names;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting all team names from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Retrieves a team by its name.
+	 *
+	 * @param name the team's name
+	 * @return the {@link Team}, or {@code null} if not found
+	 */
+	public Team getTeamByName(String name) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM teams WHERE name = ?")) {
+			ps.setString(1, name);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return Team.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting team by name from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * Finds the team a player belongs to by joining {@code team_members} and {@code teams}.
 	 *
 	 * @param player the player entity
@@ -1305,6 +1342,227 @@ public class CapitolDatabase extends Database {
 			ps.execute();
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Error while resetting current_claims for team.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+
+	// --- War System ---
+
+	/**
+	 * Registers a new war between two teams. Does nothing (and returns false)
+	 * if the teams are the same or a war between them already exists in
+	 * either direction.
+	 *
+	 * @return {@code true} if the war was created
+	 */
+	public boolean addWar(Team declaring, Team receiving) {
+		if (declaring.getId().equals(receiving.getId())) return false;
+		if (warExists(declaring.getId(), receiving.getId())) return false;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT INTO wars (declaring_team_id, receiving_team_id, time_of_creation) VALUES (?, ?, ?)")) {
+			ps.setString(1, declaring.getId().toString());
+			ps.setString(2, receiving.getId().toString());
+			ps.setLong(3, System.currentTimeMillis() / 1000);
+			ps.execute();
+			return true;
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while adding war to database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Checks whether a war exists between two teams, in either direction.
+	 */
+	public boolean warExists(UUID teamA, UUID teamB) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT 1 FROM wars WHERE (declaring_team_id = ? AND receiving_team_id = ?) " +
+				"OR (declaring_team_id = ? AND receiving_team_id = ?)")) {
+			ps.setString(1, teamA.toString());
+			ps.setString(2, teamB.toString());
+			ps.setString(3, teamB.toString());
+			ps.setString(4, teamA.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while checking war existence in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Removes a war by its two team ids.
+	 */
+	public void removeWar(UUID declaringTeamId, UUID receivingTeamId) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM wars WHERE declaring_team_id = ? AND receiving_team_id = ?")) {
+			ps.setString(1, declaringTeamId.toString());
+			ps.setString(2, receivingTeamId.toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while removing war from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// all wars, with team names joined in and display stats computed
+	public List<War> getAllWars() {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT wars.declaring_team_id, wars.receiving_team_id, wars.time_of_creation, " +
+				"declarer.name AS declaring_team_name, receiver.name AS receiving_team_name " +
+				"FROM wars " +
+				"JOIN teams declarer ON declarer.id = wars.declaring_team_id " +
+				"JOIN teams receiver ON receiver.id = wars.receiving_team_id")) {
+			try (ResultSet rs = ps.executeQuery()) {
+				List<War> wars = new ArrayList<>();
+				while (rs.next()) {
+					War war = War.fromResultSet(rs);
+					wars.add(enrichWar(war));
+				}
+				return wars;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting all wars from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// the war between two teams, if any (in either direction)
+	@javax.annotation.Nullable
+	public War getWar(UUID teamA, UUID teamB) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT wars.declaring_team_id, wars.receiving_team_id, wars.time_of_creation, " +
+				"declarer.name AS declaring_team_name, receiver.name AS receiving_team_name " +
+				"FROM wars " +
+				"JOIN teams declarer ON declarer.id = wars.declaring_team_id " +
+				"JOIN teams receiver ON receiver.id = wars.receiving_team_id " +
+				"WHERE (wars.declaring_team_id = ? AND wars.receiving_team_id = ?) " +
+				"OR (wars.declaring_team_id = ? AND wars.receiving_team_id = ?)")) {
+			ps.setString(1, teamA.toString());
+			ps.setString(2, teamB.toString());
+			ps.setString(3, teamB.toString());
+			ps.setString(4, teamA.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (!rs.next()) return null;
+				return enrichWar(War.fromResultSet(rs));
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting war from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * All wars the team is a direct participant in (declaring or receiving).
+	 * Ally-participation is included through {@link #getTeamAndAllies}.
+	 */
+	public List<War> getWarsForTeam(Team team) {
+		return getAllWars().stream()
+			.filter(war -> war.isParticipant(team.getId()))
+			.toList();
+	}
+
+	// fills in the participant/chunk/capitol counts used by the war display
+	private War enrichWar(War war) {
+		Team declaring = getTeam(war.declaringTeamId());
+		Team receiving = getTeam(war.receivingTeamId());
+		if (declaring == null || receiving == null) return war;
+
+		int declaringSidePlayers = getTeamAndAllies(declaring).stream()
+			.mapToInt(team -> getTeamMembers(team).size())
+			.sum();
+		int receivingSidePlayers = getTeamAndAllies(receiving).stream()
+			.mapToInt(team -> getTeamMembers(team).size())
+			.sum();
+
+		int receivingChunks = getTeamChunks(receiving).size();
+		int receivingCapitols = getTeamCapitolBlockCount(receiving);
+
+		return new War(
+			war.declaringTeamId(), war.receivingTeamId(), war.timeOfCreation(),
+			war.declaringTeamName(), war.receivingTeamName(),
+			declaringSidePlayers, receivingSidePlayers,
+			receivingChunks, receivingCapitols
+		);
+	}
+
+	/**
+	 * Returns the team plus all of its allies (both directions).
+	 */
+	public List<Team> getTeamAndAllies(Team team) {
+		List<Team> teams = new ArrayList<>();
+		teams.add(team);
+		for (Team ally : getAllies(team)) {
+			if (!teams.contains(ally)) teams.add(ally);
+		}
+		return teams;
+	}
+
+	/**
+	 * All teams that have an ally relationship with the given team (either direction).
+	 */
+	public List<Team> getAllies(Team team) {
+		UUID teamId = team.getId();
+		List<UUID> allyIds = new ArrayList<>();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT ally_id FROM allies WHERE team_id = ? UNION SELECT team_id FROM allies WHERE ally_id = ?")) {
+			ps.setString(1, teamId.toString());
+			ps.setString(2, teamId.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) allyIds.add(UUID.fromString(rs.getString(1)));
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting allies from database.", e);
+			throw new RuntimeException(e);
+		}
+		return allyIds.stream().map(this::getTeam).filter(Objects::nonNull).toList();
+	}
+
+	/**
+	 * Declares an ally relationship between two teams (directional row; reads are bidirectional).
+	 */
+	public void addAlly(Team team, Team ally) {
+		if (team.getId().equals(ally.getId())) return;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT OR IGNORE INTO allies (team_id, ally_id) VALUES (?, ?)")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, ally.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while adding ally to database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Removes an ally relationship between two teams (either direction).
+	 */
+	public void removeAlly(Team team, Team ally) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM allies WHERE (team_id = ? AND ally_id = ?) OR (team_id = ? AND ally_id = ?)")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, ally.getId().toString());
+			ps.setString(3, ally.getId().toString());
+			ps.setString(4, team.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while removing ally from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// number of capitol blocks a team owns (any dimension)
+	public int getTeamCapitolBlockCount(Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT COUNT(*) FROM capitol_blocks WHERE team_id = ?")) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() ? rs.getInt(1) : 0;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while counting capitol blocks for team " + team.getId(), e);
 			throw new RuntimeException(e);
 		}
 	}

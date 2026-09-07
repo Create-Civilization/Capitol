@@ -17,7 +17,8 @@ import java.util.List;
 public record S2COpenCapitolScreen(Team team, BlockPos capitolPos, boolean isCapital,
 								   @Nullable CapitolTier tier, boolean canUpgrade,
 								   @Nullable String blockName, @Nullable String mayorName,
-								   List<CapitolMember> members, boolean canAssignMayor) implements CustomPacketPayload {
+								   List<CapitolMember> members, boolean canAssignMayor,
+								   long playerPermissions) implements CustomPacketPayload {
 
 	public static final CustomPacketPayload.Type<S2COpenCapitolScreen> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("capitol", "s2c_open_capitol_screen"));
 
@@ -34,11 +35,12 @@ public record S2COpenCapitolScreen(Team team, BlockPos capitolPos, boolean isCap
 			String mayorName = ByteBufCodecs.STRING_UTF8.decode(buffer);
 			List<CapitolMember> members = ByteBufCodecs.collection(ArrayList::new, CapitolMember.STREAM_CODEC).decode(buffer);
 			boolean canAssignMayor = ByteBufCodecs.BOOL.decode(buffer);
+			long playerPermissions = ByteBufCodecs.VAR_LONG.decode(buffer);
 			return new S2COpenCapitolScreen(
 				team, pos, isCapital, CapitolTier.byName(tierName), canUpgrade,
 				blockName.isEmpty() ? null : blockName,
 				mayorName.isEmpty() ? null : mayorName,
-				members, canAssignMayor
+				members, canAssignMayor, playerPermissions
 			);
 		}
 
@@ -53,6 +55,7 @@ public record S2COpenCapitolScreen(Team team, BlockPos capitolPos, boolean isCap
 			ByteBufCodecs.STRING_UTF8.encode(buffer, payload.mayorName() == null ? "" : payload.mayorName());
 			ByteBufCodecs.collection(ArrayList::new, CapitolMember.STREAM_CODEC).encode(buffer, new ArrayList<>(payload.members()));
 			ByteBufCodecs.BOOL.encode(buffer, payload.canAssignMayor());
+			ByteBufCodecs.VAR_LONG.encode(buffer, payload.playerPermissions());
 		}
 	};
 

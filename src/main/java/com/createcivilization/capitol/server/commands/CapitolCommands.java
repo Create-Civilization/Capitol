@@ -4,6 +4,7 @@ import com.createcivilization.capitol.server.commands.claim.ClaimCommand;
 import com.createcivilization.capitol.server.commands.claim.UnclaimCommand;
 import com.createcivilization.capitol.server.commands.invite.InviteCommand;
 import com.createcivilization.capitol.server.commands.team.TeamCommand;
+import com.createcivilization.capitol.server.commands.war.WarCommand;
 import com.createcivilization.capitol.server.commands.help.HelpCommand;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -25,6 +26,7 @@ public class CapitolCommands {
 		registerCommand(dispatcher, UnclaimCommand.register());
 		registerCommand(dispatcher, TeamCommand.register());
 		registerCommand(dispatcher, InviteCommand.register());
+		registerCommand(dispatcher, WarCommand.register());
 	}
 
 	private static void registerCommand(CommandDispatcher<CommandSourceStack> dispatcher, LiteralArgumentBuilder<CommandSourceStack> command){

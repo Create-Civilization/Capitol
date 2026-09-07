@@ -15,6 +15,9 @@ import com.createcivilization.capitol.common.networking.packets.C2SCancelCapitol
 import com.createcivilization.capitol.common.networking.packets.C2SSetCapitolBlockMayor;
 import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
 import com.createcivilization.capitol.common.networking.packets.C2SUpgradeCapitolBlock;
+import com.createcivilization.capitol.common.networking.packets.C2SDeclareWar;
+import com.createcivilization.capitol.common.networking.packets.C2SEndWar;
+import com.createcivilization.capitol.common.networking.packets.S2CSyncWars;
 import com.createcivilization.capitol.server.networking.ServerPayloadHandler;
 
 import net.neoforged.bus.api.IEventBus;
@@ -142,6 +145,30 @@ public class CapitolNetworking {
 			C2SSetCapitolBlockMayor.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ServerPayloadHandler::handleSetCapitolBlockMayor
+			)
+		);
+
+		registrar.playToClient(
+			S2CSyncWars.TYPE,
+			S2CSyncWars.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ClientPayloadHandler::syncWarsHandler
+			)
+		);
+
+		registrar.playToServer(
+			C2SDeclareWar.TYPE,
+			C2SDeclareWar.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleDeclareWar
+			)
+		);
+
+		registrar.playToServer(
+			C2SEndWar.TYPE,
+			C2SEndWar.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleEndWar
 			)
 		);
 	}

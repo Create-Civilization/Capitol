@@ -28,6 +28,13 @@ public class CapitolConfig {
 	public static final ModConfigSpec.BooleanValue FORCELOAD_ENABLED;
 	public static final ModConfigSpec.IntValue FORCELOAD_MAX_PER_TEAM;
 
+	// War
+	public static final ModConfigSpec.DoubleValue WAR_DECAY_MULTIPLIER;
+	public static final ModConfigSpec.IntValue WAR_TAKEOVER_INCREMENT;
+	public static final ModConfigSpec.IntValue WAR_TAKEOVER_DECREMENT;
+	public static final ModConfigSpec.IntValue MAX_WAR_TAKEOVER_AMOUNT;
+	public static final ModConfigSpec.DoubleValue CAPITOL_CONQUER_PERCENT;
+
 	// Server-wide protection toggles
 	public static final ModConfigSpec.BooleanValue PROTECT_FIRE_SPREAD;
 	public static final ModConfigSpec.BooleanValue PROTECT_PISTONS;
@@ -135,6 +142,30 @@ public class CapitolConfig {
 		FORCELOAD_MAX_PER_TEAM = builder
 			.comment("Max forceloaded chunks per team. 0 = unlimited.")
 			.defineInRange("maxPerTeam", 10, 0, Integer.MAX_VALUE);
+
+		builder.pop();
+
+		builder.comment("War settings for the chunk takeover system.").push("war");
+
+		WAR_DECAY_MULTIPLIER = builder
+			.comment("Multiplier applied to the takeover decrement when nobody is contesting a chunk.")
+			.defineInRange("warDecayMultiplier", 0.5d, 0d, 100d);
+
+		WAR_TAKEOVER_INCREMENT = builder
+			.comment("The int increase per tick for war takeover progress (per enemy player in the chunk).")
+			.defineInRange("warTakeoverIncrement", 1, 0, Integer.MAX_VALUE);
+
+		WAR_TAKEOVER_DECREMENT = builder
+			.comment("The int decrease per tick for war takeover progress (per defending player in the chunk).")
+			.defineInRange("warTakeoverDecrement", 1, 0, Integer.MAX_VALUE);
+
+		MAX_WAR_TAKEOVER_AMOUNT = builder
+			.comment("The maximum amount of war takeover progress (divide value by 20 to get time in seconds).")
+			.defineInRange("maxWarTakeoverAmount", 600, 1, Integer.MAX_VALUE);
+
+		CAPITOL_CONQUER_PERCENT = builder
+			.comment("Fraction of a team's capitol blocks that must fall before its claims can be taken (not enforced yet).")
+			.defineInRange("capitolConquerPercent", 0.6d, 0d, 100d);
 
 		builder.pop();
 

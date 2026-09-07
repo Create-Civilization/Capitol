@@ -124,6 +124,25 @@ public class DatabaseManager {
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS wars (" +
+					"declaring_team_id TEXT NOT NULL," +
+					"receiving_team_id TEXT NOT NULL," +
+					"time_of_creation LONG NOT NULL," +
+					"PRIMARY KEY (declaring_team_id, receiving_team_id)," +
+					"FOREIGN KEY (declaring_team_id) REFERENCES teams (id) ON DELETE CASCADE," +
+					"FOREIGN KEY (receiving_team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+			);
+
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS allies (" +
+					"team_id TEXT NOT NULL," +
+					"ally_id TEXT NOT NULL," +
+					"PRIMARY KEY (team_id, ally_id)," +
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE," +
+					"FOREIGN KEY (ally_id) REFERENCES teams (id) ON DELETE CASCADE)"
+			);
+
 			if(SableCompat.LOADED){
 				stmt.execute(
 					"CREATE TABLE IF NOT EXISTS sub_levels (" +
@@ -211,6 +230,37 @@ public class DatabaseManager {
 				}
 			}
 			setSchemaVersion(4);
+		}
+		if (current < 5) {
+			// war system tables (wars + allies); fresh databases get them from createTables()
+			if (tableExists("teams")) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute(
+						"CREATE TABLE IF NOT EXISTS wars (" +
+							"declaring_team_id TEXT NOT NULL," +
+							"receiving_team_id TEXT NOT NULL," +
+							"time_of_creation LONG NOT NULL," +
+							"PRIMARY KEY (declaring_team_id, receiving_team_id)," +
+							"FOREIGN KEY (declaring_team_id) REFERENCES teams (id) ON DELETE CASCADE," +
+							"FOREIGN KEY (receiving_team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+					);
+					stmt.execute(
+						"CREATE TABLE IF NOT EXISTS allies (" +
+							"team_id TEXT NOT NULL," +
+							"ally_id TEXT NOT NULL," +
+							"PRIMARY KEY (team_id, ally_id)," +
+							"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE," +
+							"FOREIGN KEY (ally_id) REFERENCES teams (id) ON DELETE CASCADE)"
+					);
+				}
+			}
+			// owner roles get the new DECLARE_WAR permission bit (1L << 28)
+			if (tableExists("team_roles")) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute("UPDATE team_roles SET permissions = permissions | " + (1L << 28) + " WHERE name = 'owner'");
+				}
+			}
+			setSchemaVersion(5);
 		}
 	}
 

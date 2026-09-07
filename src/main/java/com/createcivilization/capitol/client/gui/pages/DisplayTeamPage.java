@@ -16,7 +16,7 @@ public class DisplayTeamPage extends Page {
 			? team.getCurrentClaims() + " / " + team.getMaxClaims()
 			: String.valueOf(team.getCurrentClaims());
 		CapitolBookMenu.addTableEntry(this, Component.literal("Chunks:"), Component.literal(claims), 28);
-		CapitolBookMenu.addTableEntry(this, Component.literal("Capitol:"), Component.literal(formatCapitol(capitolPos)), 42);
+		CapitolBookMenu.addTableEntry(this, Component.literal("Capital:"), Component.literal(formatCapitol(capitolPos)), 42);
 		String description = team.getDescription() != null && !team.getDescription().isEmpty() ? team.getDescription() : "None";
 		CapitolBookMenu.addTableEntry(this, Component.literal("Description:"), Component.literal(description), 56);
 	}

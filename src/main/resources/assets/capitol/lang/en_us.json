@@ -129,6 +129,25 @@
 	"commands.capitol.unclaim.sub_level.not_owner": "Your team does not own this sub-level",
 	"commands.capitol.unclaim.sub_level.success": "Sub-level unclaimed from %s",
 
+	"commands.capitol.war.declare.no_permission": "You do not have permission to declare war",
+	"commands.capitol.war.declare.invalid_team": "There is no team called \"%s\"",
+	"commands.capitol.war.declare.self": "You cannot declare war on your own team",
+	"commands.capitol.war.declare.already_at_war": "Your team is already at war with %s",
+	"commands.capitol.war.declare.success": "War declared on %s!",
+
+	"commands.capitol.war.end.not_at_war": "Your team is not at war with %s",
+	"commands.capitol.war.end.success": "War with %s has ended.",
+
+	"commands.capitol.war.list.title": "=== Your Wars ===",
+	"commands.capitol.war.list.empty": "Your team is not at war with anyone.",
+
+	"commands.capitol.war.debug.invalid_team": "One of the given teams does not exist",
+	"commands.capitol.war.debug.success": "Successfully initiated a war between \"%s\" and \"%s\"",
+
+	"commands.capitol.help.war.declare": "Declare war on a team",
+	"commands.capitol.help.war.end": "End a war your team declared",
+	"commands.capitol.help.war.list": "List your team's wars",
+
 	"commands.capitol.invites.join.announcement": "%s joined %s!",
 	"commands.capitol.invites.join.success": "Joined %s!",
 	"commands.capitol.invites.deny.success": "Invite from %s denied.",
