@@ -7,7 +7,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record S2CChunkData(long packedChunkPos, Team team) implements CustomPacketPayload {
+import java.util.Optional;
+
+public record S2CChunkData(long packedChunkPos, Team team, Optional<Long> capitolBlockId) implements CustomPacketPayload {
 
 	public static final CustomPacketPayload.Type<S2CChunkData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("capitol", "s2c_chunk_data"));
 
@@ -17,6 +19,8 @@ public record S2CChunkData(long packedChunkPos, Team team) implements CustomPack
 		S2CChunkData::packedChunkPos,
 		Team.STREAM_CODEC,
 		S2CChunkData::team,
+		ByteBufCodecs.optional(ByteBufCodecs.VAR_LONG),
+		S2CChunkData::capitolBlockId,
 		S2CChunkData::new
 	);
 
