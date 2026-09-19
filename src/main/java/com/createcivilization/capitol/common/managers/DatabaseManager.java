@@ -23,9 +23,6 @@ public class DatabaseManager {
 
 			connection = DriverManager.getConnection(url);
 
-			int version = getSchemaVersion();
-			runMigrations(version);
-
 			try (Statement stmt = connection.createStatement()) {
 				stmt.execute("PRAGMA journal_mode=WAL;");
 				stmt.execute("PRAGMA synchronous=NORMAL;");
@@ -33,6 +30,11 @@ public class DatabaseManager {
 			}
 
 			createTables();
+			Capitol.LOGGER.info("Capitol Database tables initialized");
+
+			int version = getSchemaVersion();
+			runMigrations(version);
+
 			Capitol.LOGGER.info("Capitol Database initialized");
 
 			Capitol.LOGGER.info("Warming Cache");
@@ -67,6 +69,7 @@ public class DatabaseManager {
 					"team_id TEXT NOT NULL," +
 					"name TEXT NOT NULL," +
 					"permissions INTEGER NOT NULL DEFAULT 0," +
+					"color INTEGER NOT NULL DEFAULT -1,"+
 					"UNIQUE (team_id, name)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
@@ -119,12 +122,35 @@ public class DatabaseManager {
 		}
 	}
 
+	public static int SCHEMA_VERSION = 1;
 	//Will be used for DB migrations ect
-	private static void runMigrations(int current) throws SQLException {}
+	private static void runMigrations(int current) throws SQLException {
+		if (SCHEMA_VERSION == current){
+			return;
+		}
+		if (current == -1) { // a schema of 0 means that the database is brand new, thus no migrations are needed
+			setSchemaVersion(SCHEMA_VERSION);
+			return;
+		}
+		Capitol.LOGGER.info("Schema out of date, updating to version " + SCHEMA_VERSION + " from version " + current);
+		int updates = SCHEMA_VERSION - current;
+		for (int version = current; version <= updates; ++version) {
+			// Runs for every update that has occured between now and the previous db version.
+			// E.G, current version 2 -> desired version 4 will result in versions
+			// 3 & 4 being run
+			switch (version) {
+				case 1:
+					try (Statement stmt = connection.createStatement()) {
+						stmt.execute("ALTER TABLE team_roles ADD COLUMN color INTEGER NOT NULL DEFAULT -1;");
+					}
+			}
+		}
+		setSchemaVersion(SCHEMA_VERSION);
+	}
 
 	private static int getSchemaVersion() throws SQLException {
 		try (ResultSet rs = connection.createStatement().executeQuery("PRAGMA user_version")) {
-			return rs.next() ? rs.getInt(1) : 0;
+			return rs.next() ? rs.getInt(1) : -1;
 		}
 	}
 

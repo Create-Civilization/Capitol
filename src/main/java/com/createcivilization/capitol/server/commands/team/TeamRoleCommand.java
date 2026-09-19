@@ -10,16 +10,17 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.GameProfileCache;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.createcivilization.capitol.common.managers.DatabaseManager.database;
 
 class TeamRoleCommand {
 
@@ -30,53 +31,111 @@ class TeamRoleCommand {
 					.executes(TeamRoleCommand::createRole)))
 			.then(Commands.literal("edit")
 				.then(Commands.argument("role_name", StringArgumentType.word())
-				.suggests((context, builder) -> {
-					CapitolDatabase database = DatabaseManager.database;
-					Team team = database.getPlayerTeam(context.getSource().getPlayer());
-					if (team == null) {
-						builder.suggest("YOU ARE NOT IN A TEAM");
+					.suggests((context, builder) -> {
+						CapitolDatabase database = DatabaseManager.database;
+						Team team = database.getPlayerTeam(context.getSource().getPlayer());
+						if (team == null) {
+							builder.suggest(Component.translatable("commands.capitol.not_in_team_error").toString());
+							return builder.buildFuture();
+						}
+						List<TeamRole> roles = database.getTeamRoles(team);
+						for (TeamRole role : roles) {
+							builder.suggest(role.name());
+						}
 						return builder.buildFuture();
-					}
-					List<TeamRole> roles = database.getTeamRoles(team);
-					for (TeamRole role : roles) {
-						builder.suggest(role.name());
-					}
-					return builder.buildFuture();
-				})
-				.then(Commands.literal("assign")
-					.then(Commands.argument("player", StringArgumentType.string())
-						.suggests((context, builder) -> {
-							CapitolDatabase database = DatabaseManager.database;
-							Team team = database.getPlayerTeam(context.getSource().getPlayer());
-							if (team == null) {
-								builder.suggest("YOU ARE NOT IN A TEAM");
+					})
+					.then(Commands.literal("assign")
+						.then(Commands.argument("player", StringArgumentType.string())
+							.suggests((context, builder) -> {
+								CapitolDatabase database = DatabaseManager.database;
+								Team team = database.getPlayerTeam(context.getSource().getPlayer());
+								if (team == null) {
+									builder.suggest(Component.translatable("commands.capitol.not_in_team_error").toString());
+									return builder.buildFuture();
+								}
+								List<TeamMember> members = database.getTeamMembers(team);
+								GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
+								for (TeamMember member : members) {
+									profileCache.get(member.playerUUID()).ifPresent(
+										gameProfile -> builder.suggest(gameProfile.getName())
+									);
+								}
 								return builder.buildFuture();
-							}
-							List<TeamMember> members = database.getTeamMembers(team);
-							GameProfileCache profileCache = context.getSource().getServer().getProfileCache();
-							for (TeamMember member : members) {
-								profileCache.get(member.playerUUID()).ifPresent(
-									gameProfile -> builder.suggest(gameProfile.getName())
-								);
-							}
-							return builder.buildFuture();
-						})
-						.executes(TeamRoleCommand::assignRole)))
-				.then(Commands.literal("permission")
-					.then(Commands.argument("permission_value", StringArgumentType.word())
-						.suggests((context, builder) -> {
-							for (Permission perm : Permission.values()) {
-								builder.suggest(perm.name().toLowerCase());
-							}
-							return builder.buildFuture();
-						})
-						.executes(TeamRoleCommand::editRolePerms)))
+							})
+							.executes(TeamRoleCommand::assignRole)))
+					.then(Commands.literal("permission")
+						.then(Commands.argument("permission_value", StringArgumentType.word())
+							.suggests((context, builder) -> {
+								for (Permission perm : Permission.values()) {
+									builder.suggest(perm.name().toLowerCase());
+								}
+								return builder.buildFuture();
+							})
+							.executes(TeamRoleCommand::editRolePerms)))
 					.then(Commands.literal("list").executes(TeamRoleCommand::viewRolePermList))
-				.then(Commands.literal("name")
-					.then(Commands.argument("new_name", StringArgumentType.string())
-						.executes(TeamRoleCommand::editRoleName)))
-				.then(Commands.literal("remove")
-					.executes(TeamRoleCommand::removeRole))));
+					.then(Commands.literal("name")
+						.then(Commands.argument("new_name", StringArgumentType.string())
+							.executes(TeamRoleCommand::editRoleName)))
+					.then(Commands.literal("remove")
+						.executes(TeamRoleCommand::removeRole))
+					.then(Commands.literal("color")
+						.then(Commands.argument("new_color", StringArgumentType.string())
+							.suggests((context, builder) -> {
+								TeamCommand.getNamedColors().keySet().forEach(builder::suggest);
+								builder.suggest("none");
+								return builder.buildFuture();
+							})
+							.executes(TeamRoleCommand::setColor)))
+				));
+
+	}
+
+	private static int setColor(CommandContext<CommandSourceStack> context) {
+		CapitolDatabase database = DatabaseManager.database;
+		var player = context.getSource().getPlayer();
+		if (player == null) {
+			return failCommand(context, "commands.capitol.command_source_was_console_error");
+		}
+
+		Team team = database.getPlayerTeam(player);
+		if (team == null) {
+			return failCommand(context, "commands.capitol.not_in_team_error");
+		}
+
+		if (!Permission.MANAGE_ROLES.hasPermission(database.getPlayerPermission(player, team))) {
+			return failCommand(context, "commands.capitol.team.role.no_manage_permission");
+		}
+		String roleName = StringArgumentType.getString(context, "role_name");
+
+		TeamRole role = database.getRoleByName(team, roleName);
+
+		if (role == null) {
+			return failCommand(context, "commands.capitol.team.role.color.failure", roleName, team.getName());
+		}
+
+		if (StringArgumentType.getString(context, "new_color").equalsIgnoreCase("none")) {
+			database.updateRoleColor(team, roleName, null);
+
+			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.color.clear.success",
+				Component.literal(roleName).withStyle(ChatFormatting.AQUA)), true);
+		} else {
+			String hex = TeamCommand.getNamedColors().getOrDefault(
+				StringArgumentType.getString(context, "new_color").toLowerCase(),
+				StringArgumentType.getString(context, "new_color")
+			).replace("#", "");
+			Color color = new Color(Integer.parseInt(hex, 16), true);
+
+			database.updateRoleColor(team, roleName, color);
+
+			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.color.success",
+				Component.literal(roleName).withStyle(ChatFormatting.AQUA),
+				Component.literal(hex).withStyle(style -> style.withColor(TextColor.fromRgb(color.getRGB())))
+					.withStyle(ChatFormatting.GRAY)), true);
+		}
+
+		refreshTeamPlayers(context, team);
+
+		return 1;
 	}
 
 	private static int createRole(CommandContext<CommandSourceStack> context) {
@@ -98,8 +157,8 @@ class TeamRoleCommand {
 
 		database.addRole(team, roleName, 0);
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.create.success",
-			Component.literal(roleName).withStyle(ChatFormatting.AQUA),
-			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
+				Component.literal(roleName).withStyle(ChatFormatting.AQUA),
+				Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
 			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
@@ -141,8 +200,10 @@ class TeamRoleCommand {
 
 		database.deleteRole(team, roleName);
 
+		refreshTeamPlayers(context, team);
+
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.remove.success",
-			Component.literal(roleName).withStyle(ChatFormatting.AQUA))
+				Component.literal(roleName).withStyle(ChatFormatting.AQUA))
 			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
@@ -191,9 +252,16 @@ class TeamRoleCommand {
 
 		database.updatePlayerRole(gameProfile.getId(), team, role);
 
+		ServerPlayer target = context.getSource().getServer().getPlayerList().getPlayer(gameProfile.getId()); // Specifically refreshes the targeted player
+		if (target != null) {
+			target.refreshTabListName();
+			target.refreshDisplayName();
+		}
+
+
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.assign.success",
-			Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE),
-			Component.literal(roleName).withStyle(ChatFormatting.AQUA))
+				Component.literal(gameProfile.getName()).withStyle(ChatFormatting.WHITE),
+				Component.literal(roleName).withStyle(ChatFormatting.AQUA))
 			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
@@ -234,8 +302,8 @@ class TeamRoleCommand {
 		database.updateRoleName(team, roleName, newRoleName);
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.role.name.success",
-			Component.literal(roleName).withStyle(ChatFormatting.AQUA),
-			Component.literal(newRoleName).withStyle(ChatFormatting.AQUA))
+				Component.literal(roleName).withStyle(ChatFormatting.AQUA),
+				Component.literal(newRoleName).withStyle(ChatFormatting.AQUA))
 			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
@@ -279,10 +347,10 @@ class TeamRoleCommand {
 		database.updateRolePermissions(team, roleName, rolePerms);
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.permission_toggle",
-			Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA),
-			Component.literal(roleName).withStyle(ChatFormatting.GOLD),
-			Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED),
-			Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
+				Component.literal(permissionName.toLowerCase()).withStyle(ChatFormatting.AQUA),
+				Component.literal(roleName).withStyle(ChatFormatting.GOLD),
+				Component.literal(String.valueOf(oldState)).withStyle(oldState ? ChatFormatting.GREEN : ChatFormatting.RED),
+				Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
 			.withStyle(ChatFormatting.GRAY), true);
 		return 1;
 	}
@@ -328,6 +396,16 @@ class TeamRoleCommand {
 				Component.literal(String.valueOf(newState)).withStyle(newState ? ChatFormatting.GREEN : ChatFormatting.RED))
 			.withStyle(ChatFormatting.GRAY), true);*/
 		return 1;
+	}
+
+	public static void refreshTeamPlayers(CommandContext<CommandSourceStack> context, Team team) {
+		for (TeamMember member : database.getTeamMembers(team)) {
+			ServerPlayer online = context.getSource().getServer().getPlayerList().getPlayer(member.playerUUID());
+			if (online != null) {
+				online.refreshDisplayName();
+				online.refreshTabListName();
+			}
+		}
 	}
 
 	static int failCommand(CommandContext<CommandSourceStack> context, String key, Object... args) {

@@ -1,5 +1,6 @@
 package com.createcivilization.capitol.server.commands.team;
 
+import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.*;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
@@ -198,6 +199,11 @@ public class TeamCommand {
 		).replace("#", "");
 		String tag = StringArgumentType.getString(context, "tag");
 
+		if (tag.length() > CapitolConfig.TEAM_TAG_MAX_LENGTH.get()) {
+			context.getSource().sendFailure(Component.translatable("commands.capitol.team.create.tag_too_long", CapitolConfig.TEAM_TAG_MAX_LENGTH.get()).withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
 		String description;
 		try {
 			description = StringArgumentType.getString(context, "description");
@@ -338,5 +344,9 @@ public class TeamCommand {
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.team.disband.success").withStyle(ChatFormatting.GREEN), true);
 		return 1;
+	}
+
+	public static Map<String, String> getNamedColors() {
+		return NAMED_COLORS;
 	}
 }
