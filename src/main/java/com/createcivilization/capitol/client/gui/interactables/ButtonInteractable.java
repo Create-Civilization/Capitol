@@ -35,7 +35,8 @@ public abstract class ButtonInteractable implements Interactable.BlitInteractabl
 	@Override
 	public void render(GuiGraphics guiGraphics) {
 		BlitInteractable.super.render(guiGraphics);
-		guiGraphics.drawString(Minecraft.getInstance().font, this.text, this.x + getBlit().getBlitWidth() / 2 - Minecraft.getInstance().font.width(this.text.getString()) / 2, this.y + Minecraft.getInstance().font.lineHeight / 2 - 2, this.color, this.dropShadow);
+		var font = Minecraft.getInstance().font;
+		guiGraphics.drawString(font, this.text, this.x + getBlit().getBlitWidth() / 2 - font.width(this.text.getString()) / 2, this.y + font.lineHeight / 2 - 2, this.color, this.dropShadow);
 	}
 
 	@Override
