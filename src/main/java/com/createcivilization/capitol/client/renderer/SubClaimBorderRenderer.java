@@ -16,8 +16,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
-import java.util.ArrayList;
-
 // renders sub-claims as a yellow box while the wand is held (registered in Capitol.java)
 public class SubClaimBorderRenderer {
 
@@ -68,7 +66,7 @@ public class SubClaimBorderRenderer {
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
 		BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		for (var entry : new ArrayList<>(ClientSubClaimCache.subclaims.entrySet())) {
+		for (var entry : ClientSubClaimCache.subclaims.entrySet()) {
 			SubClaimRenderData data = entry.getValue();
 			if (!data.dimension().equals(dimension)) continue;
 			drawFaces(buffer, matrix, data, playerX, playerY, playerZ);
@@ -110,12 +108,15 @@ public class SubClaimBorderRenderer {
 		}
 	}
 
-	private static void drawFace(BufferBuilder buffer, Matrix4f matrix,
-			float x0, float y0, float z0,
-			float x1, float y1, float z1,
-			float x2, float y2, float z2,
-			float x3, float y3, float z3,
-			float px, float py, float pz) {
+	private static void drawFace(
+		BufferBuilder buffer,
+		Matrix4f matrix,
+		float x0, float y0, float z0,
+		float x1, float y1, float z1,
+		float x2, float y2, float z2,
+		float x3, float y3, float z3,
+		float px, float py, float pz
+	) {
 		float a0 = alpha(x0, y0, z0, px, py, pz);
 		float a1 = alpha(x1, y1, z1, px, py, pz);
 		float a2 = alpha(x2, y2, z2, px, py, pz);
@@ -140,7 +141,7 @@ public class SubClaimBorderRenderer {
 	}
 
 	private static void renderOutlines(PoseStack poseStack, String dimension) {
-		for (var entry : new ArrayList<>(ClientSubClaimCache.subclaims.entrySet())) {
+		for (var entry : ClientSubClaimCache.subclaims.entrySet()) {
 			SubClaimRenderData data = entry.getValue();
 			if (!data.dimension().equals(dimension)) continue;
 			drawAABBOutline(poseStack, new AABB(data.minX(), data.minY(), data.minZ(), data.maxX(), data.maxY(), data.maxZ()),

@@ -125,10 +125,10 @@ public class CapitolDatabase extends Database {
 			ps.setString(1, team.getId().toString());
 			ps.setString(2, roleName);
 			try (ResultSet rs = ps.executeQuery()) {
-			if (rs.next()) {
-				TeamRole role = TeamRole.fromResultSet(rs);
-				// owner role always keeps the full current permission set; fix a stale snapshot
-				if (role.isOwner() && role.permissions() != TeamRole.ownerPermissions()) {
+				if (rs.next()) {
+					TeamRole role = TeamRole.fromResultSet(rs);
+					// owner role always keeps the full current permission set; fix a stale snapshot
+					if (role.isOwner() && role.permissions() != TeamRole.ownerPermissions()) {
 						updateRolePermissions(team, roleName, TeamRole.ownerPermissions());
 						return new TeamRole(role.id(), role.teamId(), role.name(), TeamRole.ownerPermissions());
 					}

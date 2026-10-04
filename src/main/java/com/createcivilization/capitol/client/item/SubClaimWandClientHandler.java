@@ -98,53 +98,53 @@ public class SubClaimWandClientHandler {
 		}
 
 		// standard slab ray/AABB test
-		double tMin = 0.0D;
-		double tMax = Double.POSITIVE_INFINITY;
+		double entryDistance = 0.0D;
+		double exitDistance = Double.POSITIVE_INFINITY;
 		double entryX = origin.x, entryY = origin.y, entryZ = origin.z;
 
-		double[] o = { origin.x, origin.y, origin.z };
-		double[] d = { dir.x, dir.y, dir.z };
-		double[] lo = { bounds.minX, bounds.minY, bounds.minZ };
-		double[] hi = { bounds.maxX, bounds.maxY, bounds.maxZ };
+		double[] originCoords = { origin.x, origin.y, origin.z };
+		double[] directionCoords = { dir.x, dir.y, dir.z };
+		double[] boxMin = { bounds.minX, bounds.minY, bounds.minZ };
+		double[] boxMax = { bounds.maxX, bounds.maxY, bounds.maxZ };
 
 		for (int axis = 0; axis < 3; axis++) {
-			double tNear;
-			double tFar;
-			if (Math.abs(d[axis]) < 1.0E-6D) {
-				if (o[axis] < lo[axis] || o[axis] > hi[axis]) return null;
+			double nearDistance;
+			double farDistance;
+			if (Math.abs(directionCoords[axis]) < 1.0E-6D) {
+				if (originCoords[axis] < boxMin[axis] || originCoords[axis] > boxMax[axis]) return null;
 				continue;
 			}
-			double inv = 1.0D / d[axis];
-			tNear = (lo[axis] - o[axis]) * inv;
-			tFar = (hi[axis] - o[axis]) * inv;
-			if (tNear > tFar) {
-				double swap = tNear;
-				tNear = tFar;
-				tFar = swap;
+			double inverseDirection = 1.0D / directionCoords[axis];
+			nearDistance = (boxMin[axis] - originCoords[axis]) * inverseDirection;
+			farDistance = (boxMax[axis] - originCoords[axis]) * inverseDirection;
+			if (nearDistance > farDistance) {
+				double swap = nearDistance;
+				nearDistance = farDistance;
+				farDistance = swap;
 			}
-			if (tNear > tMin) {
-				tMin = tNear;
-				entryX = o[0] + d[0] * tNear;
-				entryY = o[1] + d[1] * tNear;
-				entryZ = o[2] + d[2] * tNear;
+			if (nearDistance > entryDistance) {
+				entryDistance = nearDistance;
+				entryX = originCoords[0] + directionCoords[0] * nearDistance;
+				entryY = originCoords[1] + directionCoords[1] * nearDistance;
+				entryZ = originCoords[2] + directionCoords[2] * nearDistance;
 			}
-			tMax = Math.min(tMax, tFar);
-			if (tMin > tMax) return null;
+			exitDistance = Math.min(exitDistance, farDistance);
+			if (entryDistance > exitDistance) return null;
 		}
 
-		if (tMin <= 0.0D || !(tMax >= tMin)) return null;
+		if (entryDistance <= 0.0D || !(exitDistance >= entryDistance)) return null;
 
-		double eps = 1.0E-5D * Math.max(1.0D, Math.max(
+		double tolerance = 1.0E-5D * Math.max(1.0D, Math.max(
 			bounds.maxX - bounds.minX,
 			Math.max(bounds.maxY - bounds.minY, bounds.maxZ - bounds.minZ)
 		));
 
-		if (Math.abs(entryX - bounds.minX) <= eps) return Direction.WEST;
-		if (Math.abs(entryX - bounds.maxX) <= eps) return Direction.EAST;
-		if (Math.abs(entryY - bounds.minY) <= eps) return Direction.DOWN;
-		if (Math.abs(entryY - bounds.maxY) <= eps) return Direction.UP;
-		if (Math.abs(entryZ - bounds.minZ) <= eps) return Direction.NORTH;
-		if (Math.abs(entryZ - bounds.maxZ) <= eps) return Direction.SOUTH;
+		if (Math.abs(entryX - bounds.minX) <= tolerance) return Direction.WEST;
+		if (Math.abs(entryX - bounds.maxX) <= tolerance) return Direction.EAST;
+		if (Math.abs(entryY - bounds.minY) <= tolerance) return Direction.DOWN;
+		if (Math.abs(entryY - bounds.maxY) <= tolerance) return Direction.UP;
+		if (Math.abs(entryZ - bounds.minZ) <= tolerance) return Direction.NORTH;
+		if (Math.abs(entryZ - bounds.maxZ) <= tolerance) return Direction.SOUTH;
 
 		// shouldn't happen for a valid hit; bail rather than guess
 		return null;
@@ -178,10 +178,10 @@ public class SubClaimWandClientHandler {
 	}
 
 	static {
-        SubClaimWand.screenOpener = SubClaimWandClientHandler::openNamingScreen;
-    }
+		SubClaimWand.screenOpener = SubClaimWandClientHandler::openNamingScreen;
+	}
 
 	public static void openNamingScreen(BlockPos first, BlockPos second, ItemStack stack) {
-    Minecraft.getInstance().setScreen(new SubClaimNamingScreen(first, second, stack));
+		Minecraft.getInstance().setScreen(new SubClaimNamingScreen(first, second, stack));
 	}
 }
