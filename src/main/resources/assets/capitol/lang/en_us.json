@@ -1,5 +1,8 @@
 {
 	"block.capitol.capitol_block": "Capitol Block",
+	"item.capitol.capitol_block": "Capitol Block",
+	"block.capitol.outpost_block": "Outpost Block",
+	"item.capitol.outpost_block": "Outpost Block",
 
 	"container.capitol.capitol_block": "Capitol",
 
@@ -20,6 +23,16 @@
 	"gui.journeymap.capitol.unclaim_chunk": "Unclaim chunk",
 
 	"hud.capitol.territory.wilderness": "Wilderness",
+
+	"item.capitol.sub_claim_wand": "Sub-Claim Wand",
+	"itemGroup.capitol": "Capitol",
+
+	"screen.capitol.sub_claim_naming.title":       "Name Your Sub-Claim",
+	"screen.capitol.sub_claim_naming.placeholder": "Enter a name...",
+	"screen.capitol.sub_claim_naming.cancel":      "Cancel",
+	"screen.capitol.sub_claim_naming.confirm":     "Confirm",
+
+	"screen.capitol.capitol_block.title":          "Capitol",
 
 	"commands.capitol.not_in_team_error": "You are not in any team",
 	"commands.capitol.no_player_found": "There is no player called %s",
@@ -97,6 +110,7 @@
 	"commands.capitol.claim.no_permission": "You do not have permission to claim chunks",
 	"commands.capitol.claim.limit_reached": "Your team has reached the %s claim limit (%s)",
 	"commands.capitol.claim.already_claimed": "This chunk is already claimed by %s",
+	"commands.capitol.claim.not_adjacent": "You can only claim chunks that are attached to your team's existing territory",
 	"commands.capitol.claim.success": "Chunk claimed!",
 	"commands.capitol.claim.sub_level.already_claimed": "This sub-level is already claimed by %s",
 	"commands.capitol.claim.sub_level.success": "Sub-level claimed!",
@@ -114,6 +128,25 @@
 	"commands.capitol.unclaim.sub_level.not_claimed": "This sub-level is not claimed",
 	"commands.capitol.unclaim.sub_level.not_owner": "Your team does not own this sub-level",
 	"commands.capitol.unclaim.sub_level.success": "Sub-level unclaimed from %s",
+
+	"commands.capitol.war.declare.no_permission": "You do not have permission to declare war",
+	"commands.capitol.war.declare.invalid_team": "There is no team called \"%s\"",
+	"commands.capitol.war.declare.self": "You cannot declare war on your own team",
+	"commands.capitol.war.declare.already_at_war": "Your team is already at war with %s",
+	"commands.capitol.war.declare.success": "War declared on %s!",
+
+	"commands.capitol.war.end.not_at_war": "Your team is not at war with %s",
+	"commands.capitol.war.end.success": "War with %s has ended.",
+
+	"commands.capitol.war.list.title": "=== Your Wars ===",
+	"commands.capitol.war.list.empty": "Your team is not at war with anyone.",
+
+	"commands.capitol.war.debug.invalid_team": "One of the given teams does not exist",
+	"commands.capitol.war.debug.success": "Successfully initiated a war between \"%s\" and \"%s\"",
+
+	"commands.capitol.help.war.declare": "Declare war on a team",
+	"commands.capitol.help.war.end": "End a war your team declared",
+	"commands.capitol.help.war.list": "List your team's wars",
 
 	"commands.capitol.invites.join.announcement": "%s joined %s!",
 	"commands.capitol.invites.join.success": "Joined %s!",

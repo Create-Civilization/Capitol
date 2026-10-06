@@ -16,9 +16,24 @@ public class CapitolConfig {
 	public static final ModConfigSpec.BooleanValue SUBLEVEL_CLAIM_OVERLAP;
 	public static final ModConfigSpec.DoubleValue AUTO_CLAIM_COOLDOWN;
 
+	// Capitol block tiers
+	public static final ModConfigSpec.IntValue CAPITOL_VILLAGE_MAX_CLAIMS;
+	public static final ModConfigSpec.IntValue CAPITOL_TOWN_MAX_CLAIMS;
+	public static final ModConfigSpec.IntValue CAPITOL_CITY_MAX_CLAIMS;
+	public static final ModConfigSpec.IntValue CAPITOL_VILLAGE_UPKEEP;
+	public static final ModConfigSpec.IntValue CAPITOL_TOWN_UPKEEP;
+	public static final ModConfigSpec.IntValue CAPITOL_CITY_UPKEEP;
+
 	// Forceloading
 	public static final ModConfigSpec.BooleanValue FORCELOAD_ENABLED;
 	public static final ModConfigSpec.IntValue FORCELOAD_MAX_PER_TEAM;
+
+	// War
+	public static final ModConfigSpec.DoubleValue WAR_DECAY_MULTIPLIER;
+	public static final ModConfigSpec.IntValue WAR_TAKEOVER_INCREMENT;
+	public static final ModConfigSpec.IntValue WAR_TAKEOVER_DECREMENT;
+	public static final ModConfigSpec.IntValue MAX_WAR_TAKEOVER_AMOUNT;
+	public static final ModConfigSpec.DoubleValue CAPITOL_CONQUER_PERCENT;
 
 	// Server-wide protection toggles
 	public static final ModConfigSpec.BooleanValue PROTECT_FIRE_SPREAD;
@@ -87,6 +102,37 @@ public class CapitolConfig {
 
 		builder.pop();
 
+		builder.comment(
+			"Capitol block tiers (Village -> Town -> City).",
+			"Max claims + upkeep per tier. Not enforced yet - per-block claims/upkeep payment are future work."
+		).push("capitolBlockTiers");
+
+		CAPITOL_VILLAGE_MAX_CLAIMS = builder
+			.comment("Max claims a Village capitol block controls.")
+			.defineInRange("villageMaxClaims", 100, 1, Integer.MAX_VALUE);
+
+		CAPITOL_TOWN_MAX_CLAIMS = builder
+			.comment("Max claims a Town capitol block controls.")
+			.defineInRange("townMaxClaims", 300, 1, Integer.MAX_VALUE);
+
+		CAPITOL_CITY_MAX_CLAIMS = builder
+			.comment("Max claims a City capitol block controls.")
+			.defineInRange("cityMaxClaims", 600, 1, Integer.MAX_VALUE);
+
+		CAPITOL_VILLAGE_UPKEEP = builder
+			.comment("Upkeep for a Village capitol block (not charged yet).")
+			.defineInRange("villageUpkeep", 5, 0, Integer.MAX_VALUE);
+
+		CAPITOL_TOWN_UPKEEP = builder
+			.comment("Upkeep for a Town capitol block (not charged yet).")
+			.defineInRange("townUpkeep", 15, 0, Integer.MAX_VALUE);
+
+		CAPITOL_CITY_UPKEEP = builder
+			.comment("Upkeep for a City capitol block (not charged yet).")
+			.defineInRange("cityUpkeep", 40, 0, Integer.MAX_VALUE);
+
+		builder.pop();
+
 		builder.comment("Chunk forceloading settings.").push("forceloading");
 
 		FORCELOAD_ENABLED = builder
@@ -96,6 +142,30 @@ public class CapitolConfig {
 		FORCELOAD_MAX_PER_TEAM = builder
 			.comment("Max forceloaded chunks per team. 0 = unlimited.")
 			.defineInRange("maxPerTeam", 10, 0, Integer.MAX_VALUE);
+
+		builder.pop();
+
+		builder.comment("War settings for the chunk takeover system.").push("war");
+
+		WAR_DECAY_MULTIPLIER = builder
+			.comment("Multiplier applied to the takeover decrement when nobody is contesting a chunk.")
+			.defineInRange("warDecayMultiplier", 0.5d, 0d, 100d);
+
+		WAR_TAKEOVER_INCREMENT = builder
+			.comment("The int increase per tick for war takeover progress (per enemy player in the chunk).")
+			.defineInRange("warTakeoverIncrement", 1, 0, Integer.MAX_VALUE);
+
+		WAR_TAKEOVER_DECREMENT = builder
+			.comment("The int decrease per tick for war takeover progress (per defending player in the chunk).")
+			.defineInRange("warTakeoverDecrement", 1, 0, Integer.MAX_VALUE);
+
+		MAX_WAR_TAKEOVER_AMOUNT = builder
+			.comment("The maximum amount of war takeover progress (divide value by 20 to get time in seconds).")
+			.defineInRange("maxWarTakeoverAmount", 600, 1, Integer.MAX_VALUE);
+
+		CAPITOL_CONQUER_PERCENT = builder
+			.comment("Fraction of a team's capitol blocks that must fall before its claims can be taken (not enforced yet).")
+			.defineInRange("capitolConquerPercent", 0.6d, 0d, 100d);
 
 		builder.pop();
 

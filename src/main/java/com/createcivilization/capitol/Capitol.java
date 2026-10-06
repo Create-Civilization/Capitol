@@ -1,7 +1,10 @@
 package com.createcivilization.capitol;
 
+import com.createcivilization.capitol.common.CapitolCreativeTab;
+import com.createcivilization.capitol.common.block.CapitolBlocks;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.ClaimedChunk;
+import com.createcivilization.capitol.common.item.CapitolItems;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.managers.ProtectionManager;
 import com.createcivilization.capitol.server.commands.CapitolCommands;
@@ -23,6 +26,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import net.neoforged.api.distmarker.Dist;
+import com.createcivilization.capitol.client.gui.screen.CapitolBookMenuClient;
 import com.createcivilization.capitol.client.renderer.BorderRenderer;
 import com.createcivilization.capitol.client.renderer.BorderWallRenderer;
 import net.neoforged.neoforge.common.NeoForge;
@@ -43,6 +47,10 @@ public class Capitol {
     public Capitol(IEventBus modEventBus, ModContainer container) {
 		container.registerConfig(ModConfig.Type.SERVER, CapitolConfig.SPEC);
 
+		CapitolItems.register(modEventBus);
+		CapitolCreativeTab.register(modEventBus);
+		CapitolBlocks.BLOCKS.register(modEventBus);
+
 		Capitol.LOGGER.info("Registering Listeners.");
 
 		NeoForge.EVENT_BUS.addListener(this::onServerStart);
@@ -54,6 +62,7 @@ public class Capitol {
 		if (FMLEnvironment.dist == Dist.CLIENT) {
 			NeoForge.EVENT_BUS.register(BorderRenderer.class);
 			NeoForge.EVENT_BUS.register(BorderWallRenderer.class);
+			CapitolBookMenuClient.register();
 		}
 
 		CapitolCommands.init(NeoForge.EVENT_BUS);

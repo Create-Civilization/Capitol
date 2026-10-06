@@ -78,8 +78,13 @@ public class ClaimCommand {
 			return 0;
 		}
 
+		if (!database.isChunkAdjacentToOwnClaim(team, chunkPos, player.level())) {
+			context.getSource().sendFailure(Component.translatable("commands.capitol.claim.not_adjacent").withStyle(ChatFormatting.RED));
+			return 0;
+		}
+
 		database.claimChunk(team, chunkPos, player.level());
-		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team);
+		S2CChunkData packet = new S2CChunkData(chunkPos.toLong(), team, java.util.Optional.empty());
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.claim.success").withStyle(ChatFormatting.GREEN), true);

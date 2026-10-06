@@ -37,6 +37,9 @@ public class HelpCommand {
 		msg.append(entry("/capitol team player <player> permission <perm>", Component.translatable("commands.capitol.help.team.player.permission")));
 		msg.append(entry("/capitol team player <player> permission reset", Component.translatable("commands.capitol.help.team.player.permission.reset")));
 		msg.append(entry("/capitol invites <team> accept|deny", Component.translatable("commands.capitol.help.invites"), false));
+		msg.append(entry("/capitol war declare <team>", Component.translatable("commands.capitol.help.war.declare")));
+		msg.append(entry("/capitol war end <team>", Component.translatable("commands.capitol.help.war.end")));
+		msg.append(entry("/capitol war list", Component.translatable("commands.capitol.help.war.list")));
 
 		context.getSource().sendSuccess(() -> msg, false);
 		return 1;

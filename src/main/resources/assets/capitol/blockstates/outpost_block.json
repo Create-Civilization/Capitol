@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=north": {
+			"model": "capitol:block/outpost_block"
+		},
+		"facing=south": {
+			"model": "capitol:block/outpost_block",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "capitol:block/outpost_block",
+			"y": 270
+		},
+		"facing=east": {
+			"model": "capitol:block/outpost_block",
+			"y": 90
+		}
+	}
+}

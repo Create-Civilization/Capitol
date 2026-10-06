@@ -4,6 +4,9 @@ import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.compat.sable.data.ClaimedSubLevel;
 import com.createcivilization.capitol.common.data.*;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -34,11 +37,11 @@ public class CapitolDatabase extends Database {
 	 * Call after {@link DatabaseManager#init} on world load.
 	 */
 	public void warmCache() {
-		clearCache();
-		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT chunks.dimension, chunks.chunk_x, chunks.chunk_z, " +
-				"teams.id, teams.name, teams.color, teams.tag, teams.current_claims, " +
-				"teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+		clearCache();			try (PreparedStatement ps = getConnection().prepareStatement(
+				"SELECT chunks.dimension, chunks.chunk_x, chunks.chunk_z, " +
+					"teams.id, teams.name, teams.color, teams.tag, teams.current_claims, " +
+					"teams.max_claims, teams.team_permissions, teams.description, teams.created_at, " +
+					"teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM chunks JOIN teams ON teams.id = chunks.team_id")) {
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {
@@ -263,7 +266,7 @@ public class CapitolDatabase extends Database {
 			if (cached != null) return cached.orElse(null);
 		}
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at, teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM chunks " +
 				"JOIN teams ON teams.id = chunks.team_id " +
 				"WHERE chunks.dimension = ? AND chunks.chunk_x = ? AND chunks.chunk_z = ?")) {
@@ -368,6 +371,43 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
+	 * Returns the names of every team on the server.
+	 */
+	public List<String> getAllTeamNames() {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT name FROM teams")) {
+			try (ResultSet rs = ps.executeQuery()) {
+				List<String> names = new ArrayList<>();
+				while (rs.next()) names.add(rs.getString(1));
+				return names;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting all team names from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Retrieves a team by its name.
+	 *
+	 * @param name the team's name
+	 * @return the {@link Team}, or {@code null} if not found
+	 */
+	public Team getTeamByName(String name) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT * FROM teams WHERE name = ?")) {
+			ps.setString(1, name);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return Team.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting team by name from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * Finds the team a player belongs to by joining {@code team_members} and {@code teams}.
 	 *
 	 * @param player the player entity
@@ -385,7 +425,7 @@ public class CapitolDatabase extends Database {
 	 */
 	public Team getPlayerTeam(UUID playerUUID) {
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at, teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM team_members " +
 				"JOIN teams ON teams.id = team_members.team_id " +
 				"WHERE team_members.player_uuid = ?")) {
@@ -669,6 +709,341 @@ public class CapitolDatabase extends Database {
 	}
 
 	/**
+	 * Saves the team's designated Capital position (mirrored in the teams table for
+	 * easy reads via {@link Team#getCapitolPos()}). Pass null to clear it, like when
+	 * the Capital block gets broken.
+	 */
+	public void setCapitolPos(Team team, @Nullable BlockPos pos, @Nullable String dimension) {
+		String sql = "UPDATE teams SET capitol_x = ?, capitol_y = ?, capitol_z = ?, capitol_dimension = ? WHERE id = ?";
+		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+			if (pos != null && dimension != null) {
+				ps.setInt(1, pos.getX());
+				ps.setInt(2, pos.getY());
+				ps.setInt(3, pos.getZ());
+				ps.setString(4, dimension);
+			} else {
+				ps.setNull(1, java.sql.Types.INTEGER);
+				ps.setNull(2, java.sql.Types.INTEGER);
+				ps.setNull(3, java.sql.Types.INTEGER);
+				ps.setNull(4, java.sql.Types.VARCHAR);
+			}
+			ps.setString(5, team.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error setting capitol position for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// Finds the team with a capitol block at this position, or null if there isn't one.
+	@Nullable
+	public Team getTeamByCapitolPos(BlockPos pos, String dimension) {
+		String sql = "SELECT teams.* FROM capitol_blocks " +
+			"JOIN teams ON teams.id = capitol_blocks.team_id " +
+			"WHERE capitol_blocks.dimension = ? AND capitol_blocks.x = ? AND capitol_blocks.y = ? AND capitol_blocks.z = ?";
+		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+			ps.setString(1, dimension);
+			ps.setInt(2, pos.getX());
+			ps.setInt(3, pos.getY());
+			ps.setInt(4, pos.getZ());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return Team.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error looking up team by capitol position", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// records a placed block and returns its row id. isCapital makes it the team's
+	// Capital (clearing any old one first). extra blocks start at the given tier;
+	// the Capital has no tier so pass null. name is globally unique, mayor defaults
+	// to the team leader.
+	public long addCapitolBlock(Team team, BlockPos pos, String dimension, boolean isCapital, @Nullable CapitolTier tier,
+								String name, @Nullable UUID mayorUuid) {
+		if (isCapital) {
+			try (PreparedStatement ps = getConnection().prepareStatement(
+				"UPDATE capitol_blocks SET is_capital = 0 WHERE team_id = ? AND is_capital = 1")) {
+				ps.setString(1, team.getId().toString());
+				ps.execute();
+			} catch (SQLException e) {
+				Capitol.LOGGER.error("Error clearing previous capital for team " + team.getId(), e);
+				throw new RuntimeException(e);
+			}
+		}
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT INTO capitol_blocks (team_id, dimension, x, y, z, is_capital, tier, name, mayor_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			Statement.RETURN_GENERATED_KEYS)) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			ps.setInt(3, pos.getX());
+			ps.setInt(4, pos.getY());
+			ps.setInt(5, pos.getZ());
+			ps.setInt(6, isCapital ? 1 : 0);
+			if (tier == null) {
+				ps.setNull(7, java.sql.Types.VARCHAR);
+			} else {
+				ps.setString(7, tier.name());
+			}
+			ps.setString(8, name);
+			if (mayorUuid == null) {
+				ps.setNull(9, java.sql.Types.VARCHAR);
+			} else {
+				ps.setString(9, mayorUuid.toString());
+			}
+			ps.executeUpdate();
+			try (ResultSet keys = ps.getGeneratedKeys()) {
+				if (!keys.next()) {
+					throw new RuntimeException("Failed to retrieve generated id for capitol block");
+				}
+				if (isCapital) {
+					setCapitolPos(team, pos, dimension);
+				}
+				return keys.getLong(1);
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error adding capitol block for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// is this name already used by another capitol block (any team)?
+	public boolean capitolBlockNameExists(String name) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT 1 FROM capitol_blocks WHERE name = ?")) {
+			ps.setString(1, name);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error checking capitol block name", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// sets who runs a block (mayor). pass null to clear.
+	public void setCapitolBlockMayor(long capitolBlockId, @Nullable UUID mayorUuid) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE capitol_blocks SET mayor_uuid = ? WHERE id = ?")) {
+			if (mayorUuid == null) {
+				ps.setNull(1, java.sql.Types.VARCHAR);
+			} else {
+				ps.setString(1, mayorUuid.toString());
+			}
+			ps.setLong(2, capitolBlockId);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error setting mayor for capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// the player that owns the team (the owner role)
+	@Nullable
+	public UUID getTeamLeader(Team team) {
+		for (TeamMember member : getTeamMembers(team)) {
+			if (member.roleName().equals(TeamRole.OWNER_ROLE_NAME)) return member.playerUUID();
+		}
+		return null;
+	}
+
+	/**
+	 * Removes a destroyed capitol block's record. If it was the team's Capital,
+	 * the Capital designation is cleared so the next placed capitol block becomes
+	 * the new Capital.
+	 */
+	public void removeCapitolBlock(Team team, BlockPos pos, String dimension) {
+		boolean wasCapital = false;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT is_capital FROM capitol_blocks WHERE team_id = ? AND dimension = ? AND x = ? AND y = ? AND z = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			ps.setInt(3, pos.getX());
+			ps.setInt(4, pos.getY());
+			ps.setInt(5, pos.getZ());
+			try (ResultSet rs = ps.executeQuery()) {
+				wasCapital = rs.next() && rs.getInt("is_capital") == 1;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error reading capitol block for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM capitol_blocks WHERE team_id = ? AND dimension = ? AND x = ? AND y = ? AND z = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			ps.setInt(3, pos.getX());
+			ps.setInt(4, pos.getY());
+			ps.setInt(5, pos.getZ());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error removing capitol block for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+		if (wasCapital) {
+			setCapitolPos(team, null, null);
+		}
+	}
+
+	/**
+	 * Returns true if the team currently has a designated Capital capitol block.
+	 */
+	public boolean teamHasCapital(Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT 1 FROM capitol_blocks WHERE team_id = ? AND is_capital = 1")) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error checking for team capital " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// all of a team's capitol blocks in a dimension
+	public List<CapitolBlockData> getTeamCapitolBlocks(Team team, String dimension) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT id, team_id, dimension, x, y, z, is_capital, tier, name, mayor_uuid FROM capitol_blocks " +
+				"WHERE team_id = ? AND dimension = ?")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, dimension);
+			try (ResultSet rs = ps.executeQuery()) {
+				List<CapitolBlockData> blocks = new ArrayList<>();
+				while (rs.next()) blocks.add(CapitolBlockData.fromResultSet(rs));
+				return blocks;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error getting capitol blocks for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// gets a capitol block record by position, or null if there isn't one
+	@Nullable
+	public CapitolBlockData getCapitolBlock(BlockPos pos, String dimension) {
+		String sql = "SELECT id, team_id, dimension, x, y, z, is_capital, tier, name, mayor_uuid FROM capitol_blocks " +
+			"WHERE dimension = ? AND x = ? AND y = ? AND z = ?";
+		try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+			ps.setString(1, dimension);
+			ps.setInt(2, pos.getX());
+			ps.setInt(3, pos.getY());
+			ps.setInt(4, pos.getZ());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return CapitolBlockData.fromResultSet(rs);
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error looking up capitol block by position", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// bumps a block up to the given (higher) tier
+	public void setCapitolBlockTier(long capitolBlockId, CapitolTier tier) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE capitol_blocks SET tier = ? WHERE id = ?")) {
+			ps.setString(1, tier.name());
+			ps.setLong(2, capitolBlockId);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error upgrading capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// re-points every chunk the team owns in a square radius (in chunks) at this
+	// block. leaves unclaimed chunks alone. returns the chunks that got moved.
+	public List<ChunkPos> transferClaimedChunksToCapitolBlock(Team team, Level level, BlockPos pos, long capitolBlockId, int chunkRadius) {
+		String dim = level.dimension().location().toString();
+		ChunkPos center = new ChunkPos(pos);
+		List<ChunkPos> transferred = new ArrayList<>();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"UPDATE chunks SET capitol_block_id = ? " +
+				"WHERE dimension = ? AND chunk_x = ? AND chunk_z = ? AND team_id = ? " +
+				"AND (capitol_block_id IS NULL OR capitol_block_id <> ?)")) {
+			for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
+				for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
+					ChunkPos chunkPos = new ChunkPos(center.x + dx, center.z + dz);
+					ps.setLong(1, capitolBlockId);
+					ps.setString(2, dim);
+					ps.setInt(3, chunkPos.x);
+					ps.setInt(4, chunkPos.z);
+					ps.setString(5, team.getId().toString());
+					ps.setLong(6, capitolBlockId);
+					if (ps.executeUpdate() > 0) transferred.add(chunkPos);
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error transferring chunks to capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+		return transferred;
+	}
+
+	// which capitol block a chunk falls under, or null for a plain claim
+	@Nullable
+	public Long getCapitolBlockIdForChunk(ChunkPos chunkPos, Level level) {
+		String dim = level.dimension().location().toString();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT capitol_block_id FROM chunks WHERE dimension = ? AND chunk_x = ? AND chunk_z = ?")) {
+			ps.setString(1, dim);
+			ps.setInt(2, chunkPos.x);
+			ps.setInt(3, chunkPos.z);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					long id = rs.getLong("capitol_block_id");
+					return rs.wasNull() ? null : id;
+				}
+				return null;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error looking up capitol block id for chunk", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// unclaims everything this block owns and drops the team's claim count.
+	// returns the removed chunk positions so callers can push border updates.
+	public List<ChunkPos> unclaimCapitolBlockChunks(Team team, long capitolBlockId, String dimension) {
+		List<ChunkPos> removed = new ArrayList<>();
+		try (PreparedStatement select = getConnection().prepareStatement(
+			"SELECT chunk_x, chunk_z FROM chunks WHERE capitol_block_id = ? AND dimension = ?")) {
+			select.setLong(1, capitolBlockId);
+			select.setString(2, dimension);
+			try (ResultSet rs = select.executeQuery()) {
+				while (rs.next()) {
+					removed.add(new ChunkPos(rs.getInt("chunk_x"), rs.getInt("chunk_z")));
+				}
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error reading chunks of capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+		if (removed.isEmpty()) return removed;
+
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM chunks WHERE capitol_block_id = ? AND dimension = ?")) {
+			ps.setLong(1, capitolBlockId);
+			ps.setString(2, dimension);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error unclaiming chunks of capitol block " + capitolBlockId, e);
+			throw new RuntimeException(e);
+		}
+
+		Map<Long, Optional<Team>> dimCache = chunkOwnerCache.get(dimension);
+		if (dimCache != null) {
+			for (ChunkPos pos : removed) {
+				dimCache.put(pos.toLong(), Optional.empty());
+			}
+		}
+		updateCurrentClaims(team, -removed.size());
+		return removed;
+	}
+
+	/**
 	 * Claims a chunk for a team by inserting it into the {@code chunks} table
 	 * and incrementing the team's {@code current_claims} counter.
 	 *
@@ -677,14 +1052,24 @@ public class CapitolDatabase extends Database {
 	 * @param level    the dimension/level the chunk is in
 	 */
 	public void claimChunk(Team team, ChunkPos chunkPos, Level level) {
+		claimChunk(team, chunkPos, level, null);
+	}
+
+	// same as above, but ties the chunk to a capitol block (null = plain claim)
+	public void claimChunk(Team team, ChunkPos chunkPos, Level level, @Nullable Long capitolBlockId) {
 		String dim = level.dimension().location().toString();
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id, force_loaded) VALUES (?, ?, ?, ?, ?)")) {
+			"INSERT INTO chunks (dimension, chunk_x, chunk_z, team_id, force_loaded, capitol_block_id) VALUES (?, ?, ?, ?, ?, ?)")) {
 			ps.setString(1, dim);
 			ps.setInt(2, chunkPos.x);
 			ps.setInt(3, chunkPos.z);
 			ps.setString(4, team.getId().toString());
 			ps.setBoolean(5, false);
+			if (capitolBlockId == null) {
+				ps.setNull(6, java.sql.Types.INTEGER);
+			} else {
+				ps.setLong(6, capitolBlockId);
+			}
 			ps.execute();
 			chunkOwnerCache.computeIfAbsent(dim, k -> new HashMap<>())
 				.put(chunkPos.toLong(), Optional.of(team));
@@ -693,6 +1078,31 @@ public class CapitolDatabase extends Database {
 			throw new RuntimeException(e);
 		}
 		updateCurrentClaims(team, 1);
+	}
+
+	// is the chunk inside one of the team's capitol block claim areas?
+	public boolean isChunkInCapitolBlockRadius(Team team, ChunkPos chunkPos, Level level) {
+		String dim = level.dimension().location().toString();
+		for (CapitolBlockData block : getTeamCapitolBlocks(team, dim)) {
+			ChunkPos blockChunk = new ChunkPos(block.pos());
+			int radius = block.claimRadius();
+			if (Math.abs(blockChunk.x - chunkPos.x) <= radius && Math.abs(blockChunk.z - chunkPos.z) <= radius) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// can this team claim here? chunk has to touch one they already own,
+	// or (with no claims yet) sit inside a capitol block's claim area
+	public boolean isChunkAdjacentToOwnClaim(Team team, ChunkPos chunkPos, Level level) {
+		if (team.getCurrentClaims() <= 0) return isChunkInCapitolBlockRadius(team, chunkPos, level);
+		for (Direction dir : Direction.Plane.HORIZONTAL) {
+			ChunkPos neighbor = new ChunkPos(chunkPos.x + dir.getStepX(), chunkPos.z + dir.getStepZ());
+			Team owner = getChunkOwner(neighbor, level);
+			if (owner != null && owner.getId().equals(team.getId())) return true;
+		}
+		return false;
 	}
 
 	/**
@@ -937,6 +1347,227 @@ public class CapitolDatabase extends Database {
 	}
 
 
+	// --- War System ---
+
+	/**
+	 * Registers a new war between two teams. Does nothing (and returns false)
+	 * if the teams are the same or a war between them already exists in
+	 * either direction.
+	 *
+	 * @return {@code true} if the war was created
+	 */
+	public boolean addWar(Team declaring, Team receiving) {
+		if (declaring.getId().equals(receiving.getId())) return false;
+		if (warExists(declaring.getId(), receiving.getId())) return false;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT INTO wars (declaring_team_id, receiving_team_id, time_of_creation) VALUES (?, ?, ?)")) {
+			ps.setString(1, declaring.getId().toString());
+			ps.setString(2, receiving.getId().toString());
+			ps.setLong(3, System.currentTimeMillis() / 1000);
+			ps.execute();
+			return true;
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while adding war to database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Checks whether a war exists between two teams, in either direction.
+	 */
+	public boolean warExists(UUID teamA, UUID teamB) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT 1 FROM wars WHERE (declaring_team_id = ? AND receiving_team_id = ?) " +
+				"OR (declaring_team_id = ? AND receiving_team_id = ?)")) {
+			ps.setString(1, teamA.toString());
+			ps.setString(2, teamB.toString());
+			ps.setString(3, teamB.toString());
+			ps.setString(4, teamA.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while checking war existence in database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Removes a war by its two team ids.
+	 */
+	public void removeWar(UUID declaringTeamId, UUID receivingTeamId) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM wars WHERE declaring_team_id = ? AND receiving_team_id = ?")) {
+			ps.setString(1, declaringTeamId.toString());
+			ps.setString(2, receivingTeamId.toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while removing war from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// all wars, with team names joined in and display stats computed
+	public List<War> getAllWars() {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT wars.declaring_team_id, wars.receiving_team_id, wars.time_of_creation, " +
+				"declarer.name AS declaring_team_name, receiver.name AS receiving_team_name " +
+				"FROM wars " +
+				"JOIN teams declarer ON declarer.id = wars.declaring_team_id " +
+				"JOIN teams receiver ON receiver.id = wars.receiving_team_id")) {
+			try (ResultSet rs = ps.executeQuery()) {
+				List<War> wars = new ArrayList<>();
+				while (rs.next()) {
+					War war = War.fromResultSet(rs);
+					wars.add(enrichWar(war));
+				}
+				return wars;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting all wars from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// the war between two teams, if any (in either direction)
+	@javax.annotation.Nullable
+	public War getWar(UUID teamA, UUID teamB) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT wars.declaring_team_id, wars.receiving_team_id, wars.time_of_creation, " +
+				"declarer.name AS declaring_team_name, receiver.name AS receiving_team_name " +
+				"FROM wars " +
+				"JOIN teams declarer ON declarer.id = wars.declaring_team_id " +
+				"JOIN teams receiver ON receiver.id = wars.receiving_team_id " +
+				"WHERE (wars.declaring_team_id = ? AND wars.receiving_team_id = ?) " +
+				"OR (wars.declaring_team_id = ? AND wars.receiving_team_id = ?)")) {
+			ps.setString(1, teamA.toString());
+			ps.setString(2, teamB.toString());
+			ps.setString(3, teamB.toString());
+			ps.setString(4, teamA.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (!rs.next()) return null;
+				return enrichWar(War.fromResultSet(rs));
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting war from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * All wars the team is a direct participant in (declaring or receiving).
+	 * Ally-participation is included through {@link #getTeamAndAllies}.
+	 */
+	public List<War> getWarsForTeam(Team team) {
+		return getAllWars().stream()
+			.filter(war -> war.isParticipant(team.getId()))
+			.toList();
+	}
+
+	// fills in the participant/chunk/capitol counts used by the war display
+	private War enrichWar(War war) {
+		Team declaring = getTeam(war.declaringTeamId());
+		Team receiving = getTeam(war.receivingTeamId());
+		if (declaring == null || receiving == null) return war;
+
+		int declaringSidePlayers = getTeamAndAllies(declaring).stream()
+			.mapToInt(team -> getTeamMembers(team).size())
+			.sum();
+		int receivingSidePlayers = getTeamAndAllies(receiving).stream()
+			.mapToInt(team -> getTeamMembers(team).size())
+			.sum();
+
+		int receivingChunks = getTeamChunks(receiving).size();
+		int receivingCapitols = getTeamCapitolBlockCount(receiving);
+
+		return new War(
+			war.declaringTeamId(), war.receivingTeamId(), war.timeOfCreation(),
+			war.declaringTeamName(), war.receivingTeamName(),
+			declaringSidePlayers, receivingSidePlayers,
+			receivingChunks, receivingCapitols
+		);
+	}
+
+	/**
+	 * Returns the team plus all of its allies (both directions).
+	 */
+	public List<Team> getTeamAndAllies(Team team) {
+		List<Team> teams = new ArrayList<>();
+		teams.add(team);
+		for (Team ally : getAllies(team)) {
+			if (!teams.contains(ally)) teams.add(ally);
+		}
+		return teams;
+	}
+
+	/**
+	 * All teams that have an ally relationship with the given team (either direction).
+	 */
+	public List<Team> getAllies(Team team) {
+		UUID teamId = team.getId();
+		List<UUID> allyIds = new ArrayList<>();
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT ally_id FROM allies WHERE team_id = ? UNION SELECT team_id FROM allies WHERE ally_id = ?")) {
+			ps.setString(1, teamId.toString());
+			ps.setString(2, teamId.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) allyIds.add(UUID.fromString(rs.getString(1)));
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while getting allies from database.", e);
+			throw new RuntimeException(e);
+		}
+		return allyIds.stream().map(this::getTeam).filter(Objects::nonNull).toList();
+	}
+
+	/**
+	 * Declares an ally relationship between two teams (directional row; reads are bidirectional).
+	 */
+	public void addAlly(Team team, Team ally) {
+		if (team.getId().equals(ally.getId())) return;
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"INSERT OR IGNORE INTO allies (team_id, ally_id) VALUES (?, ?)")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, ally.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while adding ally to database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Removes an ally relationship between two teams (either direction).
+	 */
+	public void removeAlly(Team team, Team ally) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"DELETE FROM allies WHERE (team_id = ? AND ally_id = ?) OR (team_id = ? AND ally_id = ?)")) {
+			ps.setString(1, team.getId().toString());
+			ps.setString(2, ally.getId().toString());
+			ps.setString(3, ally.getId().toString());
+			ps.setString(4, team.getId().toString());
+			ps.execute();
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while removing ally from database.", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	// number of capitol blocks a team owns (any dimension)
+	public int getTeamCapitolBlockCount(Team team) {
+		try (PreparedStatement ps = getConnection().prepareStatement(
+			"SELECT COUNT(*) FROM capitol_blocks WHERE team_id = ?")) {
+			ps.setString(1, team.getId().toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() ? rs.getInt(1) : 0;
+			}
+		} catch (SQLException e) {
+			Capitol.LOGGER.error("Error while counting capitol blocks for team " + team.getId(), e);
+			throw new RuntimeException(e);
+		}
+	}
+
+
 	//Sable Stuff
 
 	public ClaimedSubLevel getSubLevel(UUID id) {
@@ -982,7 +1613,7 @@ public class CapitolDatabase extends Database {
 		Optional<Team> cached = subLevelOwnerCache.get(id);
 		if (cached != null) return cached.orElse(null);
 		try (PreparedStatement ps = getConnection().prepareStatement(
-			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at " +
+			"SELECT teams.id, teams.name, teams.color, teams.tag, teams.current_claims, teams.max_claims, teams.team_permissions, teams.description, teams.created_at, teams.capitol_x, teams.capitol_y, teams.capitol_z, teams.capitol_dimension " +
 				"FROM sub_levels " +
 				"JOIN teams ON teams.id = sub_levels.team_id " +
 				"WHERE sub_levels.id = ?")) {
