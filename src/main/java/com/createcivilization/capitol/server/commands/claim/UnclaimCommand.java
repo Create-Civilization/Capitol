@@ -2,10 +2,12 @@ package com.createcivilization.capitol.server.commands.claim;
 
 import com.createcivilization.capitol.common.compat.sable.SableCompat;
 import com.createcivilization.capitol.common.data.Permission;
+import com.createcivilization.capitol.common.data.SubClaim;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.managers.DatabaseManager;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
 import com.createcivilization.capitol.common.networking.packets.S2CChunkRemove;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimRemove;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
@@ -16,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.List;
 import java.util.UUID;
 
 public class UnclaimCommand {
@@ -61,13 +64,21 @@ public class UnclaimCommand {
 			return 0;
 		}
 
-		database.unclaimChunk(team, chunkPos, player.level());
+		List<SubClaim> removedSubClaims = database.unclaimChunk(team, chunkPos, player.level());
 		S2CChunkRemove packet = new S2CChunkRemove(chunkPos.toLong());
 		PacketDistributor.sendToPlayersTrackingChunk(context.getSource().getLevel(), chunkPos, packet);
+
+		for (SubClaim subClaim : removedSubClaims) {
+			PacketDistributor.sendToAllPlayers(new S2CSubClaimRemove(subClaim.id()));
+		}
 
 		context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.unclaim.success",
 			Component.literal(team.getName()).withStyle(ChatFormatting.GOLD))
 			.withStyle(ChatFormatting.GRAY), true);
+		if (!removedSubClaims.isEmpty()) {
+			context.getSource().sendSuccess(() -> Component.translatable("commands.capitol.sub_claim.removed_on_unclaim", removedSubClaims.size())
+				.withStyle(ChatFormatting.RED), true);
+		}
 		return 1;
 	}
 

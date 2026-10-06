@@ -3,6 +3,8 @@ package com.createcivilization.capitol.common.managers;
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.config.CapitolConfig;
 import com.createcivilization.capitol.common.data.Permission;
+import com.createcivilization.capitol.common.data.SubClaim;
+import com.createcivilization.capitol.common.data.SubClaimProtection;
 import com.createcivilization.capitol.common.data.Team;
 import com.createcivilization.capitol.common.data.TeamProtection;
 import com.createcivilization.capitol.common.modules.database.CapitolDatabase;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -72,6 +75,12 @@ public class ProtectionManager {
 	 */
 	static Result checkBlockAction(Player player, Block block, Permission permission, Level level, ChunkPos pos, @Nullable ResourceMatcher exceptions) {
 		if (player.hasPermissions(4)) return Result.ALLOW;
+
+		SubClaim subClaim = getSubClaimAt(level, pos);
+		if (subClaim != null) {
+			if (player instanceof FakePlayer) return resolveFakePlayer(player, level, subClaim.teamId());
+			return resolveSubClaimPermission(player, permission, subClaim);
+		}
 
 		Team team = database().getChunkOwner(pos, level);
 		if (team == null) return Result.PASS;
@@ -165,6 +174,12 @@ public class ProtectionManager {
 	public static Result checkItemUse(Player player, Item item, Level level, ChunkPos pos) {
 		if (player.hasPermissions(4)) return Result.ALLOW;
 
+		SubClaim subClaim = getSubClaimAt(level, pos);
+		if (subClaim != null) {
+			if (player instanceof FakePlayer) return resolveFakePlayer(player, level, subClaim.teamId());
+			return resolveSubClaimPermission(player, Permission.USE_ITEMS, subClaim);
+		}
+
 		Team team = database().getChunkOwner(pos, level);
 		if (team == null) return Result.PASS;
 
@@ -181,6 +196,13 @@ public class ProtectionManager {
 	 */
 	public static Result checkEntityAction(Player player, Entity target, Permission permission, Level level, ChunkPos pos) {
 		if (player.hasPermissions(4)) return Result.ALLOW;
+
+		SubClaim subClaim = getSubClaimAt(level, pos);
+		if (subClaim != null) {
+			if (player instanceof FakePlayer) return resolveFakePlayer(player, level, subClaim.teamId());
+			if (!isEntityProtected(target)) return Result.ALLOW;
+			return resolveSubClaimPermission(player, permission, subClaim);
+		}
 
 		Team team = database().getChunkOwner(pos, level);
 		if (team == null) return Result.PASS;
@@ -199,6 +221,12 @@ public class ProtectionManager {
 	public static Result checkPlayerAction(Player player, Permission permission, Level level, ChunkPos pos) {
 		if (player.hasPermissions(4)) return Result.ALLOW;
 
+		SubClaim subClaim = getSubClaimAt(level, pos);
+		if (subClaim != null) {
+			if (player instanceof FakePlayer) return resolveFakePlayer(player, level, subClaim.teamId());
+			return resolveSubClaimPermission(player, permission, subClaim);
+		}
+
 		Team team = database().getChunkOwner(pos, level);
 		if (team == null) return Result.PASS;
 
@@ -212,6 +240,12 @@ public class ProtectionManager {
 	 * Entities in the {@code ENTITIES_ALLOWED_TO_GRIEF} list bypass the protection.
 	 */
 	public static Result checkExplosion(Level level, ChunkPos pos, @Nullable Entity source) {
+		SubClaim subClaim = getSubClaimAt(level, pos);
+		if (subClaim != null) {
+			if (source != null && entitiesAllowedToGrief.matchesEntity(source.getType())) return Result.ALLOW;
+			return subClaim.hasProtection(SubClaimProtection.EXPLOSION) ? Result.DENY : Result.ALLOW;
+		}
+
 		Team team = database().getChunkOwner(pos, level);
 		if (team == null) return Result.PASS;
 
@@ -224,6 +258,11 @@ public class ProtectionManager {
 	public static Result checkFireSpread(Level level, ChunkPos targetPos) {
 		if (!CapitolConfig.PROTECT_FIRE_SPREAD.get()) return Result.PASS;
 
+		SubClaim subClaim = getSubClaimAt(level, targetPos);
+		if (subClaim != null) {
+			return subClaim.hasProtection(SubClaimProtection.FIRE) ? Result.DENY : Result.ALLOW;
+		}
+
 		Team team = database().getChunkOwner(targetPos, level);
 		if (team == null) return Result.PASS;
 
@@ -233,6 +272,12 @@ public class ProtectionManager {
 	/** Checks whether a piston at {@code pistonPos} can push into the chunk at {@code targetPos}. */
 	public static Result checkPistonCrossBoundary(Level level, ChunkPos pistonPos, ChunkPos targetPos) {
 		if (!CapitolConfig.PROTECT_PISTONS.get()) return Result.PASS;
+
+		SubClaim subClaim = getSubClaimAt(level, targetPos);
+		if (subClaim != null) {
+			return subClaim.hasProtection(SubClaimProtection.PISTON) ? Result.DENY : Result.ALLOW;
+		}
+
 		return checkCrossBoundary(level, pistonPos, targetPos);
 	}
 
@@ -242,6 +287,11 @@ public class ProtectionManager {
 	 */
 	public static Result checkFluidFlow(Level level, ChunkPos sourcePos, ChunkPos targetPos) {
 		if (!CapitolConfig.PROTECT_FLUID_FLOW.get()) return Result.PASS;
+
+		SubClaim subClaim = getSubClaimAt(level, targetPos);
+		if (subClaim != null) {
+			return subClaim.hasProtection(SubClaimProtection.FLUID_FLOW) ? Result.DENY : Result.ALLOW;
+		}
 
 		Team sourceTeam = database().getChunkOwner(sourcePos, level);
 		Team targetTeam = database().getChunkOwner(targetPos, level);
@@ -257,6 +307,12 @@ public class ProtectionManager {
 	 * Entities in the {@code ENTITIES_ALLOWED_TO_GRIEF} list always bypass the protection.
 	 */
 	public static Result checkMobGriefing(Entity entity, Level level, ChunkPos pos) {
+		SubClaim subClaim = getSubClaimAt(level, pos);
+		if (subClaim != null) {
+			if (entitiesAllowedToGrief.matchesEntity(entity.getType())) return Result.ALLOW;
+			return subClaim.hasProtection(SubClaimProtection.MOB_GRIEFING) ? Result.DENY : Result.ALLOW;
+		}
+
 		Team team = database().getChunkOwner(pos, level);
 		if (team == null) return Result.PASS;
 
@@ -268,6 +324,11 @@ public class ProtectionManager {
 	/** Checks whether a player walking over a crop in the chunk at {@code pos} should be prevented from trampling it. */
 	public static Result checkCropTrample(Level level, ChunkPos pos) {
 		if (!CapitolConfig.PROTECT_CROP_TRAMPLING.get()) return Result.PASS;
+
+		SubClaim subClaim = getSubClaimAt(level, pos);
+		if (subClaim != null) {
+			return subClaim.hasProtection(SubClaimProtection.CROP_TRAMPLING) ? Result.DENY : Result.ALLOW;
+		}
 
 		Team team = database().getChunkOwner(pos, level);
 		if (team == null) return Result.PASS;
@@ -335,10 +396,36 @@ public class ProtectionManager {
 		return DatabaseManager.database;
 	}
 
+	// fake players act as their chunk's team; allow only if it's the sub-claim's team
+	private static Result resolveFakePlayer(Player player, Level level, UUID teamId) {
+		Team sourceTeam = database().getChunkOwner(new ChunkPos(player.blockPosition()), level);
+		return sourceTeam != null && sourceTeam.getId().equals(teamId) ? Result.ALLOW : Result.DENY;
+	}
+
 	/** Resolves a fake player's effective team from its current chunk position, then checks against {@code targetTeam}. */
 	private static Result resolveFakePlayer(Player player, Level level, Team targetTeam) {
-		Team sourceTeam = database().getChunkOwner(new ChunkPos(player.blockPosition()), level);
-		return sameTeam(sourceTeam, targetTeam) ? Result.ALLOW : Result.DENY;
+		return resolveFakePlayer(player, level, targetTeam.getId());
+	}
+
+	// sub-claim at a block pos, or null
+	@Nullable
+	private static SubClaim getSubClaimAt(Level level, BlockPos pos) {
+		return database().getSubClaimAt(
+			level.dimension().location().toString(),
+			pos.getX(), pos.getY(), pos.getZ()
+		);
+	}
+
+	// chunk-level checks have no exact pos; sample the column center at y=64
+	@Nullable
+	private static SubClaim getSubClaimAt(Level level, ChunkPos pos) {
+		return getSubClaimAt(level, new BlockPos(pos.getMiddleBlockX(), 64, pos.getMiddleBlockZ()));
+	}
+
+	// sub-claim owner always has full access; everyone else uses the sub-claim bitfield
+	private static Result resolveSubClaimPermission(Player player, Permission permission, SubClaim subClaim) {
+		if (player.getUUID().equals(subClaim.ownerUuid())) return Result.ALLOW;
+		return permission.hasPermission(subClaim.permissions()) ? Result.ALLOW : Result.DENY;
 	}
 
 	/**

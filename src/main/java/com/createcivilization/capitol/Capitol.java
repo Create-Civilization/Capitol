@@ -29,6 +29,7 @@ import net.neoforged.api.distmarker.Dist;
 import com.createcivilization.capitol.client.gui.screen.CapitolBookMenuClient;
 import com.createcivilization.capitol.client.renderer.BorderRenderer;
 import com.createcivilization.capitol.client.renderer.BorderWallRenderer;
+import com.createcivilization.capitol.client.renderer.SubClaimBorderRenderer;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
@@ -62,6 +63,7 @@ public class Capitol {
 		if (FMLEnvironment.dist == Dist.CLIENT) {
 			NeoForge.EVENT_BUS.register(BorderRenderer.class);
 			NeoForge.EVENT_BUS.register(BorderWallRenderer.class);
+			NeoForge.EVENT_BUS.register(SubClaimBorderRenderer.class);
 			CapitolBookMenuClient.register();
 		}
 

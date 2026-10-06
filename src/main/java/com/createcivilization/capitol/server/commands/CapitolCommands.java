@@ -6,6 +6,7 @@ import com.createcivilization.capitol.server.commands.invite.InviteCommand;
 import com.createcivilization.capitol.server.commands.team.TeamCommand;
 import com.createcivilization.capitol.server.commands.war.WarCommand;
 import com.createcivilization.capitol.server.commands.help.HelpCommand;
+import com.createcivilization.capitol.server.commands.subclaim.SubclaimCommand;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -26,6 +27,7 @@ public class CapitolCommands {
 		registerCommand(dispatcher, UnclaimCommand.register());
 		registerCommand(dispatcher, TeamCommand.register());
 		registerCommand(dispatcher, InviteCommand.register());
+		registerCommand(dispatcher, SubclaimCommand.register());
 		registerCommand(dispatcher, WarCommand.register());
 	}
 

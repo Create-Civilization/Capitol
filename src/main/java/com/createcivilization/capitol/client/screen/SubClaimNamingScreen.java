@@ -2,9 +2,11 @@ package com.createcivilization.capitol.client.screen;
 
 import com.createcivilization.capitol.Capitol;
 import com.createcivilization.capitol.common.item.SubClaimWand;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
 import com.createcivilization.capitol.common.networking.packets.C2SDamageWand;
 
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -83,7 +85,31 @@ public class SubClaimNamingScreen extends Screen {
 		}
 
 		Capitol.LOGGER.info("Sub-claim '{}' confirmed: {} -> {}", name, this.firstPos, this.secondPos);
+
+		// the box (plus any Ctrl+scroll tweaks) already lives on the wand;
+		// read it before clearSelection wipes it
+		SubClaimWand.BoxCoords box = SubClaimWand.getBoxCoords(this.wandStack);
 		SubClaimWand.clearSelection(this.wandStack);
+
+		Minecraft mc = Minecraft.getInstance();
+		String dimension = mc.player.level().dimension().location().toString();
+
+		// just in case: never let a side drop below 1 block (scroll already handles this)
+		int minX = box.minX();
+		int minY = box.minY();
+		int minZ = box.minZ();
+		int maxX = box.maxX();
+		int maxY = box.maxY();
+		int maxZ = box.maxZ();
+		if (maxX <= minX) { int centre = (minX + maxX) / 2; minX = centre; maxX = centre + 1; }
+		if (maxY <= minY) { int centre = (minY + maxY) / 2; minY = centre; maxY = centre + 1; }
+		if (maxZ <= minZ) { int centre = (minZ + maxZ) / 2; minZ = centre; maxZ = centre + 1; }
+
+		PacketDistributor.sendToServer(new C2SCreateSubClaim(
+			name, dimension,
+			minX, minY, minZ,
+			maxX, maxY, maxZ
+		));
 		PacketDistributor.sendToServer(new C2SDamageWand());
 		onClose();
 	}
@@ -113,6 +139,14 @@ public class SubClaimNamingScreen extends Screen {
 			return true;
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	// cancelling (button or ESC) kills the whole selection — otherwise the wand stays
+	// in phase 2 and the next right-click just reopens this screen forever
+	@Override
+	public void onClose() {
+		SubClaimWand.clearSelection(this.wandStack);
+		super.onClose();
 	}
 
 	@Override

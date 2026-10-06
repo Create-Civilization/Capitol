@@ -14,6 +14,9 @@ import com.createcivilization.capitol.common.networking.packets.C2SNameCapitolBl
 import com.createcivilization.capitol.common.networking.packets.C2SCancelCapitolBlockNaming;
 import com.createcivilization.capitol.common.networking.packets.C2SSetCapitolBlockMayor;
 import com.createcivilization.capitol.common.networking.packets.C2STeamChat;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimData;
+import com.createcivilization.capitol.common.networking.packets.S2CSubClaimRemove;
+import com.createcivilization.capitol.common.networking.packets.C2SCreateSubClaim;
 import com.createcivilization.capitol.common.networking.packets.C2SUpgradeCapitolBlock;
 import com.createcivilization.capitol.common.networking.packets.C2SDeclareWar;
 import com.createcivilization.capitol.common.networking.packets.C2SEndWar;
@@ -53,10 +56,26 @@ public class CapitolNetworking {
 		);
 
 		registrar.playToClient(
+			S2CSubClaimData.TYPE,
+			S2CSubClaimData.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ClientPayloadHandler::subClaimDataHandler
+			)
+		);
+
+		registrar.playToClient(
 			S2COpenCapitolScreen.TYPE,
 			S2COpenCapitolScreen.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ClientPayloadHandler::openCapitolScreenHandler
+			)
+		);
+
+		registrar.playToClient(
+			S2CSubClaimRemove.TYPE,
+			S2CSubClaimRemove.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ClientPayloadHandler::subClaimRemoveHandler
 			)
 		);
 
@@ -89,6 +108,14 @@ public class CapitolNetworking {
 			C2SUnclaimChunk.STREAM_CODEC,
 			new MainThreadPayloadHandler<>(
 				ServerPayloadHandler::handleUnclaimChunk
+			)
+		);
+
+		registrar.playToServer(
+			C2SCreateSubClaim.TYPE,
+			C2SCreateSubClaim.STREAM_CODEC,
+			new MainThreadPayloadHandler<>(
+				ServerPayloadHandler::handleCreateSubClaim
 			)
 		);
 

@@ -44,6 +44,10 @@ public class DatabaseManager {
 			Capitol.LOGGER.error("No SQLite driver found.", e);
 		} catch (SQLException e) {
 			Capitol.LOGGER.error("Failed to initialize capitol database", e);
+			// don't leave a broken connection open
+			try {
+				if (connection != null) connection.close();
+			} catch (SQLException ignored) {}
 		}
 
 	}
@@ -141,6 +145,24 @@ public class DatabaseManager {
 					"PRIMARY KEY (team_id, ally_id)," +
 					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE," +
 					"FOREIGN KEY (ally_id) REFERENCES teams (id) ON DELETE CASCADE)"
+			);
+
+			stmt.execute(
+				"CREATE TABLE IF NOT EXISTS sub_claims (" +
+					"id TEXT PRIMARY KEY NOT NULL," +
+					"team_id TEXT NOT NULL," +
+					"name TEXT NOT NULL," +
+					"dimension TEXT NOT NULL," +
+					"min_x INTEGER NOT NULL," +
+					"min_y INTEGER NOT NULL," +
+					"min_z INTEGER NOT NULL," +
+					"max_x INTEGER NOT NULL," +
+					"max_y INTEGER NOT NULL," +
+					"max_z INTEGER NOT NULL," +
+					"owner_uuid TEXT NOT NULL," +
+					"permissions INTEGER NOT NULL DEFAULT 0," +
+					"protections INTEGER NOT NULL DEFAULT 0," +
+					"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
 			);
 
 			if(SableCompat.LOADED){
@@ -261,6 +283,45 @@ public class DatabaseManager {
 				}
 			}
 			setSchemaVersion(5);
+		}
+		if (current < 6) {
+			// sub-claim table (subclaim-branch). Fresh databases get it from createTables(),
+			// so only databases that predate it need this step.
+			if (!tableExists("sub_claims")) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute(
+						"CREATE TABLE IF NOT EXISTS sub_claims (" +
+							"id TEXT PRIMARY KEY NOT NULL," +
+							"team_id TEXT NOT NULL," +
+							"name TEXT NOT NULL," +
+							"dimension TEXT NOT NULL," +
+							"min_x INTEGER NOT NULL," +
+							"min_y INTEGER NOT NULL," +
+							"min_z INTEGER NOT NULL," +
+							"max_x INTEGER NOT NULL," +
+							"max_y INTEGER NOT NULL," +
+							"max_z INTEGER NOT NULL," +
+							"owner_uuid TEXT NOT NULL," +
+							"permissions INTEGER NOT NULL DEFAULT 0," +
+							"protections INTEGER NOT NULL DEFAULT 0," +
+							"FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE)"
+					);
+				}
+			} else {
+				// older sub_claims tables can be missing the owner/permission columns
+				if (!columnExists("sub_claims", "owner_uuid")) {
+					try (Statement stmt = connection.createStatement()) {
+						stmt.execute("ALTER TABLE sub_claims ADD COLUMN owner_uuid TEXT NOT NULL DEFAULT ''");
+						stmt.execute("ALTER TABLE sub_claims ADD COLUMN permissions INTEGER NOT NULL DEFAULT 0");
+					}
+				}
+				if (!columnExists("sub_claims", "protections")) {
+					try (Statement stmt = connection.createStatement()) {
+						stmt.execute("ALTER TABLE sub_claims ADD COLUMN protections INTEGER NOT NULL DEFAULT 0");
+					}
+				}
+			}
+			setSchemaVersion(6);
 		}
 	}
 

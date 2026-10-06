@@ -18,6 +18,8 @@ import net.minecraft.world.item.context.UseOnContext;
 
 import javax.annotation.Nullable;
 
+// the corner-flipping in BoxCoords is deliberate; silence javac's whine about the record's compact constructor
+@SuppressWarnings("deprecation")
 public class SubClaimWand extends Item {
 
 	private static final String TAG_PHASE = "Phase";
@@ -30,12 +32,80 @@ public class SubClaimWand extends Item {
 	private static final String TAG_SECOND_Y = "SecondY";
 	private static final String TAG_SECOND_Z = "SecondZ";
 
-	public static final String OFF_POS_X = "OffPosX";
-	public static final String OFF_NEG_X = "OffNegX";
-	public static final String OFF_POS_Y = "OffPosY";
-	public static final String OFF_NEG_Y = "OffNegY";
-	public static final String OFF_POS_Z = "OffPosZ";
-	public static final String OFF_NEG_Z = "OffNegZ";
+	// old keys, back when the box was stored as offsets; kept so old wands still migrate
+	private static final String OFF_POS_X = "OffPosX";
+	private static final String OFF_NEG_X = "OffNegX";
+	private static final String OFF_POS_Y = "OffPosY";
+	private static final String OFF_NEG_Y = "OffNegY";
+	private static final String OFF_POS_Z = "OffPosZ";
+	private static final String OFF_NEG_Z = "OffNegZ";
+
+	// box is stored as absolute corner coords, so any face can be pushed around freely
+	private static final String TAG_MIN_X = "BoxMinX";
+	private static final String TAG_MIN_Y = "BoxMinY";
+	private static final String TAG_MIN_Z = "BoxMinZ";
+	private static final String TAG_MAX_X = "BoxMaxX";
+	private static final String TAG_MAX_Y = "BoxMaxY";
+	private static final String TAG_MAX_Z = "BoxMaxZ";
+
+	public record BoxCoords(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+		public BoxCoords {
+			minX = Math.min(minX, maxX);
+			minY = Math.min(minY, maxY);
+			minZ = Math.min(minZ, maxZ);
+			maxX = Math.max(minX, maxX);
+			maxY = Math.max(minY, maxY);
+			maxZ = Math.max(minZ, maxZ);
+		}
+	}
+
+	// current selection box: new wands store absolute corners, old ones get converted from their offsets here
+	public static BoxCoords getBoxCoords(ItemStack stack) {
+		CompoundTag tag = readTag(stack);
+
+		if (tag.contains(TAG_MIN_X) && tag.contains(TAG_MAX_X)
+			&& tag.contains(TAG_MIN_Y) && tag.contains(TAG_MAX_Y)
+			&& tag.contains(TAG_MIN_Z) && tag.contains(TAG_MAX_Z)) {
+			return new BoxCoords(
+				tag.getInt(TAG_MIN_X), tag.getInt(TAG_MIN_Y), tag.getInt(TAG_MIN_Z),
+				tag.getInt(TAG_MAX_X), tag.getInt(TAG_MAX_Y), tag.getInt(TAG_MAX_Z)
+			);
+		}
+
+		// old format: start from the two clicked corners, then apply the stored offsets
+		BlockPos first = getFirstPos(stack);
+		BlockPos second = getSecondPos(stack);
+		if (first == null || second == null) {
+			// no corners saved yet — bail with a 1x1 box; scroll fixes it once both corners exist
+			return new BoxCoords(0, 0, 0, 1, 1, 1);
+		}
+		int minX = Math.min(first.getX(), second.getX());
+		int minY = Math.min(first.getY(), second.getY());
+		int minZ = Math.min(first.getZ(), second.getZ());
+		int maxX = Math.max(first.getX(), second.getX());
+		int maxY = Math.max(first.getY(), second.getY());
+		int maxZ = Math.max(first.getZ(), second.getZ());
+
+		minX -= tag.getInt(OFF_NEG_X);
+		maxX += tag.getInt(OFF_POS_X);
+		minY -= tag.getInt(OFF_NEG_Y);
+		maxY += tag.getInt(OFF_POS_Y);
+		minZ -= tag.getInt(OFF_NEG_Z);
+		maxZ += tag.getInt(OFF_POS_Z);
+
+		return new BoxCoords(minX, minY, minZ, maxX, maxY, maxZ);
+	}
+
+	public static void setBoxCoords(ItemStack stack, BoxCoords box) {
+		CompoundTag tag = readTag(stack);
+		tag.putInt(TAG_MIN_X, box.minX());
+		tag.putInt(TAG_MIN_Y, box.minY());
+		tag.putInt(TAG_MIN_Z, box.minZ());
+		tag.putInt(TAG_MAX_X, box.maxX());
+		tag.putInt(TAG_MAX_Y, box.maxY());
+		tag.putInt(TAG_MAX_Z, box.maxZ());
+		writeTag(stack, tag);
+	}
 
 	@FunctionalInterface
 	public interface ScreenOpener {
@@ -70,11 +140,17 @@ public class SubClaimWand extends Item {
 			return InteractionResult.PASS;
 		}
 
-		// Client side: handle selection state
+		// client side: walk the selection phases
 		ItemStack stack = ctx.getItemInHand();
 		CompoundTag tag = readTag(stack);
 		int phase = tag.getInt(TAG_PHASE);
 		BlockPos clickedPos = ctx.getClickedPos();
+
+		// shift right-click while picking = cancel everything
+		if (ctx.isSecondaryUseActive() && phase > 0) {
+			clearSelection(stack);
+			return InteractionResult.SUCCESS;
+		}
 
 		switch (phase) {
 			case 0 -> {
@@ -114,18 +190,13 @@ public class SubClaimWand extends Item {
 
 	// ── DataComponents tag helpers ─────────────────────────────────────────────
 
-	/**
-	 * Reads the CUSTOM_DATA CompoundTag from the stack, returning an empty tag if absent.
-	 * Always call writeTag() after mutating the result.
-	 */
+	// reads the stack's CUSTOM_DATA tag (empty one if there's none); if you change it, writeTag() it back
 	public static CompoundTag readTag(ItemStack stack) {
 		CustomData data = stack.get(DataComponents.CUSTOM_DATA);
 		return data != null ? data.copyTag() : new CompoundTag();
 	}
 
-	/**
-	 * Writes a CompoundTag back into the stack's CUSTOM_DATA component.
-	 */
+	// writes a tag back into the stack's CUSTOM_DATA
 	public static void writeTag(ItemStack stack, CompoundTag tag) {
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 	}
