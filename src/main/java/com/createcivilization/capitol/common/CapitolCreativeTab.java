@@ -18,7 +18,7 @@ public class CapitolCreativeTab {
 		"capitol",
 		() -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.capitol"))
-			.icon(() -> CapitolItems.SUB_CLAIM_WAND.get().getDefaultInstance())
+			.icon(() -> CapitolItems.CAPITOL_BLOCK.get().getDefaultInstance())
 			.displayItems((parameters, output) -> output.acceptAll(
 				CapitolItems.ITEMS.getEntries().stream()
 					.map(item -> item.get().getDefaultInstance())
